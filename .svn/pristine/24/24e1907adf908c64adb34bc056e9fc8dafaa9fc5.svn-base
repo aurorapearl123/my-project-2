@@ -1,0 +1,43 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">DATE FILED</td>
+		<td class="top left">ID NUMBER</td>
+		<td class="top left">EMPLOYEE</td>
+		<td class="top left">START TIME</td>
+		<td class="top left">END TIME</td>
+		<td class="top left">HOURS</td>
+		<td class="top left">REMARKS</td>
+		<td class="top left right" align="center">STATUS</td>
+	</tr>
+	<?php 
+		foreach ($records as $row) {
+		?>
+	<tr>
+		<td class="top left" nowrap><?php echo date('M d, Y', strtotime($row->dateFiled)) ?></td>
+		<td class="top left" nowrap><?php echo $row->empNo ?></td>
+		<td class="top left" nowrap><?php echo $row->lname ?>, <?php echo $row->fname ?> <?php echo $row->mname ?> <?php echo $row->suffix ?></td>
+		<td class="top left" nowrap><?php echo date('m/d/Y h:i A', strtotime($row->startTime)) ?></td>
+		<td class="top left" nowrap><?php echo date('m/d/Y h:i A', strtotime($row->endTime)) ?></td>
+		<td class="top left" nowrap><?php echo (strtotime($row->endTime) - strtotime($row->startTime)) / 60 / 60 ?></td>
+		<td class="top left" nowrap><?php echo $row->remarks ?></td>
+		<td class="top left right" align="center" nowrap>
+			<?php 
+				if ($row->status == 1) {
+					echo "<font color='blue'>Pending</font>";
+				} else if ($row->status == 2) {
+					echo "<font color='green'>Approved</font>";
+				} else if ($row->status == 0) {
+					echo "<font color='red'>Cancelled</font>";
+				} else if ($row->status == -1) {
+					echo "<font color='red'>Disapproved</font>";
+				}
+				?>
+		</td>
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="8">&nbsp;</td>
+	</tr>
+</table>

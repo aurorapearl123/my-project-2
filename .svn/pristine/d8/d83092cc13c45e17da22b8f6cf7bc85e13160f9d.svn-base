@@ -1,0 +1,228 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools">
+			<a href="<?php echo site_url('shift/show') ?>" class="btn btn-primary btn-raised btn-xs pill"><i class="icon ti-angle-left"></i> Back to List</a>
+		</div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools">
+						<ul class="tools-list">
+							<?php if ($roles['edit']) { ?>
+							<li>
+								<a href="<?php echo site_url('shift/edit/'.$this->encrypter->encode($rec->shiftID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+							</li>
+							<?php } ?>
+							<?php if ($roles['delete'] && !$in_used) { ?>
+							<li>
+								<button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->shiftID); ?>');"><i class="la la-trash-o"></i></button>
+							</li>
+							<?php } ?>
+							<?php if ($this->session->userdata('current_user')->isAdmin) { ?>
+							<li>
+								<button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/shifts/shiftID/'.$this->encrypter->encode($rec->shiftID).'/Shift') ?>', 1000, 500)"><i class="la la-server"></i></button>
+							</li>
+							<?php } ?>
+						</ul>
+					</div>
+				</div>
+				<div class="card-body">
+					<div class="data-view">
+						<table class="view-table">
+							<tbody>
+								<tr>
+									<td class="data-title" nowrap>Shift Name</td>
+									<td class="data-input" nowrap colspan="5"><?php echo $rec->shiftName?></td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>Shift Type</td>
+									<td class="data-input">
+										<?php 
+										if ($rec->shiftType=="1") {
+											echo "2 Periods";
+										} elseif ($rec->shiftType=="2") {
+											echo "1 Period";
+										} ?>
+									</td>
+									<td class="data-input" colspan="4">&nbsp;</td>
+									<td class="data-title" style="width:70%">&nbsp;</td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>First Period</td>
+									<td class="data-input" colspan="" style="width:100px">
+										<?php 
+											if($rec->in1 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->in1)); 
+											}
+										?>
+									</td>
+									<td class="data-title" style="width:20px" nowrap> &nbsp;</td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->out1 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->out1)); 
+											}
+										?>
+									</td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->startLog1 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->startLog1)); 
+											}
+										?>
+									</td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->startTardy1 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->startTardy1)); 
+											}
+										?>
+									</td>
+									<td class="data-title">&nbsp;</td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>Second Period</td>
+									<td class="data-input" colspan="" style="width:100px">
+										<?php 
+											if($rec->in2 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->in2)); 
+											}
+										?>
+									</td>
+									<td class="data-title" style="width:20px" nowrap> &nbsp; </td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->out2 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->out2)); 
+											}
+										?>
+									</td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->startLog2 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->startLog2)); 
+											}
+										?>
+									</td>
+									<td class="data-input" style="width:100px" colspan="">
+										<?php 
+											if($rec->startTardy2 != "00:00:00"){
+												echo date('h:i A', strtotime($rec->startTardy2)); 
+											}
+										?>
+									</td>
+									<td class="data-title">&nbsp;</td>
+								</tr>
+								<tr>
+									<td valign="top" nowrap>&nbsp;</td>
+									<td colspan="" style="width:10%">Time Login</td>
+									<td style="width:2%" nowrap>&nbsp;</td>
+									<td style="width:10%" colspan="">Time Logout</td>
+									<td style="width:10%" colspan="">Early Login</td>
+									<td style="width:10%" colspan="">Tardy Allowance</td>
+									<td class="data-title">&nbsp;</td>
+								</tr>
+								<tr>
+									<td class="dataLabel" valign="top" colspan="7">&nbsp;</td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top">Working Days</td>
+									<td class="data-input" valign="top" colspan="6" nowrap>
+										<table width="40%">
+											<tr>
+												<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Mon" id="Mon" value="1" <?php if($rec->Mon == 1){ echo "checked"; }?> disabled> &nbsp; Monday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Tue" id="Tue" value="1" <?php if($rec->Tue == 1){ echo "checked"; }?> disabled> &nbsp; Tuesday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Wed" id="Wed" value="1" <?php if($rec->Wed == 1){ echo "checked"; }?> disabled> &nbsp; Wednesday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Thu" id="Thu" value="1" <?php if($rec->Thu == 1){ echo "checked"; }?> disabled> &nbsp; Thursday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Fri" id="Fri" value="1" <?php if($rec->Fri == 1){ echo "checked"; }?> disabled> &nbsp; Friday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Sat" id="Sat" value="1" <?php if($rec->Sat == 1){ echo "checked"; }?> disabled> &nbsp; Saturday
+														</label>
+													</div>
+													</td>
+													<td>
+													<div class="checkbox">
+														<label>
+															<input type="checkbox"  name="Sun" id="Sun" value="1" <?php if($rec->Sun == 1){ echo "checked"; }?> disabled> &nbsp; Sunday
+														</label>
+													</div>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td class="dataLabel" valign="top" colspan="7">&nbsp;</td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>Working Hours</td>
+									<td class="data-input" colspan="5"><?php echo $rec->workHours?></td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>Remarks</td>
+									<td class="data-input" colspan="5"><?php echo $rec->remarks?></td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top" nowrap>Status</td>
+									<td class="data-input" colspan="5">
+										<?php 
+										if ($rec->status == 1) {
+											echo "<span class='badge badge-pill badge-success'>Active</span>";
+										} else {
+											echo "<span class='badge badge-pill badge-danger'>Inactive</span>";
+										}
+										?>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

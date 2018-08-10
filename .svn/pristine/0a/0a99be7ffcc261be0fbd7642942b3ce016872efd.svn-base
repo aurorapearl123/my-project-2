@@ -1,0 +1,1353 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Report_payroll extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Report';
+        $this->module_label = 'Reports';
+        $this->table        = 'payslip';
+        $this->module_path  = 'modules/Report/Payroll';
+        $this->module_path_submenu  = 'modules/Report/submenu';
+        $this->pfield = 'payslipID';
+        $this->logfield = 'empID';
+        $this->data['controller_page'] = $this->controller_page = site_url('report_payroll');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        // check roles
+        $this->roles['notice_to_credit']        = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View Notice To Credit');
+        $this->roles['remittance_premium']      = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View Premium Remittance');
+        $this->roles['remittance_loan']         = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View Loan Remittance');
+        $this->roles['remittance_tax']          = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View Withholding Tax Remittance');  
+    }
+    
+    public function index()
+    {
+        if ($this->userrole_model->has_access($this->session->userdata('current_userID'), 'View Notice To Credit')) {
+            $this->notice_to_credit();
+        } elseif ($this->userrole_model->has_access($this->session->userdata('current_userID'), 'View Premium Remittance')) {
+            $this->remittance_premium();
+        } elseif ($this->userrole_model->has_access($this->session->userdata('current_userID'), 'View Loan Remittance')) {
+            $this->remittance_loan();
+        } elseif ($this->userrole_model->has_access($this->session->userdata('current_userID'), 'View Withholding Tax Remittance')) {
+            $this->remittance_tax();
+        } else {
+            header('location: '.site_url('user/profile'));
+        }
+    }
+    
+    public function notice_to_credit($companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['required_fields'] = array('companyID'=>'Company','officeID'=>'Office','payrollPeriodID'=>'Attendance Period'
+            );
+            
+            if ($this->input->post('cmdSubmit') || $companyID  || $officeID || $payrollPeriodID) { 
+                if ($this->input->post('cmdSubmit')) {
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['payrollGroupID'] = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                    $data['payrollPeriodID']   = $this->encrypter->decode($this->input->post('payrollPeriodID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+                    $data['payrollPeriodID']   = $this->encrypter->decode($payrollPeriodID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']      = $limit;
+                    $data['offset']     = $offset;
+                }               
+                
+                // set sessions
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+                                    
+                $this->db->join('payroll','payslips.payrollID=payroll.payrollID', 'left');
+                $this->db->where('payroll.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payroll.companyID', $data['companyID']);
+                $this->db->where('payroll.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payroll.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payroll.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                // get
+                $data['ttl_rows'] = $config['total_rows'] = $this->db->count_all_results('payslips');
+                
+                $employeeTypeID = 0;
+                if (!empty($data['employeeTypeID'])) {
+                    $employeeTypeID = implode('_', $data['employeeTypeID']);
+                }
+                
+                // set pagination
+                $config['base_url']     = $this->controller_page."/notice_to_credit/".$this->encrypter->decode($data['companyID'])."/".$this->encrypter->decode($data['officeID'])."/".$this->encrypter->decode($data['divisionID'])."/".$this->encrypter->decode($data['payrollGroupID'])."/".$this->encrypter->decode($data['payrollPeriodID'])."/".$employeeTypeID."/".$data['limit']."/";
+                $config['per_page']     = $data['limit'];
+                $config['uri_segment']  = 10;
+                $this->pagination->initialize($config);         
+                
+                $this->db->select('payslips.*');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.accountNo');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('payslips');
+                $this->db->join('payroll','payslips.payrollID=payroll.payrollID', 'left');
+                $this->db->join('employments','payslips.employmentID=employments.employmentID','left');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('payroll.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payroll.companyID', $data['companyID']);
+                $this->db->where('payroll.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payroll.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payroll.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+                
+                $data['records'] = $this->db->get();
+                
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+                
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        $res['employmentNo'] = $row->employmentNo;
+                        $res['employee']    = $row->lname.', '.$row->fname.', '.$row->mname.' '.$row->suffix;
+                        $res['accountNo']   = $row->accountNo;
+                        $res['netPay']      = $row->netPay;
+                        
+                        $data['log'][$row->employmentID] = $res;
+                    }
+                }               
+                                
+            } else {
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['payrollPeriodID']    = ($this->session->userdata('current_payrollPeriodID')) ? $this->session->userdata('current_payrollPeriodID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+                
+                $this->db->where('payslipID', 0);
+                $data['records']        = $this->db->get('payslips');
+            }
+                
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/notice_to_credit");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function notice_to_credit($companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['activetab']  = 1;    // create page tab
+        $data['title']      = "Notice To Credit";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['required_fields'] = array('companyID'=>'Company','officeID'=>'Office','payrollPeriodID'=>'Attendance Period'
+            );
+            
+            if ($this->input->post('cmdSubmit') || $companyID  || $officeID || $payrollPeriodID) { 
+                if ($this->input->post('cmdSubmit')) {
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['payrollGroupID'] = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                    $data['payrollPeriodID']   = $this->encrypter->decode($this->input->post('payrollPeriodID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+                    $data['payrollPeriodID']   = $this->encrypter->decode($payrollPeriodID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']      = $limit;
+                    $data['offset']     = $offset;
+                }               
+                
+                // set sessions
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+                                    
+                $this->db->join('payroll','payslips.payrollID=payroll.payrollID', 'left');
+                $this->db->where('payroll.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payroll.companyID', $data['companyID']);
+                $this->db->where('payroll.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payroll.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payroll.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                // get
+                $data['ttl_rows'] = $config['total_rows'] = $this->db->count_all_results('payslips');
+                
+                $employeeTypeID = 0;
+                if (!empty($data['employeeTypeID'])) {
+                    $employeeTypeID = implode('_', $data['employeeTypeID']);
+                }
+                
+                // set pagination
+                $config['base_url']     = $this->controller_page."/notice_to_credit/".$this->encrypter->decode($data['companyID'])."/".$this->encrypter->decode($data['officeID'])."/".$this->encrypter->decode($data['divisionID'])."/".$this->encrypter->decode($data['payrollGroupID'])."/".$this->encrypter->decode($data['payrollPeriodID'])."/".$employeeTypeID."/".$data['limit']."/";
+                $config['per_page']     = $data['limit'];
+                $config['uri_segment']  = 10;
+                $this->pagination->initialize($config);         
+                
+                $this->db->select('payslips.*');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.accountNo');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('payslips');
+                $this->db->join('payroll','payslips.payrollID=payroll.payrollID', 'left');
+                $this->db->join('employments','payslips.employmentID=employments.employmentID','left');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('payroll.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payroll.companyID', $data['companyID']);
+                $this->db->where('payroll.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payroll.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payroll.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+                
+                $data['records'] = $this->db->get();
+                
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+                
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        $res['employmentNo'] = $row->employmentNo;
+                        $res['employee']    = $row->lname.', '.$row->fname.', '.$row->mname.' '.$row->suffix;
+                        $res['accountNo']   = $row->accountNo;
+                        $res['netPay']      = $row->netPay;
+                        
+                        $data['log'][$row->employmentID] = $res;
+                    }
+                }               
+                                
+            } else {
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['payrollPeriodID']    = ($this->session->userdata('current_payrollPeriodID')) ? $this->session->userdata('current_payrollPeriodID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+                
+                $this->db->where('payslipID', 0);
+                $data['records']        = $this->db->get('payslips');
+            }
+                
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/notice_to_credit");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function tax_alpha_list($companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['activetab']  = 1;    // create page tab
+        $data['title']      = "Tax Alpha List";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['required_fields'] = array('companyID'=>'Company','officeID'=>'Office','year'=>'Year'
+            );
+                
+            if ($this->input->post('cmdSubmit') || $companyID  || $officeID || $payrollPeriodID) {
+                if ($this->input->post('cmdSubmit')) {
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['year']           = $this->input->post('year');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']      = $limit;
+                    $data['offset']     = $offset;
+                }
+    
+                // set sessions
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+                    
+                $this->db->select('employments.employmentID');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employees.tin');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.accountNo');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('employments.companyID', $data['companyID']);
+                $this->db->where('employments.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('employments.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('employments.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+    
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+    
+                $records = $this->db->get('employments')->result();
+    
+                $data['records'] = array();
+                foreach ($records as $record) {
+                    $info = array();
+                    $info['tin']  = $record->tin;
+                    $info['name'] = $record->lname.', '.$record->fname.' '.$record->mname.' '.$record->suffix;
+                    $info['total'] = 0;
+                    $info['tax']  = array();
+                    
+                    for ($i = 1; $i <= 12; $i++) {
+                        $this->db->select_sum('payslip_deductions.amount');
+                        $this->db->from('payslip_deductions');
+                        $this->db->join('payslips', 'payslip_deductions.payslipID=payslips.payslipID');
+                        $this->db->join('payroll', 'payslips.payrollID=payroll.payrollID');
+                        $this->db->join('payroll_periods', 'payroll.payrollPeriodID=payroll_periods.payrollPeriodID');
+                        $this->db->where('payslip_deductions.type', 1);
+                        $this->db->where('payslips.employmentID', $record->employmentID);
+                        $this->db->where('payslips.status >=', 0);
+                        $this->db->like('payroll_periods.startDate', $data['year'].'-'.str_pad($i, 2, 0, STR_PAD_LEFT));
+                        $this->db->like('payroll_periods.endDate', $data['year'].'-'.str_pad($i, 2, 0, STR_PAD_LEFT));
+                        $payslip =  $this->db->get()->row();
+                        
+                        $info['tax'][$i] = (!empty($payslip->amount)) ? $payslip->amount : 0;
+                        $info['total']+= (!empty($payslip->amount)) ? $payslip->amount : 0;
+                    }
+                    
+                    $data['records'][] = $info;
+                }
+            } else {
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+    
+                $this->db->where('employmentID', 0);
+                $data['records']        = $this->db->get('employments');
+            }
+    
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/tax_alpha_list");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_notice_to_credit($companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['title']      = "Summary of Tardiness";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['companyID']      = $this->encrypter->decode($companyID);
+            $data['officeID']       = $this->encrypter->decode($officeID);
+            $data['divisionID']     = $this->encrypter->decode($divisionID);
+            $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+            $data['payrollPeriodID']   = $this->encrypter->decode($payrollPeriodID);
+            $data['employeeTypeID'] = explode('_',$employeeTypeID);
+    
+            $employeeTypeID = 0;
+            if (!empty($data['employeeTypeID'])) {
+                $employeeTypeID = implode('_', $data['employeeTypeID']);
+            }
+            
+            $this->db->select('payslips.*');
+            $this->db->select('employments.employmentNo');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.suffix');
+            $this->db->select('employments.lname');
+            $this->db->select('employments.mname');
+            $this->db->select('employments.accountNo');
+            $this->db->select('job_positions.positionCode');
+            $this->db->select('job_titles.jobTitle');
+            $this->db->from('payslips');
+            $this->db->join('payroll','payslips.payrollID=payroll.payrollID', 'left');
+            $this->db->join('employments','payslips.employmentID=employments.employmentID','left');
+            $this->db->join('employees','employments.empID=employees.empID','left');
+            $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+            $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+            $this->db->where('payroll.payrollPeriodID', $data['payrollPeriodID']);
+            $this->db->where('payroll.companyID', $data['companyID']);
+            $this->db->where('payroll.officeID', $data['officeID']);
+            if ($data['divisionID']) {
+                $this->db->where('payroll.divisionID', $data['divisionID']);
+            }
+            if ($data['payrollGroupID']) {
+                $this->db->where('payroll.payrollGroupID', $data['payrollGroupID']);
+            }
+            if (!empty($data['employeeTypeID'])) {
+                $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+            }
+            //$this->db->where('payslips.status', 2);
+            
+            $data['records'] = $this->db->get();
+            
+            // analyze attendance
+            $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+            $payroll = $this->db->get('payroll_periods', 1)->row();
+            
+            $start      = strtotime($payroll->startDate);
+            $end        = strtotime($payroll->endDate);
+            $data['log']= array();
+                
+            if ($data['records']->num_rows()) {
+                foreach ($data['records']->result() as $row) {
+                    $res['employmentNo'] = $row->employmentNo;
+                    $res['employee']    = $row->lname.', '.$row->fname.', '.$row->mname.' '.$row->suffix;
+                    $res['accountNo']   = $row->accountNo;
+                    $res['netPay']      = $row->netPay;
+                    
+                    $data['log'][$row->employmentID] = $res;
+                }
+            }   
+    
+            $this->db->where('companyID', $data['companyID']);
+            $company = $this->db->get('companies', 1)->row();
+    
+            $this->db->where('officeID', $data['officeID']);
+            $office = $this->db->get('offices', 1)->row();
+    
+            $this->db->where('divisionID', $data['divisionID']);
+            $division = $this->db->get('divisions', 1)->row();
+    
+            $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+            $payroll = $this->db->get('payroll_periods', 1)->row();
+    
+            $data['pdf_paging'] = TRUE;
+            $data['title']      = "NOTICE TO CREDIT";
+            $data['modulename'] = "NOTICE TO CREDIT";
+            $data['subnote']    = $office->officeName;
+            if (!empty($division)) {
+                $data['subnote2']   = $division->divisionName;
+                $data['subnote3']   = $payroll->payrollPeriod;
+            } else {
+                $data['subnote2']   = $payroll->payrollPeriod;
+            }
+    
+            // load pdf class
+            $this->load->library('mpdf');
+            // load pdf class
+            $this->mpdf->mpdf('en-GB',array(215.9,330.2),10,'Garamond',10,10,25,10,0,0,'P');
+            $this->mpdf->setTitle($data['title']);
+            $this->mpdf->SetDisplayMode('fullpage');
+            $this->mpdf->shrink_tables_to_fit = 1;
+            $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+            $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+            $this->mpdf->watermarkImageAlpha = 0.1;
+            $this->mpdf->watermarkImgBehind = TRUE;
+            $this->mpdf->showWatermarkImage = TRUE;
+    
+            // content
+            $header = $this->load->view('print_pdf_header', $data, TRUE);
+            $this->mpdf->SetHTMLHeader($header);
+    
+            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+            $this->mpdf->SetHTMLFooter($footer);
+    
+            $html   = $this->load->view($this->module_path.'/print_notice_to_credit', $data, TRUE);
+            $this->mpdf->WriteHTML($html);
+    
+            $this->mpdf->Output("NOTICE_TO_CREDIT.pdf","I");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_tax_alpha_list($companyID = 0, $officeID = 0, $divisionID = 0, $year = 0, $employeeTypeID = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['title']      = "Tax Alpha List";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['companyID']      = $this->encrypter->decode($companyID);
+            $data['officeID']       = $this->encrypter->decode($officeID);
+            $data['divisionID']     = $this->encrypter->decode($divisionID);
+            $data['year']          = $year;
+            $data['employeeTypeID'] = explode('_',$employeeTypeID);
+    
+            $employeeTypeID = 0;
+            if (!empty($data['employeeTypeID'])) {
+                $employeeTypeID = implode('_', $data['employeeTypeID']);
+            }
+                
+            $this->db->select('employments.employmentID');
+            $this->db->select('employments.employmentNo');
+            $this->db->select('employees.tin');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.suffix');
+            $this->db->select('employments.lname');
+            $this->db->select('employments.mname');
+            $this->db->select('employments.accountNo');
+            $this->db->select('job_positions.positionCode');
+            $this->db->select('job_titles.jobTitle');
+            $this->db->join('employees','employments.empID=employees.empID','left');
+            $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+            $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+            $this->db->where('employments.companyID', $data['companyID']);
+            $this->db->where('employments.officeID', $data['officeID']);
+            if ($data['divisionID']) {
+                $this->db->where('employments.divisionID', $data['divisionID']);
+            }
+            if ($data['payrollGroupID']) {
+                $this->db->where('employments.payrollGroupID', $data['payrollGroupID']);
+            }
+            if (!empty($data['employeeTypeID'])) {
+                $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+            }
+            //$this->db->where('payslips.status', 2);
+
+            if ($data['limit']) {
+                if ($data['offset']) {
+                    $this->db->limit($data['limit'],$data['offset']);
+                } else {
+                    $this->db->limit($data['limit']);
+                }
+            }
+
+            $records = $this->db->get('employments')->result();
+
+            $data['records'] = array();
+            foreach ($records as $record) {
+                $info = array();
+                $info['tin']  = $record->tin;
+                $info['name'] = $record->lname.', '.$record->fname.' '.$record->mname.' '.$record->suffix;
+                $info['total'] = 0;
+                $info['tax']  = array();
+                
+                for ($i = 1; $i <= 12; $i++) {
+                    $this->db->select_sum('payslip_deductions.amount');
+                    $this->db->from('payslip_deductions');
+                    $this->db->join('payslips', 'payslip_deductions.payslipID=payslips.payslipID');
+                    $this->db->join('payroll', 'payslips.payrollID=payroll.payrollID');
+                    $this->db->join('payroll_periods', 'payroll.payrollPeriodID=payroll_periods.payrollPeriodID');
+                    $this->db->where('payslip_deductions.type', 1);
+                    $this->db->where('payslips.employmentID', $record->employmentID);
+                    $this->db->where('payslips.status >=', 0);
+                    $this->db->like('payroll_periods.startDate', $data['year'].'-'.str_pad($i, 2, 0, STR_PAD_LEFT));
+                    $this->db->like('payroll_periods.endDate', $data['year'].'-'.str_pad($i, 2, 0, STR_PAD_LEFT));
+                    $payslip =  $this->db->get()->row();
+                    
+                    $info['tax'][$i] = (!empty($payslip->amount)) ? $payslip->amount : 0;
+                    $info['total']+= (!empty($payslip->amount)) ? $payslip->amount : 0;
+                }
+                
+                $data['records'][] = $info;
+            }
+    
+            $this->db->where('companyID', $data['companyID']);
+            $company = $this->db->get('companies', 1)->row();
+    
+            $this->db->where('officeID', $data['officeID']);
+            $office = $this->db->get('offices', 1)->row();
+    
+            $this->db->where('divisionID', $data['divisionID']);
+            $division = $this->db->get('divisions', 1)->row();
+    
+            $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+            $payroll = $this->db->get('payroll_periods', 1)->row();
+    
+            $data['pdf_paging'] = TRUE;
+            $data['title']      = "TAX ALPHA LIST";
+            $data['modulename'] = "TAX ALPHA LIST";
+            $data['subnote']    = $office->officeName;
+            if (!empty($division)) {
+                $data['subnote2']   = $division->divisionName;
+                $data['subnote3']   = $payroll->payrollPeriod;
+            } else {
+                $data['subnote2']   = $payroll->payrollPeriod;
+            }
+    
+            // load pdf class
+            $this->load->library('mpdf');
+            // load pdf class
+            $this->mpdf->mpdf('en-GB',array(215.9,330.2),10,'Garamond',10,10,25,10,0,0,'L');
+            $this->mpdf->setTitle($data['title']);
+            $this->mpdf->SetDisplayMode('fullpage');
+            $this->mpdf->shrink_tables_to_fit = 1;
+            $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+            $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+            $this->mpdf->watermarkImageAlpha = 0.1;
+            $this->mpdf->watermarkImgBehind = TRUE;
+            $this->mpdf->showWatermarkImage = TRUE;
+    
+            // content
+            $header = $this->load->view('print_pdf_header', $data, TRUE);
+            $this->mpdf->SetHTMLHeader($header);
+    
+            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+            $this->mpdf->SetHTMLFooter($footer);
+    
+            $html   = $this->load->view($this->module_path.'/print_tax_alpha_list', $data, TRUE);
+            $this->mpdf->WriteHTML($html);
+    
+            $this->mpdf->Output("TAX_ALPHA_LIST.pdf","I");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function remittance_premium($premiumID = 0, $companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['activetab']  = 1;    // create page tab
+        $data['title']      = "Premium Remittance";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['required_fields'] = array('premiumID'=>'Premium','companyID'=>'Company','officeID'=>'Office','payrollPeriodID'=>'Attendance Period'
+            );
+            
+            if ($this->input->post('cmdSubmit') || $premiumID || $companyID  || $officeID || $payrollPeriodID) { 
+                if ($this->input->post('cmdSubmit')) {
+                    $data['premiumID']      = $this->encrypter->decode($this->input->post('premiumID'));
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['payrollGroupID'] = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                    $data['payrollPeriodID']    = $this->encrypter->decode($this->input->post('payrollPeriodID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['premiumID']      = $this->encrypter->decode($premiumID);
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+                    $data['payrollPeriodID']    = $this->encrypter->decode($payrollPeriodID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']          = $limit;
+                    $data['offset']         = $offset;
+                }               
+                
+                // set sessions
+                $this->session->set_userdata('current_premiumID', $data['premiumID']);
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+                
+                $this->db->where('premiumID', $premiumID);
+                $data['premium'] = $this->db->get('premiums', 1)->row();
+                                                
+                $this->db->where('payslips.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payslips.companyID', $data['companyID']);
+                $this->db->where('payslips.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payslips.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payslips.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                // get
+                $data['ttl_rows'] = $config['total_rows'] = $this->db->count_all_results('payslips');
+                
+                $employeeTypeID = 0;
+                if (!empty($data['employeeTypeID'])) {
+                    $employeeTypeID = implode('_', $data['employeeTypeID']);
+                }
+                
+                // set pagination
+                $config['base_url']     = $this->controller_page."/remittance_premium/".$this->encrypter->decode($data['premiumID'])."/".$this->encrypter->decode($data['companyID'])."/".$this->encrypter->decode($data['officeID'])."/".$this->encrypter->decode($data['divisionID'])."/".$this->encrypter->decode($data['payrollGroupID'])."/".$this->encrypter->decode($data['payrollPeriodID'])."/".$employeeTypeID."/".$data['limit']."/";
+                $config['per_page']     = $data['limit'];
+                $config['uri_segment']  = 10;
+                $this->pagination->initialize($config);         
+                
+                $this->db->select('payslips.*');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.accountNo');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('payslips');
+                $this->db->join('employments','payslips.employmentID=employments.employmentID','left');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('payslips.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payslips.companyID', $data['companyID']);
+                $this->db->where('payslips.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payslips.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payslips.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+                
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+                
+                $data['records'] = $this->db->get();
+                
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+                
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        // get contribution
+                        $this->db->where('payslipID', $row->payslipID);
+                        $this->db->where('premiumID', $premiumID);
+                        $contributions = $this->db->get('payslip_contributions');
+                        
+                        if ($contributions->num_rows()) {
+                            $res['employmentNo']        = $row->employmentNo;
+                            $res['employee']            = $row->lname.', '.$row->fname.', '.$row->mname.' '.$row->suffix;
+                            $res['accountNo']           = $row->accountNo;
+                            $res['employeeShare']       = 0;
+                            $res['employerShare']       = 0;
+                            $res['totalContribution']  += 0;
+                            
+                            foreach ($contributions->result() as $pay) {
+                                $res['employeeShare']       += $pay->employeeShare;
+                                $res['employerShare']       += $pay->employerShare;
+                                $res['totalContribution']   += $pay->totalContribution;
+                            }
+                            
+                            $data['log'][$row->employmentID] = $res;
+                        }
+                    }
+                }               
+                                
+            } else {
+                $data['premiumID']      = ($this->session->userdata('current_premiumID')) ? $this->session->userdata('current_premiumID') : 0;
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['payrollPeriodID']    = ($this->session->userdata('current_payrollPeriodID')) ? $this->session->userdata('current_payrollPeriodID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+                
+                $this->db->where('payrollPeriodID', 0);
+                $data['records']        = $this->db->get('payslips');
+            }
+                
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/remittance_premium");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function remittance_loan($loanTypeID = 0, $companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['activetab']  = 1;    // create page tab
+        $data['title']      = "Loan Remittance";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['notice_to_credit']) {
+            $data['required_fields'] = array('loanTypeID'=>'Loan Type','companyID'=>'Company','officeID'=>'Office','payrollPeriodID'=>'Attendance Period'
+            );
+                
+            if ($this->input->post('cmdSubmit') || $loanTypeID || $companyID  || $officeID || $payrollPeriodID) {
+                if ($this->input->post('cmdSubmit')) {
+                    $data['loanTypeID']     = $this->encrypter->decode($this->input->post('loanTypeID'));
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['payrollGroupID'] = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                    $data['payrollPeriodID']    = $this->encrypter->decode($this->input->post('payrollPeriodID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['loanTypeID']     = $this->encrypter->decode($loanTypeID);
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+                    $data['payrollPeriodID']    = $this->encrypter->decode($payrollPeriodID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']          = $limit;
+                    $data['offset']         = $offset;
+                }
+    
+                // set sessions
+                $this->session->set_userdata('current_loanTypeID', $data['loanTypeID']);
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+    
+                $this->db->where('loanTypeID', $loanTypeID);
+                $data['loan_type'] = $this->db->get('loan_types', 1)->row();
+    
+                $this->db->where('payslips.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payslips.companyID', $data['companyID']);
+                $this->db->where('payslips.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payslips.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payslips.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+    
+                // get
+                $data['ttl_rows'] = $config['total_rows'] = $this->db->count_all_results('payslips');
+    
+                $employeeTypeID = 0;
+                if (!empty($data['employeeTypeID'])) {
+                    $employeeTypeID = implode('_', $data['employeeTypeID']);
+                }
+    
+                // set pagination
+                $config['base_url']     = $this->controller_page."/remittance_loan/".$this->encrypter->decode($data['premiumID'])."/".$this->encrypter->decode($data['companyID'])."/".$this->encrypter->decode($data['officeID'])."/".$this->encrypter->decode($data['divisionID'])."/".$this->encrypter->decode($data['payrollGroupID'])."/".$this->encrypter->decode($data['payrollPeriodID'])."/".$employeeTypeID."/".$data['limit']."/";
+                $config['per_page']     = $data['limit'];
+                $config['uri_segment']  = 10;
+                $this->pagination->initialize($config);
+    
+                $this->db->select('payslips.*');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.accountNo');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('payslips');
+                $this->db->join('employments','payslips.employmentID=employments.employmentID','left');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('payslips.payrollPeriodID', $data['payrollPeriodID']);
+                $this->db->where('payslips.companyID', $data['companyID']);
+                $this->db->where('payslips.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('payslips.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('payslips.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('payslips.employeeTypeID', $data['employeeTypeID']);
+                }
+                //$this->db->where('payslips.status', 2);
+    
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+    
+                $data['records'] = $this->db->get();
+    
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+    
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        // get contribution
+                        $this->db->where('payslipID', $row->payslipID);
+                        $this->db->where('deductionID', $loanTypeID);
+                        $this->db->where('type', 2);                        
+                        $contributions = $this->db->get('payslip_deductions');
+    
+                        if ($contributions->num_rows()) {
+                            $res['employmentNo']= $row->employmentNo;
+                            $res['employee']    = $row->lname.', '.$row->fname.', '.$row->mname.' '.$row->suffix;
+                            $res['accountNo']   = $row->accountNo;
+                            $res['amount']      = 0;                            
+                                
+                            foreach ($contributions->result() as $pay) {
+                                $res['amount']  += $pay->amount;                                
+                            }
+                                
+                            $data['log'][$row->employmentID] = $res;
+                        }
+                    }
+                }
+    
+            } else {
+                $data['loanTypeID']     = ($this->session->userdata('current_loanTypeID')) ? $this->session->userdata('current_loanTypeID') : 0;
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['payrollPeriodID']        = ($this->session->userdata('current_payrollPeriodID')) ? $this->session->userdata('current_payrollPeriodID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+    
+                $this->db->where('payrollPeriodID', 0);
+                $data['records']        = $this->db->get('payslips');
+            }
+    
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/remittance_loan");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function undertime_summary($companyID = 0, $officeID = 0, $divisionID = 0, $payrollPeriodID = 0, $payrollGroupID = 0, $employeeTypeID = 0, $limit = 100, $offset = 0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        $data['activetab']  = 1;    // create page tab
+        $data['title']      = "Summary of Undertime";
+        // **************************************************
+    
+        // check roles
+        if ($this->roles['undertime_summary']) {
+            $data['required_fields'] = array('companyID'=>'Company','officeID'=>'Office','payrollPeriodID'=>'Attendance Period'
+            );
+    
+            if ($this->input->post('cmdSubmit') || $companyID  || $officeID || $payrollPeriodID) {
+                if ($this->input->post('cmdSubmit')) {
+                    $data['companyID']      = $this->encrypter->decode($this->input->post('companyID'));
+                    $data['officeID']       = $this->encrypter->decode($this->input->post('officeID'));
+                    $data['divisionID']     = $this->encrypter->decode($this->input->post('divisionID'));
+                    $data['payrollGroupID'] = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                    $data['payrollPeriodID']   = $this->encrypter->decode($this->input->post('payrollPeriodID'));
+                    $data['employeeTypeID'] = $this->input->post('employeeTypeID');
+                    $data['limit']          = $this->input->post('limit');
+                    $data['offset']         = 0;
+                } else {
+                    $data['companyID']      = $this->encrypter->decode($companyID);
+                    $data['officeID']       = $this->encrypter->decode($officeID);
+                    $data['divisionID']     = $this->encrypter->decode($divisionID);
+                    $data['payrollGroupID'] = $this->encrypter->decode($payrollGroupID);
+                    $data['payrollPeriodID']   = $this->encrypter->decode($payrollPeriodID);
+                    $data['employeeTypeID'] = explode('_',$employeeTypeID);
+                    $data['limit']      = $limit;
+                    $data['offset']     = $offset;
+                }
+    
+                // set sessions
+                $this->session->set_userdata('current_companyID', $data['companyID']);
+                $this->session->set_userdata('current_officeID', $data['officeID']);
+                $this->session->set_userdata('current_divisionID', $data['divisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_payrollPeriodID', $data['payrollPeriodID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                $this->session->set_userdata('current_limit', $data['limit']);
+                $this->session->set_userdata('current_offset', $data['offset']);
+    
+                $this->db->where('employments.companyID', $data['companyID']);
+                $this->db->where('employments.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('employments.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('employments.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                }
+                $this->db->where('employments.isBiometric', 1);
+                $this->db->where('employments.status', 1);
+    
+                // get
+                $data['ttl_rows'] = $config['total_rows'] = $this->db->count_all_results('employments');
+                
+                $employeeTypeID = 0;
+                if (!empty($data['employeeTypeID'])) {
+                    $employeeTypeID = implode('_', $data['employeeTypeID']);
+                }
+                
+                // set pagination
+                $config['base_url']     = $this->controller_page."/undertime_summary/".$this->encrypter->decode($data['companyID'])."/".$this->encrypter->decode($data['officeID'])."/".$this->encrypter->decode($data['divisionID'])."/".$this->encrypter->decode($data['payrollGroupID'])."/".$this->encrypter->decode($data['payrollPeriodID'])."/".$employeeTypeID."/".$data['limit']."/";
+                $config['per_page']     = $data['limit'];
+                $config['uri_segment']  = 10;
+                $this->pagination->initialize($config);
+    
+                $this->db->select('employments.*');
+                $this->db->select('employees.empNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('employments');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('employments.companyID', $data['companyID']);
+                $this->db->where('employments.officeID', $data['officeID']);
+                if ($data['divisionID']) {
+                    $this->db->where('employments.divisionID', $data['divisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('employments.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                }
+                $this->db->where('employments.isBiometric', 1);
+                $this->db->where('employments.status', 1);
+    
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+    
+                $data['records'] = $this->db->get();
+    
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['payrollPeriodID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+    
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        $res = array();
+                        $res['employmentID']= $row->employmentID;
+                        $res['empNo']       = $row->empNo;
+                        $res['employee']    = $row->lname.', '.$row->fname.' '.substr($row->mname, 0, 1).' '.$row->suffix;
+                        $res['position']    = $row->jobTitle;
+                        $res['basicSalary'] = $row->basicSalary;
+                        $res['ut_count']    = 0;
+                        $res['ut_min']      = 0;
+                        $res['ut_date']     = "";
+                        for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                            $dtr = $this->dtrlog->analyze($row->employmentID, $current);
+    
+                            if (!empty ($dtr)) {
+                                foreach ($dtr as $info) { $att[] = $dtr;
+                                    if (strlen($info['ut_date']) > 4) {
+                                        $res['ut_count']  += 2;
+                                    } elseif (intval($info['ut_date']) > 0) {
+                                        $res['ut_count']  += 1;
+                                    }
+                                    $res['ut_min']    += intval($info['undertime']);
+                                    $res['ut_date']   .= ($info['ut_date']) ? ' '.$info['ut_date'] : '';
+                                }
+                            }
+                        }
+                        $data['log'][] = $res;
+                    }
+                }
+    
+                // sorting
+                for($r=0; $r<count($data['log']); $r++) {
+                    for($c=$r+1; $c<count($data['log']); $c++) {
+                        if ($data['log'][$r]['ut_count'] < $data['log'][$c]['ut_count']) {
+                            // swap
+                            $temp = array();
+                            $temp = $data['log'][$r];
+                            $data['log'][$r] = $data['log'][$c];
+                            $data['log'][$c] = $temp;
+                        }
+                    }
+                }
+            } else {
+                $data['companyID']      = ($this->session->userdata('current_companyID')) ? $this->session->userdata('current_companyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_officeID')) ? $this->session->userdata('current_officeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_divisionID')) ? $this->session->userdata('current_divisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['payrollPeriodID']    = ($this->session->userdata('current_payrollPeriodID')) ? $this->session->userdata('current_payrollPeriodID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+                $data['limit']          = ($this->session->userdata('current_limit')) ? $this->session->userdata('current_limit') : 25;
+                $data['offset']         = ($this->session->userdata('current_offset')) ? $this->session->userdata('current_offset') : 0;
+    
+                $this->db->where('payrollPeriodID', 0);
+                $data['records']        = $this->db->get('attendance');
+            }
+    
+            // load views
+            $this->load->view("header", $data);
+            $this->load->view($this->module_path."/undertime_summary");
+            $this->load->view("footer");
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+}

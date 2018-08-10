@@ -1,0 +1,196 @@
+
+<!-- Content Start -->
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+
+
+
+			<!-- Card Box Start -->
+			<div class="card-box">
+
+
+				<!-- Card Header Start -->
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Add New Recipient</h4>
+						</div>
+					</div>
+					<div class="card-head-tools">
+
+					</div>
+				</div>
+				<!-- Card Header End -->
+				
+
+				<!-- Card Body Start -->
+				<div class="card-body">
+
+
+
+
+
+
+					<!-- Submit Entry Start -->
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page ?>/save_recipient" >
+						<input type="hidden" id="orderID" name="orderID" value="<?php echo $orderID ?>" />
+						<input type="hidden" id="pageType" name="pageType" value="<?php echo $pageType ?>" />
+						<input type="hidden" id="totalDays" name="totalDays" value="0" />
+					</form>
+					<!-- Submit Entry End -->
+
+
+
+
+					<!-- Employee Form Start -->
+					<div class="datatables_wrapper">
+						<div class="">
+							<form method="post" name="frmAdd1" id="frmAdd1" >
+								<input type="hidden" name="sessionSet" id="sessionSet" value="employees" />
+								<input type="hidden" name="employment" id="employment" value=""/>
+								<input type="hidden" name="empCompanyID" id="empCompanyID" value=""/>
+								<input type="hidden" name="empBranchID" id="empBranchID" value=""/>
+								<input type="hidden" name="employeename" id="employeename" value=""/>
+								<table class="table">
+									<thead class="thead">
+										<tr>
+											<th class="w-25" align="center" nowrap>Employee <span class="asterisk">*</span></th>
+											<th class="w-25" align="center" nowrap>Employment <span class="asterisk">*</span></th>
+											<th class="w-25" align="center" nowrap></th>
+											<th  class="w-25" align="center" nowrap></th>
+										</tr>
+										<tr>
+											<th>
+												<select name="empID" id="empID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="get_employments();" title="Employee" required>
+													<option value="" selected>&nbsp;</option>
+													<?php           
+													$this->db->where('status', 1);
+													$results = $this->db->get('employees')->result();
+													foreach($results as $res){
+														?>
+														<option value="<?php echo $res->empID ?>"><?php echo $res->lname.', '.$res->fname.' '.$res->mname." (".$res->empNo.")" ?></option>
+													<?php }?>
+												</select>
+											</th>
+											<th >
+												<select name="employmentID" id="employmentID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="setEmployment();" title="Employment" required>
+													<option value="" selected>&nbsp;</option>
+													<?php           
+													$this->db->where('status', 1);
+													$results = $this->db->get('employments')->result();
+													foreach($results as $res){
+														?>
+														<option value="<?php echo $res->employmentID ?>"><?php echo $res->employmentNo ?></option>
+													<?php }?>
+												</select>
+											</th>
+
+											<th>
+												<input type="button" class="btn btn-xs btn-primary pill" name="cmdSubmit" id="cmdSubmit" value=" Add Employee " onclick="add_session_item('frmAdd1', 'empID,employeename,employmentID,employment,empCompanyID,empBranchID', 'div_items3', 1, 'empID','','',1,'employmentID','');"/>
+											</th>
+											<th></th>
+											<th></th>
+										</tr>
+
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+
+							</form>
+						</div>
+					</div>
+
+
+					<div class="subtitle mt-20">
+						<h5 class="title mr-auto"></h5>
+						<div class="subtitle-tools">
+						</div>
+					</div>
+					<div class="datatables_wrapper">
+						<div id="div_items3" class="">
+							<table class="table">
+								<thead class="thead-light">
+									<tr>
+										<th class="w-50">Employee</th>
+										<th class="w-50">Employment</th>
+									</tr>
+								</thead>
+
+							</table>
+						</div>
+					</div>
+									<!-- Card footer start -->
+				<div class="form-sepator solid"></div>
+				<div class="form-group mb-0">
+					<button class="btn btn-xs btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave" onclick="save();">
+						Save
+					</button>
+					<input type="button" id="cmdCancel" class="btn btn-xs btn-outline-danger btn-raised pill" value="Cancel" onclick="cancelAction('<?php echo $controller_page ?>','show');"/>
+				</div>
+				<!-- Card footer end -->
+
+				</div>
+				<!-- Employee Form End -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			</div><!-- Card Body End -->
+		</div>
+	</div>
+</div>
+</div><!-- Content End -->
+
+
+
+
+
+
+
+<script>
+//Add Recipient JS
+var site_url = '<?php echo site_url(); ?>';
+
+<?php
+echo "\n";
+$parameters = array('empID');
+echo $this->htmlhelper->get_json_select('get_employments', $parameters, site_url('generic_ajax/get_employments'), 'employmentID', '') ;
+?>
+
+function setEmployment()
+{
+	console.log($('#empID option:selected').val(), '-', $('#employmentID').val());
+	$('#employment').val($('#employmentID option:selected').text());
+	$('#employeename').val($('#empID option:selected').text());
+
+	if ($('#employmentID').val() !="") {
+		$.post(site_url+"/sessionmanager/getJSON/employments/employmentID", { 
+			employmentID: $('#employmentID').val()},
+			function(data){ 
+				$('#empCompanyID').val(data.companyID);
+				$('#empBranchID').val(data.branchID);	
+			}, "json");
+	} else {
+		$('#emp_companyID').val("");
+		$('#emp_branchID').val("");
+	}
+}
+
+
+function save() {
+	$('#frmEntry').submit();
+}
+</script>

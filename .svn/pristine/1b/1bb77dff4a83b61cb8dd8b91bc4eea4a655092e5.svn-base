@@ -1,0 +1,44 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">SERIES</td>
+		<td class="top left">DATE FILED</td>
+		<td class="top left">LEAVE TYPE</td>
+		<td class="top left">LEAVE NO.</td>
+		<td class="top left">ID NUMBER</td>
+		<td class="top left">EMPLOYEE</td>
+		<td class="top lett">DAYS</td>
+		<td class="top left right" align="center">STATUS</td>
+	</tr>
+	<?php 
+		foreach($records as $row) {
+		?>
+	<tr>
+		<td class="top left"><?php echo $row->series ?></td>
+		<td class="top left"><?php echo date('m/d/Y', strtotime($row->dateFiled)) ?></td>
+		<td class="top left"><?php echo $row->leaveType ?></td>
+		<td class="top left"><?php echo $row->leaveNo ?></td>
+		<td class="top left"><?php echo $row->empNo ?></td>
+		<td class="top left"><?php echo $row->lname ?>, <?php echo $row->fname ?> <?php echo $row->mname ?> <?php echo $row->suffix ?></td>
+		<td class="top left"><?php echo $row->totalDays ?></td>
+		<td class="top left right bottom" align="center">
+			<?php 
+			if ($row->status == 1) {
+    			echo "Pending";
+			} else if ($row->status == 2) {
+    			echo "Approved";
+			} else if ($row->status == 0) {
+			    echo "Cancelled";
+			} else if ($row->status == -1) {
+			    echo "Disapproved";
+			}
+    		?>
+		</td>
+
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="7">&nbsp;</td>
+	</tr>
+</table>

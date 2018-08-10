@@ -1,0 +1,381 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Eligibility_applicant extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Applicant Service Eligibility';
+        $this->module_label = 'Applicant Service Eligibilities';
+        $this->table        = 'applicant_eligibilities';
+        $this->module_path  = 'modules/Recruitment/Applicant/Eligibility';
+        $this->module_path_submenu  = 'modules/Recruitment/submenu';
+        $this->pfield = 'eligibilityID';
+        $this->logfield = 'eligibility';
+        $this->data['controller_page'] = $this->controller_page = site_url('eligibility_applicant');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('applicantID'=>'Applicant', 'eligibility'=>'Eligibility');
+            $data['applicantID']  = $this->session->userdata('current_applicantID');
+            $data['applicantNo']  = $this->session->userdata('current_applicantNo');
+            
+            if ($data['applicantID']) {
+                $this->db->where('applicantID', $data['applicantID']);
+                $query = $this->db->get('applicants', 1)->row();
+                
+                $data['applicant_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            $table_fields = array('applicantID', 'eligibility', 'rating', 'examPlace','licenseNo', 'remarks');
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                                   
+            
+            $this->record->fields['examDate']       = ($this->input->post('examDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('examDate')))) : "0000-00-00";
+            $this->record->fields['dateLicense']    = ($this->input->post('dateLicense')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateLicense')))) : "0000-00-00";
+            $this->record->fields['dateExpired']    = ($this->input->post('dateExpired')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateExpired')))) : "0000-00-00";
+            
+            $this->record->fields['status']     = 1;
+            if ($this->record->fields['dateExpired']!="0000-00-00") {
+                if (strtotime($this->record->fields['dateExpired']) < time()) {
+                    $this->record->fields['status'] = -1;
+                }
+            }
+            if ($this->record->save()) {
+                $this->record->fields = array();
+                $this->record->where['applicantID']= trim($this->input->post('applicantID'));
+                $this->record->where['eligibility']= trim($this->input->post('eligibility'));
+                $this->record->retrieve();          
+
+                $this->session->set_userdata('current_applicantID', $this->record->field->applicantID);
+                $this->session->set_userdata('current_applicantNo', $this->record->field->applicantNo);
+
+                // record logs
+                $logs = "Record - ".trim($this->input->post($this->logfield));
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                
+                $logfield = $this->pfield;
+
+                // success msg
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully saved.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Unable to save
+                $data['class']  = "danger";
+                $data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('applicantID'=>'Applicant', 'eligibility'=>'Eligibility'); 
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;
+            // set fields for the current table
+            $this->record->setFields();
+            // extend fields - join tables                                                      
+            // set joins            
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            if ($this->record->field->applicantID) {
+                $this->db->where('applicantID', $this->record->field->applicantID);
+                $query = $this->db->get('applicants', 1)->row();
+            
+                $data['applicant_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        if ($this->roles['edit']) {
+            if ($this->record->update()) {
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            if (!empty($this->record->field)) {
+
+
+                if ($this->record->delete()) {
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            $data['rec'] = $this->record->field;
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+
+    }
+
+
+
+
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array();
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+}

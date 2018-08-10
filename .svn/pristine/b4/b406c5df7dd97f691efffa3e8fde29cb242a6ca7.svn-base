@@ -1,0 +1,292 @@
+
+<!-- Sub Header End -->
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools">
+			<a href="<?php echo $controller_page.'/show' ?>" class="btn btn-primary btn-raised btn-xs pill"><i class="icon ti-angle-left"></i> Back to List</a>
+		</div>
+	</div>
+</div>
+<!-- Sub Header Start -->
+
+
+
+<!-- Content Start -->
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+
+
+
+			<!-- Card Box Start -->
+			<div class="card-box">
+
+
+				<!-- Card Header Start -->
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">View <?php echo $current_module['module_label'] ?>
+						</h4>
+					</div>
+				</div>
+				<div class="card-head-tools">
+					<ul class="tools-list">
+						<?php $id = $this->encrypter->encode($rec->$pfield); ?>
+						<?php if ($roles['approve'] && $rec->status==1) { ?>
+							<li>
+								<a href="javascript: confirmRecord(2, 'Approve');" id="approveBtn" class="btn btn-primary btn-raised btn-xs pill"><i class="la la-thumbs-up"></i> Approve</a>
+							</li>
+						<?php }?>
+						<?php if ($roles['approve'] && $rec->status==1) { ?>
+							<li>
+								<a href="javascript: confirmRecord(0, 'Disapprove');" id="disapproveBtn" class="btn btn-primary btn-raised btn-xs pill"><i class="la la-thumbs-down"></i> Disapprove</a>
+							</li>
+						<?php } ?>
+						<?php if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Leave Cancel') && $rec->status==2) { ?>
+							<li>
+								<a href="javascript: confirmRecord(-1, 'Cancel');" id="cancelBtn" class="btn btn-primary btn-raised btn-xs pill"><i class="la la-ban"></i> Cancel</a>
+							</li>
+						<?php }?>
+						<?php if ($roles['edit']) {?>
+							<li>
+								<a href="<?php echo $controller_page.'/edit/'.$id ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+							</li>
+						<?php } ?>
+						<?php if ($roles['delete'] && !$in_used) {?>
+							<li>
+								<button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $id ?>');"><i class="la la-trash-o"></i></button>
+							</li>
+						<?php } ?>
+							<li>
+								<button class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print" onclick="popUp('<?php echo $controller_page ?>/print_ticket/<?php echo $rec->$pfield ?>', 900, 500)"><i class="la la-file-pdf-o"></i></button>
+							</li>
+						<?php if ($this->session->userdata('current_user')->isAdmin) {?>
+							<li>
+								<button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/orders/orderID/'.$id.'/Travel&Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
+							</li>
+						<?php } ?>
+					</ul>
+				</div>
+			</div>
+			<!-- Card Header End -->
+
+
+
+
+
+			<!-- Card Body Start -->
+			<div class="card-body">
+				<div class="data-view">
+					<table class="view-table">
+						<tbody>
+							
+							<!-- Table Rows Start -->
+							<tr>
+								<td class="data-title" style="width:120px" nowrap>Order No.:</td>
+								<td class="data-input" style="width:420px" nowrap><?php echo $rec->orderNo; ?></td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+								<td class="data-title" nowrap>Order Type:</td>
+								<td class="data-input" nowrap>
+									<?php 
+									switch ($rec->type) {
+										case 1: echo "Memorandum Order"; break;
+										case 2: echo "Branch Order"; break;
+										case 3: echo "Travel Order"; break;
+									} ?>
+								</td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+								<td class="data-title" nowrap>Date Filed:</td>
+								<td class="data-input" nowrap><?php echo date('F d, Y', strtotime($rec->dateFiled)); ?></td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+								<td class="data-title" nowrap>Subject:</td>
+								<td class="data-input" nowrap><?php echo $rec->subject; ?></td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+								<td class="data-title" nowrap>Destination:</td>
+								<td class="data-input" nowrap><?php echo $rec->destination; ?></td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+								<td class="data-title" nowrap>Purpose:</td>
+								<td class="data-input" nowrap><?php echo $rec->purpose; ?></td>
+								<td class="data-input"></td>
+							</tr>
+							<tr>
+									<td class="data-title" nowrap>Status:</td>
+									<td class="data-input" nowrap>
+										<?php 
+											if ($rec->status == 2) {
+												echo "<span class='badge badge-pill badge-success'>Approved</span>";
+											} else if ($rec->status == 0) {
+												echo "<span class='badge badge-pill badge-danger'>Cancelled</span>";
+											} else if ($rec->status == -1) {
+												echo "<span class='badge badge-pill badge-danger'>Dispproved</span>";
+											} else {
+												echo "<span class='badge badge-pill badge-warning'>Pending</span>";
+											}
+										?>
+									</td>
+									
+									<td class="data-input"></td>
+								</tr>
+							<!-- Table Rows End -->
+
+
+						</tbody>
+					</table>
+				</div>
+
+
+
+
+
+
+				<!-- Date Coverage Start -->
+				<div class="subtitle mt-20">
+					<h5 class="title mr-auto"><i class="icon left la la-calendar"></i> Date Coverage</h5>
+					<div class="subtitle-tools">
+					</div>
+				</div>
+				<div class="datatables_wrapper">
+					<div class="table-responsive-xl">
+						<table class="table hover">
+							<thead class="thead-light">
+								<tr>
+									<th class="w-10" align="left">Period</th>
+									<th class="w-10" align="left">Work Covered</th>
+									<th class="w-10" align="left">Days</th>
+									<th class="w-10" align="left">Hours</th>
+									<th class="w-10" align="center">Hour Period</th>
+									<th class="w-5" align="center">Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php 
+								if ($order_details->num_rows()) {
+									foreach ($order_details->result() as $row) {?>
+										<tr>
+											<td>
+												<?php echo date('M d, Y', strtotime($row->startDate)); ?> <?php echo ($row->endDate!=$row->startDate) ? " to ".date('M d, Y', strtotime($row->endDate)) : ""; ?>
+											</td>
+											<td>
+												<?php 
+												switch ($row->workCover) {
+													case 1: echo "Whole Working Day"; break;
+													case 2: echo "1st Half Working Day"; $days -= .5; break;
+													case 3: echo "2nd Half Working Day"; $days -= .5;break;
+													case 4: echo "Hours - Less Half Day"; $days = ($row->hours/8); break;
+												} ?>
+											</td>
+											<td>
+												<?php echo ($row->days > 0) ? $row->days : "--"?>
+											</td>
+											<td>
+												<?php echo ($row->hours > 0) ? $row->hours : "--"?>
+											</td>
+											<td>
+												<?php echo ($row->startHour!="0000-00-00 00:00:00" && $row->endHour!="0000-00-00 00:00:00") ? date('h:i A', strtotime($row->startHour))." to ".date('h:i A', strtotime($row->endHour)) : "--:--:-- to --:--:--"; ?>
+											</td>
+											<td>
+												<?php 
+												switch ($row->status) {
+													case 1: echo "<span class='badge badge-pill badge-warning'>Pending</span>"; break;
+													case 2: echo "<span class='badge badge-pill badge-success'>Approved</span>"; break;
+													case 0: echo "<span class='badge badge-pill badge-danger'>Cancelled</span>";  break;
+													case -1: echo "<span class='badge badge-pill badge-danger'>Disapproved</span>";  break;
+												} ?>
+											</td>
+										</tr>
+
+									<?php }
+								} ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<!-- Date Coverage End -->
+
+
+
+				<div id="msgstatus_recipient"></div>
+
+				<div id="container_recipient"></div>
+
+
+
+
+
+
+
+
+
+			</div><!-- Card Body End -->
+		</div>
+	</div>
+</div>
+</div><!-- Content End -->
+<?php $unEncryptedID = $rec->$pfield; ?>
+
+
+<script>
+	function confirmRecord(status, title='', msg='')
+	{
+		swal({
+			title: 'You are performing '+title+' action.',
+			text: "Do you still want to continue?",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		})
+		.then((willDelete) => {
+			if (willDelete.value) {
+				openRecord('<?php echo $controller_page ?>/confirm_record/<?php echo $id ?>/'+status);
+			}
+		});
+	}
+
+	function openRecord(url)
+	{
+		window.location=url;
+	}
+
+	loadRecords('<?php echo $id ?>', 'recipient', '<?php echo site_url('travel_order/recipientlist/')?>');
+
+	function loadRecords(id, target, source)
+	{
+		$('#container_'+target).hide();
+		$('#loading_img_'+target).show(); 
+		$.ajax({
+			type  : "POST",
+			url   : source+'/3',
+			data  : {id: id},
+			timeout : <?php echo $this->config_model->getConfig('Request Timeout');?>,
+			success : function(data){
+				$('#container_'+target).html(data); 
+				$('#loading_img_'+target).hide();
+				$('#container_'+target).show();
+			},
+      error : function(xhr,textStatus,errorThrown) {  //alert(errorThrown);
+      	$('#loading_img_'+target).hide();
+      	if(textStatus=="timeout"){
+      		$('#msgstatus_'+target).html(' <div class="errorbox" style="display:block;" id="bigcontainer"><div class="boxcontent" id="msgcontainer"><strong>Sorry, the request has been longer than necessary. Please refresh the page or contact an Administrator.</strong></div></div>').slideDown();
+      	}else{        
+      		$('#msgstatus_'+target).html(' <div class="errorbox" style="display:block;" id="bigcontainer"><div class="boxcontent" id="msgcontainer"><strong>Internal Server Error! Please contact an Administrator.</strong></div></div>').slideDown();
+      	}
+      }               
+  });
+	}
+</script>

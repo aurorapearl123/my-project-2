@@ -1,0 +1,162 @@
+<form name="frmFilter" id="frmFilter" method="POST" action="<?php echo $controller_page ?>/show">
+          <div class="subheader">
+            <div class="d-flex align-items-center">
+              <div class="title mr-auto">
+                <h3><i class="icon left la la-street-view"></i> Positions <span class="counter">(<?php echo number_format($ttl_rows,0)?>)</span></h3>
+              </div>
+              <div class="subheader-tools">
+                <a href="<?php echo $controller_page?>/create" class="btn btn-primary btn-raised btn-md pill"><i class="icon left la la-plus lg"></i>Add New</a>
+              </div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="row">
+              <div class="col-12">
+                <div class="card-box full-body">
+                  <div class="card-head">
+                    <div class="head-caption">
+                      <div class="head-title">
+                        <h4 class="head-text">Position List</h4>
+                      </div>
+                    </div>
+                    <div class="card-head-tools">
+                      <ul class="tools-list">
+                        <li>
+                          <button id="btn-apply" class="btn btn-primary btn-sm pill collapse multi-collapse show">Apply Filter</button>
+                        </li>
+                        <li>
+                          <button type="button" id="btn-filter" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Filters" onclick="#"><i class="la la-sort-amount-asc"></i></button>
+                        </li>
+                        <li>
+                          <button class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print"><i class="la la-print"></i></button>
+                        </li>
+                        <li>
+                          <button class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="PDF File"><i class="la la-file-pdf-o"></i></button>
+                        </li>
+                        <li>
+                          <button class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Excel File"><i class="la la-file-excel-o"></i></button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="datatables_wrapper">
+                      <div class="table-responsive">
+                        <table class="table table-striped has-img hover">
+                          <thead>
+                            <tr>
+                              <th class="sorting_asc">Code</th>
+                              <th class="sorting_asc">Position</th>
+                              <th class="" style="width: 200px;">Status</th>
+                              <th class="" style="width: 400px;">&nbsp;</th>
+                            </tr>
+                            <tr id="filter-group" class="collapse multi-collapse table-filter show">
+                              <th class="form-group form-input">
+                                <input type="text" class="form-control" id="positionCode" name="positionCode" style="width:150px">
+                              </th>
+                              <th class="form-group form-input">
+                                <input type="text" class="form-control" id="positionName" name="positionName" style="width:250px">
+                              </th>
+                              <th class="form-group form-input">
+                                <select class="form-control form-input" id="status" name="status" style="width:100px">
+                                  <option value="">&nbsp;</option>
+                                  <option value="1">Active</option>
+                                  <option value="0">Inactive</option>
+                                </select>
+                              </th>
+                              <th class="form-group form-input">&nbsp;</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          <?php if ($records->num_rows()) {
+                          foreach($records->result() as $row) {
+                          ?>
+                            <tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->positionID); ?>'">
+                              <td><span><?php echo $row->positionCode ?></span></td>
+                              <td><span><?php echo $row->positionName ?></span></td>
+                              <td>
+                              		<?php 
+                              			if($row->status == 1){
+                              				echo "<span class='badge badge-pill badge-success'>Active</span>";
+                              			}elseif($row->status == 0){
+                              				echo "<span class='badge badge-pill badge-light'>Inactive</span>";
+                              			}
+                              		?>
+                              </td>
+                              <td></td>
+                            </tr>
+                            <?php }
+                          	}?>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="datatable-footer d-flex">
+                        <div class="datatable-pagination">
+                          <ul class="pagination">
+                            <li class="page-item first disabled">
+                              <a class="page-link" href="#" tabindex="-2"><i class="icon ti-angle-double-left"></i></a>
+                            </li>
+                            <li class="page-item prev disabled">
+                              <a class="page-link" href="#" tabindex="-1"><i class="icon ti-angle-left"></i></a>
+                            </li>
+                            <?php 
+//						      $pagination = $this->pagination->create_links(); 
+//						      
+//						      if ($pagination) {
+//						        echo "Page: ".$pagination."&nbsp;&nbsp;| &nbsp; ";      
+//						      }
+//						      
+//						      echo "Total Records: ".number_format($ttl_rows,0);
+						      ?>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">4</a></li>
+                            <li class="page-item"><a class="page-link" href="#">5</a></li>
+                            <li class="page-item more"><span class="ellipsis">...</span></li>
+                            <li class="page-item"><a class="page-link" href="#">8</a></li>
+                            <li class="page-item next">
+                              <a class="page-link" href="#"><i class="icon ti-angle-right"></i></a>
+                            </li>
+                            <li class="page-item last">
+                              <a class="page-link" href="#"><i class="icon ti-angle-double-right"></i></a>
+                            </li>
+                          </ul>
+                        </div>
+                        <div class="datatable-pager-info float-right ml-auto">
+                          <div class="d-flex">
+                            <div class="datatable-pager-size">
+                              <div class="dataTables_length">
+                                <select name="table1_length" aria-controls="table1" class="form-control select-sm pill" tabindex="-98" id="limit" name="limit" onchange="changeDisplay();">
+                                  <option value="25">25</option>
+                                  <option value="50">50</option>
+                                  <option value="75">75</option>
+                                  <option value="100">100</option>
+                                  <option value="125">125</option>
+                                  <option value="150">150</option>
+                                  <option value="175">175</option>
+                                  <option value="200">200</option>
+                                  <option value="all">All</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="datatable-pager-detail">
+                              <div class="dataTables_info">Displaying 1 - 25 of <?php echo number_format($ttl_rows,0)?> records</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+ <script>
+ function changeDisplay()
+ {
+ 	$('#cmdFilter').val("Apply Filters");
+ 	$('#frmFilter').submit();
+ }
+ </script>
+</form>

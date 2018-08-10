@@ -1,0 +1,264 @@
+<form name="frmFilter" id="frmFilter" method="POST" action="<?php echo $controller_page ?>/show">
+<input type="hidden" id="sortby" name="sortby" value="<?php echo $sortby ?>" />
+<input type="hidden" id="sortorder" name="sortorder" value="<?php echo $sortorder ?>" />
+	<div class="subheader">
+		<div class="d-flex align-items-center">
+			<div class="title mr-auto">
+				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+			</div>
+			<?php if ($roles['create']) {?>
+			<div class="subheader-tools">
+				<a href="<?php echo $controller_page?>/create" class="btn btn-primary btn-raised btn-xs pill"><i class="icon left la la-plus lg"></i>Add New</a>
+			</div>
+			<?php } ?>
+		</div>
+	</div>
+<div class="content">
+  <div class="card-box full-body">
+    <div class="card-head">
+      <div class="head-caption">
+        <div class="head-title">
+          <h4 class="head-text"><?php echo $current_module['module_label'] ?> List</h4>
+        </div>
+      </div>
+      <div class="card-head-tools">
+        <ul class="tools-list">
+          <li>
+            <button id="btn-apply" type="submit" class="btn btn-primary btn-xs pill collapse multi-collapse show">Apply Filter</button>
+          </li>
+          <li>
+            <button type="button" id="btn-filter" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Filters" onclick="#"><i class="la la-sort-amount-asc"></i></button>
+          </li>
+          <li>
+            <button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print" onclick="popUp('<?php echo site_url('leave_type/printlist') ?>', 800, 500)"><i class="la la-print"></i></button>
+          </li>
+          <li>
+            <button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Export to Excel File" onclick="window.location='<?php echo site_url('leave_type/exportlist') ?>';"><i class="la la-file-excel-o"></i></button>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Table Wrapper Start Here -->
+      <div class="datatables_wrapper">
+        <!-- Table Innere Wrapper Start Here -->
+        <div class="table-responsive-xl">
+
+
+
+          <!-- Table Start Here -->
+          <table class="table table-striped hover">
+            <thead>
+              <tr>
+		<?php 
+		$headers = array(
+			array('column_header'=>'Code','column_field'=>'code','width'=>'','align'=>''),
+			array('column_header'=>'Leave Type','column_field'=>'leaveType','width'=>'','align'=>''),
+			array('column_header'=>'Frequency','column_field'=>'frequency','width'=>'','align'=>''),
+			array('column_header'=>'Credit Earning','column_field'=>'creditEarn','width'=>'','align'=>''),			
+			array('column_header'=>'Cashable','column_field'=>'isCashable','width'=>'','align'=>''),
+			array('column_header'=>'Cover W/out Pay','column_field'=>'isWithoutpayCover','width'=>'','align'=>''),
+			array('column_header'=>'Status','column_field'=>'status','width'=>'','align'=>''),
+			array('column_header'=>'Rank','column_field'=>'rank','width'=>'','align'=>''),
+		    array('column_header'=>'','column_field'=>'','width'=>'w-5','align'=>'center'),
+		);
+		
+		echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
+		?>
+              </tr>
+
+              <!-- Filter Options Start Here -->
+              <tr id="filter-group" class="collapse multi-collapse table-filter show">
+              <th class="form-group form-input"><input class="form-control" type="text" name="code" id="code" size="5" value="<?php echo $code ?>"/></th>
+              <th class="form-group form-input"><input class="form-control" type="text" name="leaveType" id="leaveType" size="20" value="<?php echo $leaveType ?>"/></th>
+                <th class="form-group form-input">
+				<select class="form-control" id="frequency" name="frequency">
+					<option value="">&nbsp;</option>
+					<option value="0" <?php if ($frequency == "0") echo "selected" ?>>None</option>
+					<option value="1" <?php if ($frequency == "1") echo "selected" ?>>Daily</option>
+					<option value="2" <?php if ($frequency == "2") echo "selected" ?>>Weekly</option>
+					<option value="3" <?php if ($frequency == "3") echo "selected" ?>>Monthly</option>
+					<option value="4" <?php if ($frequency == "4") echo "selected" ?>>Quarterly</option>
+					<option value="5" <?php if ($frequency == "5") echo "selected" ?>>Semi-Annual</option>
+					<option value="6" <?php if ($frequency == "6") echo "selected" ?>>Annual</option>
+				</select>
+                </th>
+                <th class="form-group form-input">
+                  <select class="form-control" id="creditEarn" name="creditEarn">
+					<option value="">&nbsp;</option>	
+					<option value="1" <?php if ($creditEarn == "1") echo "selected" ?>>Incremental</option>
+					<option value="2" <?php if ($creditEarn == "2") echo "selected" ?>>Reset</option>					
+				</select>
+                </th>
+                <th class="form-group form-input">
+				<select class="form-control" id="isCashable" name="isCashable">
+					<option value="">&nbsp;</option>
+					<option value="1" <?php if ($isCashable == "1") echo "selected" ?>>Yes</option>
+					<option value="0" <?php if ($isCashable == "0") echo "selected" ?>>No</option>					
+				</select>
+                </th>
+                <th>
+                <select class="form-control" id="isWithoutpayCover" name="isWithoutpayCover">
+					<option value="">&nbsp;</option>
+					<option value="1" <?php if ($isWithoutpayCover == "1") echo "selected" ?>>Yes</option>
+					<option value="0" <?php if ($isWithoutpayCover == "0") echo "selected" ?>>No</option>					
+				</select>
+                </th>
+                <th>
+                <select class="form-control" id="status" name="status">
+					<option value="">--------------</option>
+					<option value="1" <?php echo ($status == "1") ? "selected" : ""; ?>>Active</option>
+					<option value="0" <?php echo ($status == "0") ? "selected" : ""; ?>>Inactive</option>
+				</select>
+                </th>
+                <th>
+                <select class="form-control" id="rank" name="rank" style="width:50px">
+					<option value="">&nbsp;</option>
+					<?php for ($i = 1; $i <= $ttl_rows; $i++) {?>
+					<option value="<?php echo $i?>" <?php if ($i == $rank) echo "selected" ?>><?php echo $i?></option>
+					<?php }?>
+				</select>
+                </th>
+                <th></th>
+              </tr>
+              <!-- Filter Options End Here -->
+            </thead>
+            <tbody>
+
+              <!-- Row Start Here -->
+	<?php
+	if ($records->num_rows()) {
+		foreach($records->result() as $row) {
+			$id = $this->encrypter->encode($row->$pfield);
+	?>
+										<tr>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'"><?php echo $row->code ?></td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'"><?php echo $row->leaveType ?></td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php 
+                    	    				switch ($row->frequency) {
+                    							case 0: echo "None"; break;
+                    							case 1: echo "Daily"; break;
+                    							case 2: echo "Weekly"; break;
+                    							case 3: echo "Monthly"; break;
+                    							case 4: echo "Quarterly"; break;
+                    							case 5: echo "Semi-Annual"; break;
+                    							case 6: echo "Annual"; break;
+                    						} ?>
+											</td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php 
+                    	    				switch ($row->creditEarn) {
+                    							case 1: echo "Incremental"; break;
+                    							case 2: echo "Reset"; break;							
+                    						} ?>
+                    						</td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php 
+                    	    				switch ($row->isCashable) {
+                    							case 1: echo "Yes"; break;
+                    							case 0: echo "No"; break;							
+                    						} ?>
+											</td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php 
+                    	    				switch ($row->isWithoutpayCover) {
+                    							case 1: echo "Yes"; break;
+                    							case 0: echo "No"; break;							
+                    						} ?>
+											</td>
+											<td  align="center" onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php
+                        					if ($row->status=="1") {
+                        						echo "<span class='badge badge-pill badge-success'>Active</span>"; 
+                        					} else if ($row->status=="0") {
+                        					    echo "<span class='badge badge-pill badge-danger'>Inactive</span>"; 
+                    						}?>
+											</td>
+											<td align="center">
+												<?php if ($roles['edit']) { ?>
+                    	    					<select class="form-control" id="ranking_<?php echo $row->$pfield ?>" name="ranking_<?php echo $row->$pfield ?>" style="width:50px;" onchange="updateRank('<?php echo $controller_page ?>','<?php echo $row->$pfield ?>')">
+                    								<?php for ($i = 1; $i <= $ttl_rows; $i++) {?>
+                    								<option value="<?php echo $i?>" <?php if ($i == $row->rank) echo "selected" ?>><?php echo $i?></option>
+                    								<?php }?>
+                    							</select>
+                    							
+                    							<?php }?>
+											</td>
+											<td><h4><i id="updated_<?php echo $row->$pfield ?>" style="display:none; color: green;" class="icon left la la-check"></i></h4></td>
+										</tr>
+										<?php }
+											} else {	?>
+										<tr>
+											<td colspan="8" align="center"> <i>No records found!</i></td>
+										</tr>
+										<?php } ?>
+              <!-- Row End Here -->
+
+            </tbody>
+          </table>
+          <!-- Table End Here -->
+        </div>
+        <!-- Table Inner Wrapper End Here -->
+
+        <!-- Table Footer Start Here -->
+        <div class="datatable-footer d-flex">
+
+          <!-- Table Pagination Start Here -->
+ 								<div class="datatable-pagination">
+									<?php 
+										$pagination = $this->pagination->create_links(); 
+										
+										if ($pagination) {
+										     echo $pagination;      
+										} else {
+										    echo "1";
+										}
+										?>
+								</div>
+								<div class="datatable-pager-info float-right ml-auto">
+									<div class="d-flex">
+										<div class="datatable-pager-size">
+											<div class="dataTables_length">
+												<select aria-controls="table1" class="form-control select-sm pill" tabindex="-98" id="limit" name="limit" onchange="$('#frmFilter').submit();">
+													<option value="25" <?php if ($limit==25) echo "selected"; ?>>25</option>
+													<option value="50" <?php if ($limit==50) echo "selected"; ?>>50</option>
+													<option value="75" <?php if ($limit==75) echo "selected"; ?>>75</option>
+													<option value="100" <?php if ($limit==100) echo "selected"; ?>>100</option>
+													<option value="125" <?php if ($limit==125) echo "selected"; ?>>125</option>
+													<option value="150" <?php if ($limit==150) echo "selected"; ?>>150</option>
+													<option value="175" <?php if ($limit==175) echo "selected"; ?>>175</option>
+													<option value="200" <?php if ($limit==200) echo "selected"; ?>>200</option>
+													<option value="all" <?php if ($limit=='All') echo "selected"; ?>>All</option>
+												</select>
+											</div>
+										</div>
+										<div class="datatable-pager-detail">
+											<div class="dataTables_info">Displaying <?php echo ($offset+1) ?> - <?php if ($offset+$limit < $ttl_rows) { echo ($offset+$limit); } else  { echo $ttl_rows; } ?> of <?php echo number_format($ttl_rows,0)?> records</div>
+										</div>
+									</div>
+								</div>
+          <!-- Table Footer Right Column End Here -->
+        </div>
+        <!-- Table Footer End Here -->
+      </div>
+      <!-- Table Wrapper End Here -->
+    </div>
+  </div>
+</div>
+</form>
+
+<script>
+function updateRank(url, id)
+{	
+
+	console.log('update rank');
+	$.post(url+'/update_rank', { id: id, rank: $('#ranking_'+id).val() },
+	  function(data){
+		  if(data==1) {
+		  	$('#updated_'+id).show();
+		  }
+	  }, "text");
+}
+</script>

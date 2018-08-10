@@ -1,0 +1,449 @@
+<style>
+.checkBox { width:18px;height:18px;vertical-align:middle; }
+.bright { border-right: 1px solid black;}
+.bleft { border-left: 1px solid black;}
+.btop { border-top: 1px solid black;}
+.bbottom { border-bottom: 1px solid black;}
+.ball { border: 1px solid black;}
+.label { height: 2px; font-size:8pt;  }
+.field { height: 2px; font-size:8pt; }
+.table_header {  font-size:8pt; }
+.table_row { height: 20px; font-size:8pt; vertical-align:middle; }
+.signatory { background-color: #eee; height: 20px; font-size:8pt; }
+.signatory_table { position: absolute; bottom: 0;}
+</style>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+<tr>
+    <td width="49%" valign="top">
+        <table border="0" cellpadding="0" cellspacing="0" style="width:378px;">
+        <tr class="">
+        	<td height="80px" colspan="2" nowrap valign="middle" align="center" width="100px" class="table_row btop bleft bright">
+        		<img src="<?php echo base_url('assets/img/main/logo-shadow.png') ?>" width="300px"/>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="30px" colspan="2" nowrap valign="top" align="center" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 16px">PAY SLIP</strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="30px" colspan="2" nowrap valign="top" align="right" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 12px"><?php echo date('F d, Y')?></strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="2" nowrap valign="middle" align="top" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 14px"><?php echo strtoupper($payslip->lname.', '.$payslip->fname.' '.$payslip->mname.' '.$payslip->suffix)?></strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="2" nowrap valign="middle" align="top" width="100px" class="table_row bbottom bleft bright">
+        		<span style="font-size: 14px"><?php echo strtoupper($rec->officeAbbr);?> PAYROLL <?php echo strtoupper($rec->payrollPeriod)?></span>
+        	</td>
+        </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0"  style="width:375px;">
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+        		<span style="font-size: 10px">Basic Salary</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+        		<span style="font-size: 10px">-</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+        		<span style="font-size: 10px">P</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+        		<span style="font-size: 10px"><?php echo number_format($payslip->basicRate, 2)?>&nbsp;</span>
+        	</td>
+        </tr>
+        <?php 
+    	// incentives
+    	if ($incentives->num_rows()) {
+    	    foreach ($incentives->result() as $incentive) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+    	        $this->db->where('incentiveTypeID', $incentive->incentiveTypeID);
+    	        $amount = $this->db->get('payslip_incentives')->row()->amount;
+    	        
+    	        if (!empty ($amount)) {?>
+    	        <tr class="">
+        	        <td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px"><?php echo $incentive->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+                	</td>
+            	</tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row btop bbottom bleft">
+        		<strong style="font-size: 12px">GROSS PAYROLL</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">-</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">P</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row btop bbottom bright">
+        		<strong style="font-size: 12px"><?php echo number_format($payslip->totalGross, 2)?>&nbsp;</strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="4" nowrap valign="top" align="left" width="220px" class="table_row bleft bright">
+        		<strong style="font-size: 12px">LESS DEDUCTIONS:</strong>
+        	</td>
+        </tr>
+        <?php 
+    	$total = 0;
+    	if ($contributions->num_rows()) {
+    	    foreach ($contributions->result() as $contribution) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+                $this->db->where('premiumID', $contribution->premiumID);
+                $employeeShare = $this->db->get('payslip_contributions')->row()->employeeShare;
+    	        
+    	        if (!empty ($employeeShare)) {
+    	        $total += $employeeShare;?>
+    	        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $contribution->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($employeeShare, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+    	<?php 
+        $this->db->where('payslipID', $payslip->payslipID);
+        $this->db->where('type', 1);
+        $amount = $this->db->get('payslip_deductions')->row()->amount;
+        
+        if (!empty ($amount)) {
+        $total += $amount;?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+        		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Withholding Tax</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+        		<span style="font-size: 10px">-</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+        		<span style="font-size: 10px"></span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+        		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+        	</td>
+        </tr>
+        <?php }
+    	?>
+    	<?php 
+    	if ($deductions->num_rows()) {
+    	    foreach ($deductions->result() as $deduction) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+                $this->db->where('deductionID', $deduction->loanTypeID);
+                $amount = $this->db->get('payslip_deductions')->row()->amount;
+    	        
+    	        if (!empty ($amount)) {
+    	        $total += $amount;?>
+    	        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $deduction->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+    	<?php 
+    	if ($payslip->wop) {
+        $total += $payslip->wop;?>
+        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lates / Absences</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($payslip->wop, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+        <?php }?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row btop bbottom bleft">
+        		<strong style="font-size: 12px">NET PAYROLL</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">-</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">P</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row btop bbottom bright">
+        		<strong style="font-size: 12px"><?php echo number_format($payslip->netPay, 2)?>&nbsp;</strong>
+        	</td>
+        </tr>
+        </table>
+        
+        <table border="0" cellpadding="0" cellspacing="0" style="width:378px;margin-top: 2px">
+        <tr class="">
+        	<td height="40px" colspan="" nowrap valign="middle" align="center" width="" class="table_row btop bbottom bleft bright">
+        		
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="middle" align="center" width="" class="table_row bbottom bleft bright">
+        		SIGNATURE
+        	</td>
+        </tr>
+        </table>
+    </td>
+    <td width="5px"></td>
+    <td width="49%" valign="top">
+        <table border="0" cellpadding="0" cellspacing="0" style="width:378px;">
+        <tr class="">
+        	<td height="80px" colspan="2" nowrap valign="middle" align="center" width="100px" class="table_row btop bleft bright">
+        		<img src="<?php echo base_url('assets/img/main/logo-shadow.png') ?>" width="300px"/>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="30px" colspan="2" nowrap valign="top" align="center" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 16px">PAY SLIP</strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="30px" colspan="2" nowrap valign="top" align="right" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 12px"><?php echo date('F d, Y')?></strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="2" nowrap valign="middle" align="top" width="100px" class="table_row bleft bright">
+        		<strong style="font-size: 14px"><?php echo strtoupper($payslip->lname.', '.$payslip->fname.' '.$payslip->mname.' '.$payslip->suffix)?></strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="2" nowrap valign="middle" align="top" width="100px" class="table_row bbottom bleft bright">
+        		<span style="font-size: 14px"><?php echo strtoupper($rec->officeAbbr);?> PAYROLL <?php echo strtoupper($rec->payrollPeriod)?></span>
+        	</td>
+        </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0"  style="width:375px;">
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+        		<span style="font-size: 10px">Basic Salary</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+        		<span style="font-size: 10px">-</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+        		<span style="font-size: 10px">P</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+        		<span style="font-size: 10px"><?php echo number_format($payslip->basicRate, 2)?>&nbsp;</span>
+        	</td>
+        </tr>
+        <?php 
+    	// incentives
+    	if ($incentives->num_rows()) {
+    	    foreach ($incentives->result() as $incentive) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+    	        $this->db->where('incentiveTypeID', $incentive->incentiveTypeID);
+    	        $amount = $this->db->get('payslip_incentives')->row()->amount;
+    	        
+    	        if (!empty ($amount)) {?>
+    	        <tr class="">
+        	        <td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px"><?php echo $incentive->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+                	</td>
+            	</tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row btop bbottom bleft">
+        		<strong style="font-size: 12px">GROSS PAYROLL</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">-</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">P</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row btop bbottom bright">
+        		<strong style="font-size: 12px"><?php echo number_format($payslip->totalGross, 2)?>&nbsp;</strong>
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="4" nowrap valign="top" align="left" width="220px" class="table_row bleft bright">
+        		<strong style="font-size: 12px">LESS DEDUCTIONS:</strong>
+        	</td>
+        </tr>
+        <?php 
+    	$total = 0;
+    	if ($contributions->num_rows()) {
+    	    foreach ($contributions->result() as $contribution) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+                $this->db->where('premiumID', $contribution->premiumID);
+                $employeeShare = $this->db->get('payslip_contributions')->row()->employeeShare;
+    	        
+    	        if (!empty ($employeeShare)) {
+    	        $total += $employeeShare;?>
+    	        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $contribution->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($employeeShare, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+    	<?php 
+        $this->db->where('payslipID', $payslip->payslipID);
+        $this->db->where('type', 1);
+        $amount = $this->db->get('payslip_deductions')->row()->amount;
+        
+        if (!empty ($amount)) {
+        $total += $amount;?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+        		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Withholding Tax</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+        		<span style="font-size: 10px">-</span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+        		<span style="font-size: 10px"></span>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+        		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+        	</td>
+        </tr>
+        <?php }
+    	?>
+    	<?php 
+    	if ($deductions->num_rows()) {
+    	    foreach ($deductions->result() as $deduction) {
+    	        $this->db->where('payslipID', $payslip->payslipID);
+                $this->db->where('deductionID', $deduction->loanTypeID);
+                $amount = $this->db->get('payslip_deductions')->row()->amount;
+    	        
+    	        if (!empty ($amount)) {
+    	        $total += $amount;?>
+    	        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $deduction->name?></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($amount, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+	        <?php }
+    	    }
+    	}
+    	?>
+    	<?php 
+    	if ($payslip->wop) {
+        $total += $payslip->wop;?>
+        <tr class="">
+                	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row bleft">
+                		<span style="font-size: 10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lates / Absences</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row">
+                		<span style="font-size: 10px">-</span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row">
+                		<span style="font-size: 10px"></span>
+                	</td>
+                	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row bright">
+                		<span style="font-size: 10px"><?php echo number_format($payslip->wop, 2)?>&nbsp;</span>
+                	</td>
+                </tr>
+        <?php }?>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="top" align="left" width="220px" class="table_row btop bbottom bleft">
+        		<strong style="font-size: 12px">NET PAYROLL</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="center" width="5px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">-</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="50px" class="table_row btop bbottom">
+        		<strong style="font-size: 12px">P</strong>
+        	</td>
+        	<td height="" colspan="" nowrap valign="top" align="right" width="100px" class="table_row btop bbottom bright">
+        		<strong style="font-size: 12px"><?php echo number_format($payslip->netPay, 2)?>&nbsp;</strong>
+        	</td>
+        </tr>
+        </table>
+        
+        <table border="0" cellpadding="0" cellspacing="0" style="width:378px;margin-top: 2px">
+        <tr class="">
+        	<td height="40px" colspan="" nowrap valign="middle" align="center" width="" class="table_row btop bbottom bleft bright">
+        		
+        	</td>
+        </tr>
+        <tr class="">
+        	<td height="" colspan="" nowrap valign="middle" align="center" width="" class="table_row bbottom bleft bright">
+        		SIGNATURE
+        	</td>
+        </tr>
+        </table>
+    </td>
+</tr>
+</table>
+<pagebreak />

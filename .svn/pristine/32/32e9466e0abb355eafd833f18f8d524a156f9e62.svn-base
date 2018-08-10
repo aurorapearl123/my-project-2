@@ -1,0 +1,235 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<div class="card-body">
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("shift/save") ?>">
+						<div class="table-row">
+							<table class="table-form column-3" width="100%">
+								<tbody>
+									<tr>
+										<td class="form-label" style="width:120px" valign="top" nowrap>Shift Name <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="5"><input class="form-control" tabindex="1" type="text" name="shiftName" id="shiftName" style="width:380px"  title="Shift Name" required/></td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Shift Type <span class="asterisk">*</span></td>
+										<td class="form-group form-input">
+											<select class="form-control" tabindex="5" name="shiftType" id="shiftType" style="width:166px" onchange="setPeriod()">
+												<option value=""></option>
+												<option value="1" selected>2 Periods</option>
+												<option value="2">1 Period</option>
+											</select>
+										</td>
+										<td class="form-group form-input" colspan="4">&nbsp;</td>
+										<td class="form-group form-input" style="width:70%">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>First Period <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="" style="width:100px">
+											<input type="text" class="form-control timepicker" id="tlin" name="tlin" data-toggle="datetimepicker" data-target="#tlin" title="First Period Time Login" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:20px" nowrap> - to - </td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="tlout" name="tlout" data-toggle="datetimepicker" data-target="#tlout" title="First Period Time Logout" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="tlel" name="tlel" data-toggle="datetimepicker" data-target="#tlel" title="First Period Early Login" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="tlta" name="tlta" data-toggle="datetimepicker" data-target="#tlta" title="First Period Tardy Allowance" style="width:150px" required>
+										</td>
+										<td class="form-group form-input">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Second Period <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="" style="width:100px">
+											<input type="text" class="form-control timepicker" id="spin" name="spin" data-toggle="datetimepicker" data-target="#spin" title="Second Period Time Login" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:20px" nowrap> - to - </td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="spout" name="spout" data-toggle="datetimepicker" data-target="#spout" title="Second Period Time Logout" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="spel" name="spel" data-toggle="datetimepicker" data-target="#spel" title="Second Period Early Login" style="width:150px" required>
+										</td>
+										<td class="form-group form-input" style="width:100px" colspan="">
+											<input type="text" class="form-control timepicker" id="spta" name="spta" data-toggle="datetimepicker" data-target="#spta" title="Second Period Tardy Allowance" style="width:150px" required>
+										</td>
+										<td class="form-group form-input">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>&nbsp;</td>
+										<td class="form-group form-input" colspan="" style="width:10%">Time Login</td>
+										<td class="form-group form-input" style="width:2%" nowrap>&nbsp;</td>
+										<td class="form-group form-input" style="width:10%" colspan="">Time Logout</td>
+										<td class="form-group form-input" style="width:10%" colspan="">Early Login</td>
+										<td class="form-group form-input" style="width:10%" colspan="">Tardy Allowance</td>
+										<td class="form-group form-input">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="dataLabel" valign="top" colspan="7">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top">Working Days</td>
+										<td class="form-group form-input" valign="top" colspan="6" nowrap>
+											<table width="40%">
+												<tr>
+													<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Mon" id="Mon" value="1" checked> &nbsp; Monday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Tue" id="Tue" value="1" checked> &nbsp; Tuesday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Wed" id="Wed" value="1" checked> &nbsp; Wednesday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Thu" id="Thu" value="1" checked> &nbsp; Thursday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Fri" id="Fri" value="1" checked> &nbsp; Friday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Sat" id="Sat" value="1"> &nbsp; Saturday
+															</label>
+														</div>
+														</td>
+														<td>
+														<div class="checkbox">
+															<label>
+																<input type="checkbox"  name="Sun" id="Sun" value="1"> &nbsp; Sunday
+															</label>
+														</div>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+									<tr>
+										<td class="dataLabel" valign="top" colspan="7">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Working Hours <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="5">
+											<input tabindex="52" class="form-control" type="text" name="workHours" id="workHours" value="8.00" maxlength="20" style="width:325px" onkeypress="return keyRestrict(event, 1);"/>
+										</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Remarks</td>
+										<td class="form-group form-input" colspan="5">
+											<textarea class="form-control" name="remarks" id="remarks" style="width:325px"/></textarea>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="form-sepator solid"></div>
+						<div class="form-group mb-0">
+							<button class="btn btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+							Save
+							</button>
+							<input type="button" id="cmdCancel" class="btn btn-outline-danger btn-raised pill" value="Cancel"/>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$('#cmdSave').click(function(){
+		if (check_fields()) {
+	    	$('#cmdSave').attr('disabled','disabled');
+	    	$('#cmdSave').addClass('loader');
+	        $.post("<?php echo $controller_page ?>/check_duplicate", { shiftName: $('#shiftName').val() },
+	          function(data){
+	            if (parseInt(data)) {
+	            	$('#cmdSave').removeClass("loader");
+	            	$('#cmdSave').removeAttr('disabled');
+	              	// duplicate
+	              	swal("Duplicate","Record is already exist!","warning");
+	            } else {
+	            	// submit
+	               	$('#frmEntry').submit();
+	            }
+	          }, "text");
+		}
+	});
+	
+	
+	function check_fields()
+	{
+		 var valid = true;
+		 var req_fields = "";
+		 
+		 $('#frmEntry [required]').each(function(){
+		    if($(this).val()=='' ) {
+		    	req_fields += "<br/>" + $(this).attr('title');
+			    valid = false;
+		    } 
+		 })
+		 
+		 if (!valid) {
+		 	swal("Required Fields",req_fields,"warning");
+		 }
+		 
+		 return valid;
+	}
+	
+	$('#cmdCancel').click(function(){
+		swal({
+		      title: "Are you sure?",
+		      text: "",
+		      icon: "warning",
+		      showCancelButton: true,
+		      confirmButtonColor: '#3085d6',
+		      cancelButtonColor: '#d33',
+		      confirmButtonText: 'Yes',
+		      cancelButtonText: 'No'
+		    })
+		    .then((willDelete) => {
+		      if (willDelete.value) {
+		    	  window.location = '<?php echo site_url('shift/show') ?>';
+		      }
+		    });
+	    
+	});
+</script>

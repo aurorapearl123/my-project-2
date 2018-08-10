@@ -1,0 +1,660 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Overtime_schedule extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Overtime Schedule';
+        $this->module_label = 'Overtime Schedules';
+        $this->table        = 'overtime_schedules';
+        $this->module_path  = 'modules/Attendance/Overtime_Schedule';
+        $this->module_path_submenu  = 'modules/Attendance/submenu';
+        $this->pfield = 'overtimeScheduleID';
+        $this->logfield = 'date';
+        $this->data['controller_page'] = $this->controller_page = site_url('overtime_schedule');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array();
+            $data['empID']          = $this->session->userdata('current_empID');
+            $data['empNo']          = $this->session->userdata('current_empNo');
+            $data['employmentID']   = $this->session->userdata('current_employmentID');
+                
+            if ($data['empID']) {
+                $this->db->where('empID', $data['empID']);
+                $query = $this->db->get('employees', 1)->row();
+            
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+            
+            $this->frameworkhelper->clear_session_item('employees');
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            if (!empty($_SESSION['employees'])) {
+                $batch = array();
+                $this->record->table  = $this->table;
+                foreach($_SESSION['employees'] as $item){                   
+                    $this->record->fields = array();
+                    
+                    $this->record->fields['empID']          = $item['empID'];
+                    $this->record->fields['employmentID']   = $item['employmentID'];
+                    $this->record->fields['dateFiled']      = date('Y-m-d');
+                    $this->record->fields['date']           = date('Y-m-d', strtotime($item['startTimeLabel']));
+                    $this->record->fields['startTime']      = date('Y-m-d H:i:00', strtotime($item['startTimeLabel']));
+                    $this->record->fields['endTime']        = date('Y-m-d H:i:00', strtotime($item['endTimeLabel']));
+                    $this->record->fields['remarks']        = $item['remarks'];
+                    
+                    if ($this->record->save()) {
+                        // record logs
+                        $logs = "Record - ".$item['employmentNo'];
+                        $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->db->insert_id(), 'Insert', $logs);
+                                                                
+                    }
+                }
+                
+                $this->frameworkhelper->clear_session_item('employees');
+            }           
+                
+            $logfield = $this->pfield;
+
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        // for retrieve with joining tables -------------------------------------------------
+        // set table
+        $this->record->table = $this->table;
+        // set fields for the current table
+        $this->record->setFields();
+        // extend fields - join tables
+        // set joins
+        // set where
+        $this->record->where[$this->table.'.'.$this->pfield] = $id;
+        // execute retrieve
+        $this->record->retrieve();
+        // ----------------------------------------------------------------------------------
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'employmentID'=>'Employment','date'=>'Date','startTime'=>'Start Time','endTime'); 
+            
+            $data['rec'] = $this->record->field;        
+            
+            if ($this->record->field->empID) {
+                $this->db->where('empID', $this->record->field->empID);
+                $query = $this->db->get('employees', 1)->row();
+                    
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array();
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();                    
+            
+            $this->record->fields['date']       = (trim($this->input->post('startDate'))!="") ? date('Y-m-d', strtotime(trim($this->input->post('startDate')))) : "0000-00-00";
+            $this->record->fields['startTime']  = (trim($this->input->post('startDate'))!="") ? date('Y-m-d H:i:s', strtotime(trim($this->input->post('startDate')).' '.trim($this->input->post('startHour')).':'.trim($this->input->post('startMin')).':00')) : "0000-00-00 00:00:00";
+            $this->record->fields['endTime']    = (trim($this->input->post('endDate'))!="") ? date('Y-m-d H:i:s', strtotime(trim($this->input->post('endDate')).' '.trim($this->input->post('endHour')).':'.trim($this->input->post('endMin')).':00')) : "0000-00-00 00:00:00";
+            $this->record->fields['remarks']    = $this->input->post('remarks');
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+
+            if ($this->record->update()) {
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        // set fields
+        $this->record->fields = array();
+        // set table
+        $this->record->table  = $this->table;
+        // set where
+        $this->record->where[$this->pfield] = $id;
+        // execute retrieve
+        $this->record->retrieve();
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        // for retrieve with joining tables -------------------------------------------------
+        // set table
+        $this->record->table = $this->table;
+        // set fields for the current table
+        $this->record->setFields();
+        // extend fields - join tables
+        $this->record->fields[] = 'employees.empNo';
+        $this->record->fields[] = 'employees.lname';
+        $this->record->fields[] = 'employees.fname';
+        $this->record->fields[] = 'employees.mname';
+        $this->record->fields[] = 'employees.suffix';
+        $this->record->fields[] = 'employees.imageExtension';
+        $this->record->fields[] = 'employments.employmentNo';
+        $this->record->fields[] = 'companies.companyName';
+        $this->record->fields[] = 'companies.companyAbbr';
+        $this->record->fields[] = 'offices.officeName';
+        $this->record->fields[] = 'offices.officeAbbr';
+        $this->record->fields[] = 'employee_types.employeeType';
+        $this->record->fields[] = 'job_positions.positionCode';
+        $this->record->fields[] = 'job_titles.jobTitle';
+            
+        // set joins
+        $this->record->joins[]  = array('employees',$this->table.'.empID=employees.empID','left');
+        $this->record->joins[]  = array('employments',$this->table.'.employmentID=employments.employmentID','left');
+        $this->record->joins[]  = array('companies','employments.companyID=companies.companyID','left');
+        $this->record->joins[]  = array('offices','employments.officeID=offices.officeID','left');
+        $this->record->joins[]  = array('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+        $this->record->joins[]  = array('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+        $this->record->joins[]  = array('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+        // set where
+        $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+        // execute retrieve
+        $this->record->retrieve();
+        // ----------------------------------------------------------------------------------
+
+        if ($this->roles['view']) {
+            $data['rec'] = $this->record->field;    
+            
+            $this->session->set_userdata('current_empID', $this->record->field->empID);
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where        
+        $this->record->where['overtime_scheduleNo'] = trim($this->input->post('overtime_scheduleNo'));
+        $this->record->where['series'] = trim($this->input->post('series'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+    //Ajax functions
+    public function getLeaves()
+    {   
+        $empID = trim($this->input->post('empID'));
+        $employmentID = trim($this->input->post('employmentID'));
+        
+        if ($empID) {
+            $this->db->where('empID', $empID);
+        }
+        if ($employmentID) {
+            $this->db->where('employmentID', $employmentID);
+        }
+        $this->db->order_by('dateFiled','asc');
+        $records = $this->db->get('overtime_schedules');
+        echo $this->frameworkhelper->get_json_data($records, 'overtime_scheduleID', 'overtime_scheduleNo');
+    }   
+    
+    private function _generateID($series)
+    {       
+        $idSeries   = $this->config_model->getConfig('Leave Series');
+        $idLength   = $this->config_model->getConfig('Order Series Length');
+    
+        $id  = str_pad($idSeries, $idLength, "0", STR_PAD_LEFT);
+        return substr($series, 2, 2).$id;
+    }
+    
+    private function _incrementSeries()
+    {
+        $query = "UPDATE `config` SET `value` = `value`+ 1 WHERE `name` = 'Leave Series'"; 
+        $this->db->query($query);
+    }
+
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+
+
+
+    //More pages
+    public function confirm_record($id=0, $status=0, $pageType=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+    
+        $this->record->table = $this->table;
+        $this->record->where[$this->pfield] = $id;
+        $this->record->retrieve();
+    
+        // check roles
+        if (($this->roles['approve'] && $this->record->field->status==1) || $this->userrole_model->has_access($this->session->userdata('current_userID'),'View Overtime Cancel')) {
+            $this->record->fields = array();
+            $this->record->fields['status'] = $status;
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = $id;
+            
+            switch ($status) {
+                case 2: $operation = "Approve"; break;
+                case 0: $operation = "Cancel"; break;
+                case -1: $operation = "Disapprove"; break;
+            }
+    
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, $operation, $this->record->fields);
+    
+            if ($this->record->update()) {                              
+                if ($status=="2") { 
+                    if (strtotime($this->record->field->endTime) < time()) {
+                        $this->db->select('biometricID');
+                        $this->db->where('empID', $this->record->field->empID);
+                        $employee = $this->db->get('employees', 1)->row();
+                        
+                        $startRange = intval($this->config_model->getConfig('Overtime Start Log Hour Range'));
+                        $startLog   = date('Y-m-d H:i:s', strtotime('-'.$startRange.' hours', strtotime($this->record->field->startTime)));
+                        
+                        // get overtime login logs
+                        $this->db->where('empID', $employee->biometricID);
+                        $this->db->where('logTime >=', $startLog);
+                        $this->db->where('logTime <=', $this->record->field->endTime);
+                        $this->db->where('logType', 'C/In');
+                        $this->db->order_by('logTime', 'asc');
+                        $login = $this->db->get('kiosk_logs', 1)->row();
+                        
+                        $startLog = (!empty($login)) ? $login->logTime : $this->record->field->startTime;
+                        $endRange = intval($this->config_model->getConfig('Overtime End Log Hour Range'));
+                        $endLog   = date('Y-m-d H:i:s', strtotime('+'.$endRange.' hours', strtotime($this->record->field->endTime)));
+                        
+                        // get overtime logout logs
+                        $this->db->where('empID', $employee->biometricID);
+                        $this->db->where('logTime >=', $startLog);
+                        $this->db->where('logTime <=', $endLog);
+                        $this->db->where('logType', 'C/Out');
+                        $this->db->order_by('logTime', 'asc');
+                        $logout = $this->db->get('kiosk_logs', 1)->row();
+                        
+                        if (!empty($login) || !empty($logout)) {
+                            $hours = 0;
+                            if (!empty($login) && !empty($logout)) {
+                                // calculate hours
+                                $start = (strtotime($login->logTime) < strtotime($this->record->field->startTime)) ? $this->record->field->startTime : $login->logTime;
+                                $end   = (strtotime($logout->logTime) > strtotime($this->record->field->endTime)) ? $this->record->field->endTime : $logout->logTime;
+                                
+                                $total      = strtotime($end) - strtotime($start);
+                                $hours      = floor($total / 60 / 60);
+                                $minutes    = floor((($total - ($hours * 60 * 60)) / 60) / 60);
+                                
+                                $hours      = $hours.'.'.$minutes;
+                            }
+                            
+                            $this->db->set('empID', $this->record->field->empID);
+                            $this->db->set('employmentID', $this->record->field->employmentID);
+                            $this->db->set('shiftID', 0);
+                            $this->db->set('date', $this->record->field->date);
+                            $this->db->set('attendanceType', 2);
+                            $this->db->set('login1', (!empty($login)) ? $login->logTime : '0000-00-00 00:00:00');
+                            $this->db->set('logout1', (!empty($logout)) ? $logout->logTime : '0000-00-00 00:00:00');
+                            $this->db->set('login2', '0000-00-00 00:00:00');
+                            $this->db->set('logout2', '0000-00-00 00:00:00');
+                            $this->db->set('hours', $hours);
+                            $this->db->set('tardy',  0);
+                            $this->db->set('undertime', 0);
+                            $this->db->set('remarks', 'Overtime');
+                            $this->db->insert('attendance');
+                        }
+                    }
+                }
+                                                
+                // record logs
+                if ($wasChange) {
+                    $logfield = $this->logfield;
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, $operation, $logs);
+                }
+                    
+                // successfully changed status
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully changed status.";
+                $data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "refresh";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                 // Error changing status
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    function confirm_form($id,$status)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        
+        if ($this->roles['approve']) {  
+            $data['id']     = $id;
+            $data['status'] = $status;
+        
+            $this->db->where('overtime_scheduleID', $id);
+            $this->db->order_by('startDate','asc');
+            $data['overtime_schedule_dates'] = $this->db->get('overtime_schedule_dates');
+        
+            $this->load->view($this->module_path.'/confirmform', $data);
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+                    }
+    }
+
+
+
+    //function needs help
+    // public function display_session_items($display_area='')
+    // {
+    //     $sessionSet = $this->input->post('sessionSet');
+    //     $records = isset($_SESSION[$sessionSet])? $_SESSION[$sessionSet]:array();
+    
+    //     // display session data
+    //     $headers = array('Employee'=>'left','Employment'=>'left',' Start Time'=>'left', 'End Time'=>'left','Hours'=>'right','Remarks'=>'left');
+    //     $display = array(
+    //             array('align'=>'left','fields'=>array('employeename'=>'')),
+    //             array('align'=>'left','fields'=>array('employment'=>'')),
+    //             array('align'=>'left','fields'=>array('startTimeLabel'=>'')),
+    //             array('align'=>'left','fields'=>array('endTimeLabel'=>'')),
+    //             array('align'=>'right','fields'=>array('hoursLabel'=>''),'display_total'=>true),
+    //             array('align'=>'left','fields'=>array('remarks'=>'')),
+    //     );
+    //     echo $this->htmlhelper->session_tabular_view($records,$headers,$display,$sessionSet,'950',$display_area);
+    // }
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array();
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+}

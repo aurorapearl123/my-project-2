@@ -1,0 +1,47 @@
+ <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+ <tr style="font-weight: bold;font-size: 11px;">
+    <td class="top left" align="center">BRANCH</td>
+    <td class="top left" align="center">DEPARTMENT</td>
+    <td class="top left" align="center">SECTION</td>
+    <td class="top left" align="center">ID NO.</td>
+    <td class="top left" align="center">EMPLOYEE NAME</td>
+    <td class="top left" align="center">LOAN TYPE</td>
+    <td class="top left" align="center">PRINCIPAL</td>
+    <td class="top left" align="center">PAYMENT</td>
+    <td class="top left" align="center">BALANCE</td>
+    <td class="top left" align="center">AMORTIZATION</td>
+    <td class="top left" align="center">GRANTED</td>
+    <td class="top left right" align="center">STATUS</td>
+ </tr>
+<?php 
+        foreach($records as $row) {
+?>
+        <tr>
+            <td class="top left"><?php echo $row->branchCode ?></td>
+            <td class="top left"><?php echo $row->deptCode ?></td>
+            <td class="top left"><?php echo $row->divisionCode ?></td>
+            <td class="top left"><?php echo $row->empNo ?></td>
+            <td class="top left"><?php echo $row->lname.", ".$row->lname." ".$row->mname ?></td>
+            <td class="top left"><?php echo $row->abbr ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->principal, 2) ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->payment, 2) ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->balance, 2) ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->amount, 2) ?></td>
+            <td class="top left"><?php echo date('m/d/Y', strtotime($row->dateFiled)) ?></td>
+            <td class="top left right" align="center">
+                <?php 
+                    if ($row->status == 1) {
+                    	echo "<font color='green'>Active</font>";
+                    } else {
+                    	echo "<font color='red'>Inactive</font>";
+                    }
+                ?>
+            </td>
+        </tr>
+<?php 
+        }
+?>
+<tr style="background-color: #ffffff;">
+    <td class="top" colspan="12">&nbsp;</td>
+</tr>
+</table>

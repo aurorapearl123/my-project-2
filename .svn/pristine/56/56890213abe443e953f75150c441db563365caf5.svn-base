@@ -1,0 +1,490 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+
+
+<div class="content"><!-- Content Start -->
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box"><!-- Card Box Start -->
+
+
+
+				<!-- Card Head Start -->
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Edit <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<!-- Card Head End -->
+				<div class="card-body">
+					<!-- Form Start -->
+
+
+
+
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page.'/update'; ?>">
+						<input type="hidden" name="<?php echo $pfield ?>" id="<?php echo $pfield ?>" value="<?php echo $this->encrypter->encode($rec->$pfield) ?>" />
+						<input type="hidden" id="suspensionNo" name="suspensionNo" value="<?php echo $rec->suspensionNo ?>" />
+						<input type="hidden" id="totalDays" name="totalDays" value="<?php echo $rec->totalDays?>" />
+						<div class="table-row">
+							<table class="table-form column-3">
+								<tbody>
+
+
+									<!-- First Row Start -->
+									<tr>
+										<td class="form-label">Date Filed <span class="asterisk">*</span></td>
+										<td class="form-group form-input">
+											<table style="margin-left: -10px;" width="106%">
+												<tbody><tr>
+													<td><input type="text" class="form-control datepicker" name="dateFiled" id="dateFiled" data-toggle="datetimepicker" data-target="#dateFiled" value="<?php echo date('M d, Y', strtotime($rec->dateFiled))?>" label="Date Filed" required></td>
+													<td class="form-label"><i style="font-size: 26px;color: #1984c8;" class="icon left la la-calendar ?>"></i></td>
+													<td class="form-group form-input">
+														<select class="form-control" name="series" id="series" title="Series">
+															<?php 
+															for ($year = $this->config_model->getConfig('Year Started'); $year <= (date('Y')+1); $year++) {?>
+																<option value="<?php echo $year?>" <?php echo ($year==$rec->series) ? "selected" : ""?>><?php echo $year?></option>
+															<?php }?>
+														</select>
+													</td>
+												</tr>
+											</tbody></table>
+											
+										</td>
+										<td class="form-label"></td>
+										<td class="form-group form-input">
+											
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									<!-- First Row End -->
+									
+									
+									
+									<!-- Second Row Start -->
+									<tr>
+										<td class="form-label">Period <span class="asterisk">*</span></td>
+										<td class="form-group form-input">
+											<table style="margin-left: -10px;" width="120%">
+												<tbody><tr>
+													
+													<td width="46%;">
+														<input placeholder="Start" type="text" class="form-control datepicker" name="startDate" id="startDate" data-toggle="datetimepicker" data-target="#startDate"  maxlength="20" onchange="checkDateRange('startDate','endDate');getRange('startDate','endDate','totalDays');" title="Start Date" value ="<?php echo date('M d, Y', strtotime($rec->startDate))?>" label="Start Date" required>
+													</td>
+													<td class="form-label" valign="middle"><i style="font-size: 26px;color: #1984c8;" class="icon left la la-calendar ?>"></i></td>
+													
+													<td class="form-group form-input">
+														<input placeholder="End" type="text" class="form-control datepicker" name="endDate" id="endDate" data-toggle="datetimepicker" data-target="#endDate" maxlength="20" data-callback="checkDateRange('startDate','endDate');getRange('startDate','endDate','totalDays');" title="End Date" label="End Date" value ="<?php echo date('M d, Y', strtotime($rec->endDate))?>" required>
+													</td>
+													<td class="form-label" width="11%;"></td>
+												</tr>
+											</tbody></table>
+											
+										</td>
+										<td class="form-label"></td>
+										<td class="form-group form-input">
+											
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									<!-- Second Row End -->
+									
+									
+									<tr>
+										<td class="form-label" style="width:120px" nowrap>Subject <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<input class="form-control" type="text" name="subject" id="subject" maxlength="200" title="Subject" value="<?php echo $rec->subject?>" label="Subject" required/>
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									
+									<tr>
+										<td class="form-label" style="width:120px" nowrap>Reason <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<input class="form-control" type="text" name="reason" id="reason" maxlength="200" title="Reason" value="<?php echo $rec->reason?>" label="Reason" required/>
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									
+									<tr>
+										<td class="form-label" style="width:120px" valign="top" nowrap>Remarks </td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<textarea	class="form-control" name="remarks" id="remarks" maxlength="50"><?php echo $rec->remarks?></textarea>
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									
+									
+									
+									
+									
+								</tbody>
+							</table>
+						</div>
+						
+						
+					</form><!-- frmEntry Form End -->
+					
+					<div class="subtitle mt-20">
+						<h5 class="title mr-auto"><i class="icon left la la-user"></i> Employee</h5>
+						<div class="subtitle-tools">
+						</div>
+					</div>
+					<div class="datatables_wrapper">
+						<div class="table-responsive-xl">
+							<form method="post" name="frmAdd1" id="frmAdd1" ><!-- Form Start -->
+								<!-- form.serialize does not work just pass data manually -->
+								<!-- <input type="hidden" name="sessionSet" id="sessionSet" value="employees" /> -->
+								<input type="hidden" name="employment" id="employment" value=""/>
+								<input type="hidden" name="empCompanyID" id="empCompanyID" value=""/>
+								<input type="hidden" name="empBranchID" id="empBranchID" value=""/>
+								<input type="hidden" name="employeename" id="employeename" value=""/>
+								<table class="table hover">
+									<thead class="">
+										<tr>
+											<th class="w-20" nowrap>Employee <span class="asterisk">*</span></th>
+											<th width="2%;" nowrap></th>
+											<th class="w-15" nowrap>Employment <span class="asterisk">*</span></th>
+											<th class="w-15" nowrap> </th>
+											<!-- <th class="w-10" nowrap></th> -->
+											<th class="w-55" nowrap></th>      
+										</tr>
+										<tr>
+											<th class="w-20">
+												<select name="empID" id="empID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="get_employments();" title="Employee" required>
+													<option value="" selected>&nbsp;</option>
+													<?php           
+													$this->db->where('status', 1);
+													$results = $this->db->get('employees')->result();
+													foreach($results as $res){
+														?>
+														<option value="<?php echo $res->empID ?>"><?php echo $res->lname.', '.$res->fname.' '.$res->mname." (".$res->empNo.")" ?></option>
+													<?php }?>
+												</select>
+											</th>
+											<th  width="2%;" nowrap></th>
+											<th class="w-15">
+												<select name="employmentID" id="employmentID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="tm_setEmployment();" title="Employment" required>
+													<option value="" selected>&nbsp;</option>
+													<?php           
+													$this->db->where('status', 1);
+													$results = $this->db->get('employments')->result();
+													foreach($results as $res){
+														?>
+														<option value="<?php echo $res->employmentID ?>"><?php echo $res->employmentNo ?></option>
+													<?php }?>
+												</select>
+											</th>
+
+											<th class="w-10" align="center">
+												<input type="button" class="btn btn-xs btn-primary pill" name="cmdSubmit" id="cmdSubmit" value=" Add Employee " onclick="tm_add_session_item('frmAdd1', 'empID,employeename,employmentID,employment,empCompanyID,empBranchID', 'div_item', 1, 'empID','','',1,'employmentID','', 'employees');"/>
+											</th>
+											<th class="w-10" align="center"></th>
+											<th class="w-10" align="center" ></th>
+										</tr>
+
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+
+							</form><!-- Form End -->
+						</div>
+					</div>
+
+
+					<div class="subtitle mt-20">
+						<h5 class="title mr-auto"></h5>
+						<div class="subtitle-tools">
+						</div>
+					</div>
+					<div class="datatables_wrapper">
+						<div id="div_item" class="table-responsive-xl">
+							<table class="table hover">
+								<thead class="thead-light">
+									<tr>
+										<th class="w-50">Employee</th>
+										<th class="w-50">Employment</th>
+									</tr>
+								</thead>
+
+							</table>
+						</div>
+					</div>
+
+
+					<div class="form-sepator solid"></div>
+					<div class="form-group mb-0">
+						<button class="btn btn-xs btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+							Save
+						</button>
+						<input type="button" id="cmdCancel" class="btn btn-xs btn-outline-danger btn-raised pill" value="Cancel"/>
+					</div>
+
+					
+				</div>
+			</div><!-- Card Box End -->
+		</div>
+	</div>
+</div><!-- Content End -->
+
+<script>
+	$('#cmdSave').click(function(){
+		if (check_fields()) {
+			$('#cmdSave').attr('disabled','disabled');
+			$('#cmdSave').addClass('loader');
+			$('#frmEntry').submit();
+		}
+	});
+	
+	function check_fields()
+	{
+		var valid = true;
+		var req_fields = "";
+		
+		$('#frmEntry [required]').each(function(){
+			if($(this).val()=='' ) {
+				req_fields += "<br/>" + $(this).attr('label');
+				valid = false;
+			} 
+		})
+		
+		if (!valid) {
+			swal("Required Fields",req_fields,"warning");
+		}
+		
+		return valid;
+	}
+	
+	$('#cmdCancel').click(function(){
+		swal({
+			title: "Are you sure?",
+			text: "",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		})
+		.then((willDelete) => {
+			if (willDelete.value) {
+				window.location = '<?php echo $controller_page."/show" ?>';
+			}
+		});
+		
+	});
+</script>
+
+
+
+
+<script>
+	var site_url = '<?php echo site_url(); ?>';
+
+	tm_display_session_items('employees', 'div_item');
+
+	<?php
+	echo "\n";
+	$parameters = array('empID');
+	echo $this->htmlhelper->get_json_select('get_employments', $parameters, site_url('generic_ajax/get_employments'), 'employmentID', '') ;
+	?>
+
+
+	function tm_setEmployment()
+	{
+		console.log($('#empID option:selected').val(), '-', $('#employmentID').val());
+		$('#employment').val($('#employmentID option:selected').text());
+		$('#employeename').val($('#empID option:selected').text());
+
+		if ($('#employmentID').val() !="") {
+			$.post(site_url+"/tm_sessionmanager/getJSON/employments/employmentID", { 
+				employmentID: $('#employmentID').val()},
+				function(data){ 
+					$('#empCompanyID').val(data.companyID);
+					$('#empBranchID').val(data.branchID);	
+				}, "json");
+		} else {
+			$('#emp_companyID').val("");
+			$('#emp_branchID').val("");
+		}
+	}
+
+
+
+// tm_add_session_item('frmAdd1', 'empID,employeename,employmentID,employment,empCompanyID,empBranchID', 'div_item', 1, 'empID','','',1,'employmentID','','employees')
+
+// add_session_item(form_source, fields, display_area, do_reset=1, returnField="", success_msg="", error_msg="", checkDuplicate=0, duplicateField="", callback="") 
+function tm_add_session_item(form_source, fields, display_area, do_reset=1, returnField="", success_msg="", error_msg="", checkDuplicate=0, duplicateField="", callback="", sessionSet="") 
+{
+	if (check_fields2()) {
+
+		fields = fields.replace(/,/gi,"_"); 
+		console.log(fields);
+		//'empID,employeename,employmentID,employment,empCompanyID,empBranchID'
+		var empID = $('#empID').val();
+		var employeename = $('#employeename').val();
+		var employmentID = $('#employmentID').val();
+		var employment = $('#employment').val();
+		var empCompanyID = $('#empCompanyID').val();
+		var empBranchID = $('#empBranchID').val();
+
+		var field_values = {empID: empID, employeename: employeename, employmentID: employmentID, employment: employment, empCompanyID: empCompanyID, empBranchID: empBranchID}
+		
+		$.post(site_url+"/tm_sessionmanager/push_session_item/"+fields+"/"+checkDuplicate+"/"+duplicateField+"/"+sessionSet,field_values,
+			function(data){
+				console.log(parseInt(data));
+				if (parseInt(data)==1) {
+				//alert(success_msg);
+			} else if (parseInt(data)==2) {
+				swal("Duplicate","Record already exist!","warning");
+			} else {
+				alert(error_msg);
+			}
+
+			// if (do_reset) {
+			// 	// reset form
+			// 	resetForm(form_source);
+			// 	// return field
+			// 	if (returnField) {
+			// 		$('#'+form_source+' #'+returnField).focus();
+			// 	}
+			// }
+
+			if (display_area != "") {
+				tm_display_session_items('employees', display_area);
+			}
+
+			if (callback != "") {
+				eval(callback);
+			}
+			
+		}, "text");
+	}
+}
+
+
+function tm_display_session_items(sessionSet, display_area) 
+{  	
+	$.post('<?php echo $controller_page ?>/display_session_items/'+display_area, { sessionSet: sessionSet },
+		function(data){
+			$('#'+display_area).html(data);
+		}, "text");
+}
+
+
+function tm_delete_session_item(item_name, item_id, display_area,callback="") 
+{
+
+	swal({
+		title: "Confirm delete row?",
+		text: "",
+		icon: "warning",
+		showCancelButton: true,
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+		confirmButtonText: 'Yes, delete it!'
+	})
+	.then((willDelete) => {
+		if (willDelete.value) {
+			$.post(site_url+"/sessionmanager/delete_session_item", { sessionSet: item_name, targetID: item_id },
+				function(data){
+					if (parseInt(data)==1) {
+				//alert("Successfully deleted!");
+			} else {
+				swal("Delete failed!","Unable to delete record.","warning");
+			}
+			
+			if (display_area != "") {
+				tm_display_session_items(item_name, display_area);
+			}
+
+			fn = window[callback];
+			if (typeof fn === "function") fn();
+
+//			if (callback != "") {
+//				eval(callback);
+//			}
+}, "text");
+		}
+	});
+}
+
+function check_fields2()
+{
+	var valid = true;
+	var req_fields = "";
+
+	var empID = $('#empID').val();
+	var employmentID = $('#employmentID').val();
+
+	if ($('#empID').val()=='') {
+		req_fields += "<br/>" + $('#empID').attr('title');
+		valid = false;
+	}
+	if ($('#employmentID').val()=='') {
+		req_fields += "<br/>" + $('#employmentID').attr('title');
+		valid = false;
+	}
+
+
+
+	if (!valid) {
+		swal("Required Fields",req_fields,"warning");
+	}
+
+	return valid;
+}
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

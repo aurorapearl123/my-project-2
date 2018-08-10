@@ -1,0 +1,105 @@
+class
+notificationbox = success
+errorbox = danger
+
+// load views
+$this->load->view('header', $data);
+$this->load->view($this->module_path.'/edit');
+$this->load->view('footer');
+
+// no access this page
+$data['class']  = "danger";
+$data['msg']    = "Sorry, you don't have access to this page!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// success msg
+$data['class']  = "success";
+$data['msg']    = $this->module." successfully saved.";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// Successfully updated
+$data['class']  = "success";
+$data['msg']    = $this->module." successfully updated.";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// Error updating
+$data['class']  = "danger";
+$data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// Unable to save
+$data['class']  = "danger";
+$data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+//Error in updating
+$data['class']  = "danger";
+$data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+//Successfully deleted
+$data['class']  = "success";
+$data['msg']    = "Successfully deleted!";
+$data['urlredicrect']    = $this->controller_page."/show";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+//Error Deleting
+$data['class']  = "danger";
+$data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+//Record not found
+$data['class']  = "danger";
+$data['msg']    = $this->module." record not found!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+===================================
+// successfully changed status
+$data['class']  = "success";
+$data['msg']    = $this->module." successfully changed status.";
+$data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "refresh";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// Error changing status
+$data['class']  = "danger";
+$data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+$data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');
+
+// no records to print
+$data['class']  = "danger";
+$data['msg']    = "Sorry, you don't have records to print!";
+$data['urlredicrect']    = "";
+$this->load->view('header', $data);
+$this->load->view('message');
+$this->load->view('footer');

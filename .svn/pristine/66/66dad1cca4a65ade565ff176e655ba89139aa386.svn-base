@@ -1,0 +1,840 @@
+
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+
+
+<div class="content"><!-- Content Start -->
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box"><!-- Card Box Start -->
+			
+			
+			
+			<!-- Card Head Start -->
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<!-- Card Head End -->
+				<div class="card-body">
+				<!-- Form Start -->
+				
+				
+				
+				
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page.'/save'; ?>">
+					<input type="hidden" id="lname" name="lname" value="" />
+                    <input type="hidden" id="fname" name="fname" value="" />
+                    <input type="hidden" id="mname" name="mname" value="" />
+                    <input type="hidden" id="suffix" name="suffix" value="" />
+                    <input type="hidden" id="title" name="title" value="" />
+                    <!-- <input type="hidden" name="empID" id="empID" value="<?php //echo $empID?>" /> -->
+						<div class="table-row">
+							<table class="table-form column-3">
+								<tbody>
+									<tr>
+										<td class="form-label">Date Filed <span class="asterisk">*</span></td>
+										<td class="form-group form-input">
+											<input type="text" class="form-control datepicker" name="dateFiled" id="dateFiled" data-toggle="datetimepicker" data-target="#dateFiled" value="<?php echo date('M d Y')?>" label="Date Filed" required>
+										</td>
+										<td class="form-label">Series </td>
+										<td class="form-group form-input">
+											<select tabindex="2" name="series" id="series" class="form-control">
+                                    		<?php 
+                                    		for ($year = $this->config_model->getConfig('Year Started'); $year <= (date('Y')+1); $year++) {?>
+                                    		<option value="<?php echo $year?>" <?php echo ($year==$series) ? "selected" : ""?>><?php echo $year?></option>
+                                    		<?php }?>
+                                    	</select>
+										</td>
+										<td class="d-xxl-none"></td>
+									</tr>
+									
+									
+									<tr>
+										<td class="form-label" style="width:120px" nowrap>Employee <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<select id="empID" name="empID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="getEmployments();getLeaveCredits();setEmployee();" label="Employee" required>
+                                        <option value="">&nbsp;</option>
+                                        <?php 
+		                                $this->db->where('status', 1);
+		                                $results = $this->db->get('employees')->result();
+		                                foreach($results as $res){
+		                                  ?>
+										<option value="<?php echo $res->empID?>"><?php echo $res->lname.', '.$res->fname.' '.$res->mname ?></option>
+										<?php }?>
+                                        </select>
+										</td>
+										<td class="form-label" style="width:120px" nowrap>Control No. <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+										<input type="text" name="leaveNo" id="leaveNo" class="form-control" label="Control No." required/>
+										</td>
+									</tr>
+									
+									
+									<tr>
+										<td class="form-label" style="width:120px" nowrap>Employment <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+												<select name="employmentID" id="employmentID" class="form-control" data-live-search="true" liveSearchNormalize="true" onchange="" label="Employment" required>
+													<option value="" selected>&nbsp;</option>
+													<?php           
+													$this->db->where('status', 1);
+													$results = $this->db->get('employments')->result();
+													foreach($results as $res){
+														?>
+														<option value="<?php echo $res->employmentID ?>"><?php echo $res->employmentNo ?></option>
+													<?php }?>
+												</select>
+										</td>
+										<td class="form-label" style="width:120px" nowrap>Leave Type <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<input type="hidden" name="leaveTypeID" id="leaveTypeID" value=""/>
+    										<input type="hidden" name="availableCredits" id="availableCredits" value="0"/>
+											<select class="form-control" tabindex="15" name="creditID" id="creditID" style="width:331px" onchange="setAvailableCredits();" label="Leave Type" required>
+												<option value="">&nbsp;</option>
+											</select>
+										</td>
+									</tr>
+									
+									
+									<tr>
+										<!-- Basta butangan ug reason dili mo display sa list/table list, but ma insert sa db -->
+										<td class="form-label" style="width:120px" nowrap>Reason  <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<input type="text" class="form-control" name="reason" id="reason" label="Reason" required>
+										</td>
+										<td class="form-label" style="width:120px" nowrap>Location </td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<input type="text" class="form-control" name="location" id="location">
+										</td>
+									</tr>
+									
+									
+									<tr>
+										<td class="form-label" style="width:120px" nowrap>Remarks </td>
+										<td class="form-group form-input" style="width:350px" nowrap>
+											<textarea class="form-control" name="remarks" id="remarks"></textarea>
+										</td>
+									</tr>	
+								</tbody>
+							</table>
+						</div>
+					</form><!-- frmEntry Form End -->
+						
+
+
+
+
+
+						
+					<!-- Date Coverage Start -->
+					<div class="subtitle mt-20">
+						<h5 class="title mr-auto"><i class="icon left la la-calendar"></i> Date Coverage</h5>
+						<div class="subtitle-tools">
+						</div>
+					</div>
+					<div class="datatables_wrapper">
+						<div class="table-responsive-xl">
+							<form method="post" name="frmAdd" id="frmAdd" ><!-- Form Start -->
+								<input type="hidden" name="sessionSet" id="sessionSet" value="leave_dates" />
+								<input type="hidden" name="workCoverLabel" id="workCoverLabel" value="Whole Working Day"/>
+								<input type="hidden" name="hoursLabel" id="hoursLabel" value="--"/>
+								<input type="hidden" name="startHourLabel" id="startHourLabel" value="--:--:--"/>
+								<input type="hidden" name="endHourLabel" id="endHourLabel" value="--:--:--"/>
+								<table id="family-members" class="table hover">
+									<thead class="">
+
+										    <tr>
+        <th class="dataField" nowrap>Starting Date</th>
+        <th class="dataField" nowrap>Ending Date</th>
+        <th class="dataField" nowrap>Work Coverage</th>
+        <th class="dataField" nowrap><span class="daysField">Days</span></th>
+        <th class="dataField" nowrap><span class="hoursField" style="display:none;">Start Hour</span></th>
+        <th class="dataField" nowrap><span class="hoursField" style="display:none;">End Hour</span></th>
+        <th class="dataField" nowrap><span class="hoursField" style="display:none;">Hours</span></th>        
+    </tr>
+
+
+
+
+                            <tr>
+
+						<th class="w-10" align="left" ><input type="text" class="form-control datepicker" name="startDate" id="startDate" data-toggle="datetimepicker" data-target="#startDate" onchange="setDetails();"></th>
+						<th class="w-10" align="center" ><input type="text" class="form-control datepicker" name="endDate" id="endDate" data-toggle="datetimepicker" data-target="#endDate" onchange="setDetails();"></th>
+
+
+
+
+
+						<th class="dataField" align="left" nowrap>			
+							<select class="form-control" tabindex="43" name="workCover" id="workCover" onchange="setDetails();">
+								<option value="1">Whole Working Day</option>
+								<option value="2">Working Hours</option>
+							</select></th>
+							<th class="dataField" width="" valign="top" nowrap>			
+								<input class="form-control daysField" tabindex="44" type="text" name="days" id="days" value="0.00" style="width:100px;" onkeypress="return keyRestrict(event, 1);"  readonly/></th>
+								<th class="dataField" width="" valign="top" nowrap>
+									<span class="hoursField">			
+										<select class="custom-select-a" tabindex="22" name="startHour" id="startHour" style="width:53px;" onchange="getHours()">
+											<?php 
+											for ($i = 0; $i <= 23; $i++) {
+												$label = str_pad($i, 2, 0, STR_PAD_LEFT)?>
+												<option value="<?php echo $label?>"><?php echo $label?></option>
+											<?php }?>
+										</select>
+										<select class="custom-select-a" tabindex="23" name="startMin" id="startMin" style="width:53px;" onchange="getHours()">
+											<?php 
+											for ($i = 0; $i <= 59; $i++) {
+												$label = str_pad($i, 2, 0, STR_PAD_LEFT)?>
+												<option value="<?php echo $label?>"><?php echo $label?></option>
+											<?php }?>
+										</select>&nbsp; to &nbsp;</span></th>
+										<th class="dataField" width="" valign="top" nowrap>
+											<span class="hoursField">				
+												<select class="custom-select-a" tabindex="22" name="endHour" id="endHour" style="width:53px;" onchange="getHours()">
+													<?php 
+													for ($i = 0; $i <= 23; $i++) {
+														$label = str_pad($i, 2, 0, STR_PAD_LEFT)?>
+														<option value="<?php echo $label?>"><?php echo $label?></option>
+													<?php }?>
+												</select>
+												<select class="custom-select-a" tabindex="23" name="endMin" id="endMin" style="width:53px;" onchange="getHours()">
+													<?php 
+													for ($i = 0; $i <= 59; $i++) {
+														$label = str_pad($i, 2, 0, STR_PAD_LEFT)?>
+														<option value="<?php echo $label?>"><?php echo $label?></option>
+													<?php }?>
+												</select></span></th>        
+												<th class="dataField" width="" valign="top" nowrap>			
+													<input class="custom-select-a hoursField" tabindex="44" type="text" name="hours" id="hours" value="0.00" style="width:50px; display:none;" readonly onchange="setDetails();" onkeypress="return keyRestrict(event, 1);"/></th>
+
+
+
+
+
+
+						<th class="w-10" align="center"><input type="button" class="btn btn-xs btn-primary pill" id="addItemsBtn" value=" Add " onclick="checkTotal();" /></th>
+						<th class="w-10" align="center"></th>
+						<th class="w-10" align="center"></th>
+						<th class="w-10" align="center" ></th>
+						<th class="w-5" align="center"></th>
+						
+</tr>
+
+                          </thead>
+                          <tbody>
+                          </tbody>
+                        </table>
+
+							</form><!-- Form End -->
+						</div>
+					</div>
+					
+					
+					<div class="subtitle mt-20">
+						<h5 class="title mr-auto"></h5>
+						<div class="subtitle-tools">
+						</div>
+					</div>
+					<div class="datatables_wrapper">
+						<div id="div_items" class="table-responsive-xl">
+							<table id="family-members" class="table hover">
+								<thead class="thead-light">
+									<tr>
+										<th class="w-10" align="center">Starting Date</th>
+										<th class="w-10" align="center">Ending Date</th>
+										<th class="w-10" align="center">Work Coverage</th>
+										<th class="w-10" align="center">Days</th>
+										<th class="w-10" align="center">Hours</th>
+										<th class="w-10" align="center">Start Hour</th>
+										<th class="w-10" align="center">End Hour</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+
+					<!-- Date Coverage End -->
+                    
+                    
+                    
+						<div class="form-sepator solid"></div>
+						<div class="form-group mb-0">
+							<button class="btn btn-primary btn-raised pill btn-xs" type="button" name="cmdSave" id="cmdSave">
+							Save
+							</button>
+							<input type="button" id="cmdCancel" class="btn btn-outline-danger btn-raised pill btn-xs" value="Cancel"/>
+						</div>
+					
+					
+				</div>
+			</div><!-- Card Box End -->
+		</div>
+	</div>
+</div><!-- Content End -->
+
+<script>
+	$('#cmdSave').click(function(){
+		if (check_fields()) {
+	 //    	$('#cmdSave').attr('disabled','disabled');
+	 //    	$('#cmdSave').addClass('loader');
+	 //        $.post("<?php //echo $controller_page ?>/check_duplicate", { code: $('#code').val() },
+	 //          function(data){
+	 //            if (parseInt(data)) {
+	 //            	$('#cmdSave').removeClass("loader");
+	 //            	$('#cmdSave').removeAttr('disabled');
+	 //              	// duplicate
+	 //              	swal("Duplicate","Record is already exist!","warning");
+	 //            } else {
+	            	// submit
+	               	$('#frmEntry').submit();
+	 //            }
+	 //          }, "text");
+		}
+	});
+	
+	
+	function check_fields()
+	{
+		 var valid = true;
+		 var req_fields = "";
+		 
+		 $('#frmEntry [required]').each(function(){
+		    if($(this).val()=='' ) {
+		    	req_fields += "<br/>" + $(this).attr('label');
+			    valid = false;
+		    } 
+		 })
+		 
+		 if (!valid) {
+		 	swal("Required Fields",req_fields,"warning");
+		 }
+		 
+		 return valid;
+	}
+	
+	$('#cmdCancel').click(function(){
+		swal({
+		      title: "Are you sure?",
+		      text: "",
+		      icon: "warning",
+		      showCancelButton: true,
+		      confirmButtonColor: '#3085d6',
+		      cancelButtonColor: '#d33',
+		      confirmButtonText: 'Yes',
+		      cancelButtonText: 'No'
+		    })
+		    .then((willDelete) => {
+		      if (willDelete.value) {
+		    	  window.location = '<?php echo site_url('leave/show') ?>';
+		      }
+		    });
+	    
+	});
+	
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+<?php
+	echo "\n";
+	$parameters = array('empID');
+	echo $this->htmlhelper->get_json_select('getEmployments', $parameters, site_url('generic_ajax/get_employments'), 'employmentID', '') ;
+
+?>
+
+
+function getLeaveCredits()
+{
+$.post(site_url+"/leave_credit/getLeaveCredits", {
+empID: $('#empID').val()
+},
+  function(data){
+    $('#creditID').empty();
+    $('#creditID').val("");
+    $('#creditID').selectpicker("refresh");
+    $('#creditID').append('<option value="" selected>&nbsp;</option>');
+    $('#creditID').selectpicker("refresh");
+		for(c = 0; c < data.length; c++){
+             $('#creditID').append('<option value="'+data[c].id+'">'+data[c].display+'</option>');
+             $('#creditID').selectpicker("refresh");
+		}
+  }, "json");
+}
+
+
+$(document).ready(function(e) {
+    $('#dateFiled').focus();
+    $('.daysField').show();	
+	$('.hoursField').hide();	
+});
+
+
+
+var site_url = '<?php echo site_url(); ?>';
+
+function setEmployee() 
+{
+	if ($('#empID').val() !="") {
+		$.post(site_url+"/tm_sessionmanager/getJSON/employees/empID", { 
+			empID: $('#empID').val()},
+		  function(data){ 
+			$('#lname').val(data.lname);
+			$('#fname').val(data.fname);
+			$('#mname').val(data.mname);
+			$('#suffix').val(data.suffix);
+			$('#title').val(data.title);			
+		  }, "json");
+	} else {
+		$('#lname').val('');
+		$('#fname').val('');
+		$('#mname').val('');
+		$('#suffix').val('');
+		$('#title').val('');
+	}
+}
+
+function setAvailableCredits()
+{
+	if ($('#creditID').val() !="") {
+		$.post(site_url+"/tm_sessionmanager/getJSON/leave_credits/creditID", { 
+			creditID: $('#creditID').val()},
+		  function(response){ 
+				$('#leaveTypeID').val(response.leaveTypeID);
+				$('#availableCredits').val(response.credit);
+				
+				clear_session('leave_dates');
+				tm_display_session_items('leave_dates', 'div_items');
+		  }, "json");
+	} else {
+		$('#leaveTypeID').val("");
+		$('#availableCredits').val(0);
+	}
+}
+
+function getHours()
+{
+	if ($('#startHour').val() != '00' || $('endHour').val() != '00') {
+		startHour   = $('#startHour').val()+':'+$('#startMin').val()+':00';
+		endHour     = $('#endHour').val()+':'+$('#endMin').val()+':00';
+		
+		start	= new Date($('#startDate').val()+' '+startHour);
+		end		= new Date($('#endDate').val()+' '+endHour);
+
+		hours = Math.abs((end.getTime() - start.getTime()) / (60*60)) / 1000;
+
+		$('#hours').val(hours.toFixed(3));
+		$('#hoursLabel').val(hours.toFixed(3)); 		
+
+		$('#startHourLabel').val(startHour);
+		$('#endHourLabel').val(endHour); 		
+			
+	} 
+}
+
+function setDetails()
+{
+	if ($('#startDate').val() !="" && $('#endDate').val() !="") {
+		var oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
+		var startDate 	= new Date($('#startDate').val());
+		var endDate 	= new Date($('#endDate').val());
+
+		if (endDate.getTime() >= startDate.getTime()){
+			var diffDays = (Math.round(Math.abs((endDate.getTime() - startDate.getTime())/(oneDay)))) + 1;
+			$('#days').val(diffDays);
+	
+			if (diffDays > 1) {
+				$('#workCover option[value="2"]').attr("disabled", true);
+				$('#workCover option[value="3"]').attr("disabled", true);
+				$('#workCover option[value="4"]').attr("disabled", true);	
+	
+				$('#hours').val(0);
+				$('#hoursLabel').val('--');
+				$('#startHourLabel').val('--:--:--');
+				$('#endHourLabel').val('--:--:--');
+				
+				$('.daysField').show();	
+				$('.hoursField').hide();		
+			} else if (parseFloat($('#availableCredits').val()) > 0) {
+				$('#workCover option[value="2"]').attr("disabled", false);
+				$('#workCover option[value="3"]').attr("disabled", false);
+				$('#workCover option[value="4"]').attr("disabled", false);
+	
+				if ($('#workCover').val()=="1") {
+					$('#hours').val(0);
+					$('#hoursLabel').val('--');
+					$('#startHourLabel').val('--:--:--');
+					$('#endHourLabel').val('--:--:--');
+					
+					$('.daysField').show();	
+					$('.hoursField').hide();		
+				} else {
+					$('#days').val(0);
+					$('#hoursLabel').val($('#hours').val());
+					
+					$('.daysField').hide();	
+					$('.hoursField').show();
+				} 
+			} else {
+				alert('No Credits Available!');
+				resetForm('frmAdd');
+			}
+		}		
+	} 
+
+	$("#workCover").trigger("chosen:updated");
+	$('#workCoverLabel').val($('#workCover option:selected').text());
+}
+
+function checkTotal()
+{	
+	$.post(site_url+"/sessionmanager/get_session_total", { 
+		sessionSet: 'leave_dates',
+		fld: 'days'},
+	  function(response) { 
+	  	console.log(response);
+			if ($('#workCover').val()==1) {
+				total = response.total + parseFloat($('#days').val());
+
+			} else {
+				total = response.total + (parseFloat($('#hours').val()) / 8);
+			}
+			
+			$.post(site_url+"/sessionmanager/get_session_total", { 
+				sessionSet: 'leave_dates',
+				fld: 'hours'},
+			  function(response) { 					 
+					available = parseFloat($('#availableCredits').val());	
+					total	 +=	(response.total / 8);			
+					
+					if (total <= parseFloat($('#availableCredits').val())) {
+						tm_add_session_item('frmAdd', 'startDate,endDate,workCover,workCoverLabel,hours,hoursLabel,days,startHourLabel,endHourLabel', 'div_items', 1, 'startDate','','',1,'startDate','');
+					} else {
+						alert('Insufficient Credits!');
+					}					
+			  }, "json");			
+	  }, "json");
+}
+
+
+
+function tm_add_session_item(form_source, fields, display_area, do_reset=1, returnField="", success_msg="", error_msg="", checkDuplicate=0, duplicateField="", callback="") 
+{
+
+	
+		fields = fields.replace(/,/gi,"_"); 
+		
+		$.post(site_url+"/sessionmanager/push_session_item/"+fields+"/"+checkDuplicate+"/"+duplicateField, $('#'+form_source).serialize(),
+		  function(data){
+			  
+			if (parseInt(data)==1) {
+				//alert(success_msg);
+			} else if (parseInt(data)==2) {
+				alert("Duplicate data");
+			} else {
+				alert(error_msg);
+			}
+	
+			if (do_reset) {
+				// reset form
+				resetForm(form_source);
+				// return field
+				if (returnField) {
+					$('#'+form_source+' #'+returnField).focus();
+				}
+			}
+	
+			if (display_area != "") {
+				tm_display_session_items($('#'+form_source+' #sessionSet').val(), display_area);
+			}
+
+			if (callback != "") {
+				eval(callback);
+			}
+			
+		  }, "text");
+}
+
+function tm_display_session_items(sessionSet, display_area) 
+{  	
+	$.post('<?php echo $controller_page ?>/display_session_items/'+display_area, { sessionSet: sessionSet },
+		function(data){
+			$('#'+display_area).html(data);
+		}, "text");
+}
+
+function tm_delete_session_item(item_name, item_id, display_area,callback="") 
+{
+
+    swal({
+      title: "Confirm delete row?",
+      text: "",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    })
+    .then((willDelete) => {
+      if (willDelete.value) {
+		$.post(site_url+"/sessionmanager/delete_session_item", { sessionSet: item_name, targetID: item_id },
+		  function(data){
+			if (parseInt(data)==1) {
+				//alert("Successfully deleted!");
+			} else {
+				swal("Delete failed!","Unable to delete record.","warning");
+			}
+			  
+			if (display_area != "") {
+				tm_display_session_items(item_name, display_area);
+			}
+
+			fn = window[callback];
+			if (typeof fn === "function") fn();
+
+//			if (callback != "") {
+//				eval(callback);
+//			}
+		  }, "text");
+      }
+    });
+}
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <script>
+	$('#cmdSave').click(function(){
+		// if (check_fields()) {
+			$('#frmEntry').submit();
+			// $('#cmdSave').attr('disabled','disabled');
+			// $('#cmdSave').addClass('loader');
+			// $.post("<?php //echo $controller_page ?>/check_duplicate", { code: $('#code').val() },
+			// 	function(data){
+			// 		if (parseInt(data)) {
+			// 			$('#cmdSave').removeClass("loader");
+			// 			$('#cmdSave').removeAttr('disabled');
+	  //             	// duplicate
+	  //             	swal("Duplicate","Record is already exist!","warning");
+	  //             } else {
+	  //           	// submit
+	  //           	$('#frmEntry').submit();
+	  //           }
+	  //       }, "text");
+		// }
+	});
+	
+	
+	function check_fields()
+	{
+		var valid = true;
+		var req_fields = "";
+
+		$('#frmEntry [required]').each(function(){
+			if($(this).val()=='' ) {
+				req_fields += "<br/>" + $(this).attr('title');
+				valid = false;
+			} 
+		})
+
+		if (!valid) {
+			swal("Required Fields",req_fields,"warning");
+		}
+
+		return valid;
+	}
+	
+	$('#cmdCancel').click(function(){
+		swal({
+			title: "Are you sure?",
+			text: "",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		})
+		.then((willDelete) => {
+			if (willDelete.value) {
+				window.location = '<?php //echo site_url('suspension/show') ?>';
+			}
+		});
+
+	});
+
+</script>
+
+
+
+<script>
+	var site_url = '<?php //echo site_url(); ?>';
+
+
+	<?php
+	//echo "\n";
+	$parameters //= array('empID');
+	//echo $this->htmlhelper->get_json_select('get_employments', $parameters, site_url('generic_ajax/get_employments'), 'employmentID', '') ;
+	?>
+
+
+	function tm_setEmployment()
+	{
+		console.log($('#empID option:selected').val(), '-', $('#employmentID').val());
+		$('#employment').val($('#employmentID option:selected').text());
+		$('#employeename').val($('#empID option:selected').text());
+
+		if ($('#employmentID').val() !="") {
+			$.post(site_url+"/tm_sessionmanager/getJSON/employments/employmentID", { 
+				employmentID: $('#employmentID').val()},
+				function(data){ 
+					$('#empCompanyID').val(data.companyID);
+					$('#empBranchID').val(data.branchID);	
+				}, "json");
+		} else {
+			$('#emp_companyID').val("");
+			$('#emp_branchID').val("");
+		}
+	}
+
+// tm_add_session_item('frmAdd1', 'empID,employeename,employmentID,employment,empCompanyID,empBranchID', 'tbody_items1', 1, 'empID','','',1,'employmentID','','employees')
+
+// add_session_item(form_source, fields, display_area, do_reset=1, returnField="", success_msg="", error_msg="", checkDuplicate=0, duplicateField="", callback="") 
+function tm_add_session_item(form_source, fields, display_area, do_reset=1, returnField="", success_msg="", error_msg="", checkDuplicate=0, duplicateField="", callback="", sessionSet="") 
+{
+	if (check_fields2()) {
+
+		fields = fields.replace(/,/gi,"_"); 
+		console.log(fields);
+		//'empID,employeename,employmentID,employment,empCompanyID,empBranchID'
+		var empID = $('#empID').val();
+		var employeename = $('#employeename').val();
+		var employmentID = $('#employmentID').val();
+		var employment = $('#employment').val();
+		var empCompanyID = $('#empCompanyID').val();
+		var empBranchID = $('#empBranchID').val();
+
+		var field_values = {empID: empID, employeename: employeename, employmentID: employmentID, employment: employment, empCompanyID: empCompanyID, empBranchID: empBranchID}
+		
+		$.post(site_url+"/tm_sessionmanager/push_session_item/"+fields+"/"+checkDuplicate+"/"+duplicateField+"/"+sessionSet,field_values,
+			function(data){
+				console.log(parseInt(data));
+				if (parseInt(data)==1) {
+				//alert(success_msg);
+			} else if (parseInt(data)==2) {
+				swal("Duplicate","Record already exist!","warning");
+			} else {
+				alert(error_msg);
+			}
+
+			//doesnt work
+			// if (do_reset) {
+			// 	console.log('reset - '+do_reset);
+			// 	// reset form
+			// 	tm_resetForm(form_source);
+			// 	// return field
+			// 	if (returnField) {
+			// 		$('#'+form_source+' #'+returnField).focus();
+			// 	}
+			// }
+
+			if (display_area != "") {
+				tm_display_session_items('employees', display_area);
+			}
+
+			if (callback != "") {
+				eval(callback);
+			}
+			
+		}, "text");
+	}
+}
+
+function tm_resetForm(id) {
+	$('#'+id).each(function(){
+		this.reset();
+	});
+}
+
+function tm_display_session_items(sessionSet, display_area) 
+{  	
+	$.post('<?php //echo $controller_page ?>/display_session_items/'+display_area, { sessionSet: sessionSet },
+		function(data){
+			$('#'+display_area).html(data);
+		}, "text");
+}
+
+
+function check_fields2()
+{
+	var valid = true;
+	var req_fields = "";
+
+	var empID = $('#empID').val();
+	var employmentID = $('#employmentID').val();
+
+	if ($('#empID').val()=='') {
+		req_fields += "<br/>" + $('#empID').attr('title');
+		valid = false;
+	}
+	if ($('#employmentID').val()=='') {
+	req_fields += "<br/>" + $('#employmentID').attr('title');
+	valid = false;
+	}
+
+
+
+if (!valid) {
+	swal("Required Fields",req_fields,"warning");
+}
+
+return valid;
+}
+
+</script> -->

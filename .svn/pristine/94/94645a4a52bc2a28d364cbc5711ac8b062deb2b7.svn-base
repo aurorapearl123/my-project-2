@@ -1,0 +1,63 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_userID'),'View Dashboard')) {
+    $submenu[] = array('label'=>'General Payroll','url'=>site_url('payroll_gnp/show'),'icon'=>'bullet','subitem'=>array());
+    $submenu[] = array('label'=>'Payroll Periods','url'=>site_url('payroll_period/show'),'icon'=>'bullet','subitem'=>array());
+    $submenu[] = array('label'=>'Payroll Groups','url'=>site_url('payroll_group/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Payroll';
+$module['main']['controller'] 	= 'payroll';
+$module['main']['description'] 	= 'Manage all Payroll';
+$module['main']['icon'] 		= 'la-university';
+$module['main']['roles'] 		= array();
+
+ 
+// sub module
+$module['sub']['Payroll_gnp'] = array(
+    'title'=>'General Payroll',
+    'module_label'=>'General Payroll', // this will display on create/view/edit form
+    'controller'=>'payroll_gnp',
+    'description'=>'Manage all General Payroll',
+    'icon'=>'la-university',
+    'roles'=>array(   'View General Payroll',
+    )
+);
+$module['sub']['Payroll_period'] = array(
+    'title'=>'Payroll Periods',
+    'module_label'=>'Payroll Period', // this will display on create/view/edit form
+    'controller'=>'payroll_periods',
+    'description'=>'Manage all Payrll Periods',
+    'icon'=>'la-university',
+    'roles'=>array(   'View Payroll Periods',
+    )
+);
+$module['sub']['Payroll_group'] = array(
+    'title'=>'Payroll Groups',
+    'module_label'=>'Payroll Groups', // this will display on create/view/edit form
+    'controller'=>'Payroll_group',
+    'description'=>'Manage all Payrll Groups',
+    'icon'=>'la-university',
+    'roles'=>array(   'View Payroll Groups',
+    )
+);
+
+$module['main']['menu'] = $submenu;
+$this->modules['Payroll']  = $module;
+?>

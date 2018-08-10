@@ -1,0 +1,1057 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Order extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Order';
+        $this->module_label = 'Orders';
+        $this->table        = 'orders';
+        $this->module_path  = 'modules/Leave/Order';
+        $this->module_path_submenu  = 'modules/Leave/submenu';
+        $this->pfield = 'orderID';
+        $this->logfield = 'orderNo';
+        $this->data['controller_page'] = $this->controller_page = site_url('order');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('type'=>'Order Type', 'dateFiled'=>'Date Filed','subject'=>'Subject','purpose'=>'Purpose',
+                'employeeType'=>'Recipient','recipientType'=>'Recipient');
+            $data['series']  = ($this->session->userdata('current_series')!="") ? $this->session->userdata('current_series') : date('Y');
+            $data['type']    = $this->session->userdata('current_type');        
+
+            $this->frameworkhelper->clear_session_item('employees');
+            $this->frameworkhelper->clear_session_item('order_dates');
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            $table_fields = array('series','dateFiled', 'type', 'subject', 'destination','purpose','recipientType', 'remarks');
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                           
+
+            $this->record->fields['orderNo']    = $genNo = trim($this->input->post('orderNo'));
+            //$this->record->fields['orderNo']  = $genNo = $this->_generateID($this->record->fields['type'], $this->record->fields['series']);
+            $this->record->fields['dateFiled']  = ($this->input->post('dateFiled')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateFiled')))) : "0000-00-00";
+
+            if ($this->record->save()) {
+                $this->record->fields = array();
+                $this->record->where['orderNo']  = $genNo;
+                $this->record->where['series']   = trim($this->input->post('series'));
+                $this->record->retrieve();  
+                
+                $this->_incrementSeries($this->record->field->type);            
+                
+                if (!empty($_SESSION['order_dates'])) {                 
+                    if ($this->record->field->recipientType==1) { // multiple companies
+                        if ($this->input->post('chkAdd')) {
+                            $batch = array();
+                            foreach($this->input->post('chkAdd') as $companyID) {
+                                $this->db->where('detailedCompanyID', $companyID);
+                                $this->db->where_in('employeeTypeID', $this->input->post('employeeTypeID'));
+                                $this->db->where('status', 1);
+                                $employments = $this->db->get('employments');
+                                
+                                if ($employments->num_rows()) {
+                                    foreach ($employments->result() as $row) {
+                                        $info = array();
+                                        $info['orderID']        = $this->record->field->orderID;
+                                        $info['empID']          = $row->empID;
+                                        $info['employmentID']   = $row->employmentID;
+                                        foreach($_SESSION['order_dates'] as $item){
+                                            $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                                            $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                                            $info['workCover']   = $item['workCover'];
+                                            $info['days']        = $item['days'];
+                                            $info['hours']       = $item['hours'];
+                                            $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                                            $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                                            $batch[] = $info;
+                                        }
+                                    }
+                                }                                                                                                                                           
+                            }
+                            $this->db->insert_batch('order_details', $batch);
+                        }                       
+                    } elseif ($this->record->field->recipientType==2) { // multiple offices
+                        if ($this->input->post('chkAdd')) {
+                            $batch = array();
+                            foreach($this->input->post('chkAdd') as $officeID) {
+                                $this->db->where('detailedOfficeID', $officeID);
+                                $this->db->where_in('employeeTypeID', $this->input->post('employeeTypeID'));
+                                $this->db->where('status', 1);
+                                $employments = $this->db->get('employments');
+                                
+                                if ($employments->num_rows()) {
+                                    foreach ($employments->result() as $row) {
+                                        $info = array();
+                                        $info['orderID']        = $this->record->field->orderID;
+                                        $info['empID']          = $row->empID;
+                                        $info['employmentID']   = $row->employmentID;
+                                        foreach($_SESSION['order_dates'] as $item){
+                                            $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                                            $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                                            $info['workCover']   = $item['workCover'];
+                                            $info['days']        = $item['days'];
+                                            $info['hours']       = $item['hours'];
+                                            $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                                            $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                                            $batch[] = $info;
+                                        }
+                                    }
+                                }                               
+                            }
+                            $this->db->insert_batch('order_details', $batch);
+                        }
+                    } elseif ($this->record->field->recipientType==3) { // multiple divisions
+                        if ($this->input->post('chkAdd')) {
+                            $batch = array();
+                            foreach($this->input->post('chkAdd') as $divisionID) {
+                                $this->db->where('divisionID', $divisionID);
+                                $this->db->where_in('employeeTypeID', $this->input->post('employeeTypeID'));
+                                $this->db->where('status', 1);
+                                $employments = $this->db->get('employments');
+                                
+                                if ($employments->num_rows()) {
+                                    foreach ($employments->result() as $row) {
+                                        $info = array();
+                                        $info['orderID']        = $this->record->field->orderID;
+                                        $info['empID']          = $row->empID;
+                                        $info['employmentID']   = $row->employmentID;
+                                        foreach($_SESSION['order_dates'] as $item){
+                                            $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                                            $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                                            $info['workCover']   = $item['workCover'];
+                                            $info['days']        = $item['days'];
+                                            $info['hours']       = $item['hours'];
+                                            $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                                            $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                                            $batch[] = $info;
+                                        }
+                                    }
+                                }                               
+                            }
+                            $this->db->insert_batch('order_details', $batch);
+                        }
+                    } elseif ($this->record->field->recipientType==4 || $this->record->field->recipientType==5) { // office or division employees
+                        if ($this->input->post('chkAdd')) {
+                            $batch = array();
+                            foreach($this->input->post('chkAdd') as $employmentID) {
+                                $info = array();
+                                $info['orderID']        = $this->record->field->orderID;
+                                $info['empID']          = trim($this->input->post('empID_'.$employmentID));
+                                $info['employmentID']   = trim($this->input->post('employmentID_'.$employmentID));
+                                foreach($_SESSION['order_dates'] as $item){
+                                    $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                                    $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                                    $info['workCover']   = $item['workCover'];
+                                    $info['days']        = $item['days'];
+                                    $info['hours']       = $item['hours'];
+                                    $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                                    $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                                    $batch[] = $info;
+                                }                               
+                            }
+                            $this->db->insert_batch('order_details', $batch);
+                        }
+                    } elseif ($this->record->field->recipientType==6) { // individual employees                     
+                        if (!empty($_SESSION['employees'])) {
+                            $batch = array();
+                            foreach($_SESSION['employees'] as $item){
+                                $info = array();
+                                $info['orderID']        = $this->record->field->orderID;                            
+                                $info['empID']          = $item['empID'];
+                                $info['employmentID']   = $item['employmentID'];
+                                foreach($_SESSION['order_dates'] as $item){
+                                    $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                                    $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                                    $info['workCover']   = $item['workCover'];
+                                    $info['days']        = $item['days'];
+                                    $info['hours']       = $item['hours'];
+                                    $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                                    $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                                    $batch[] = $info;
+                                }
+                            }
+                            $this->db->insert_batch('order_details', $batch);
+                        }
+                    }
+                    
+                    $total = 0;
+                    foreach($_SESSION['order_dates'] as $item){
+                        $total += ($item['days'] + ($item['hours'] / 8));
+                    }
+                    
+                    $this->db->set('totalDays', $total);
+                    $this->db->where('orderID', $this->record->field->orderID);
+                    $this->db->update('orders');
+                    
+                }
+                
+                $this->frameworkhelper->clear_session_item('order_dates');
+                $this->frameworkhelper->clear_session_item('employees');
+                
+                $this->session->set_userdata('current_series', $this->record->field->series);
+                $this->session->set_userdata('current_type', $this->record->field->type);
+                
+                // record logs
+                $logs = "Record - ".$genNo;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                
+                $logfield = $this->pfield;
+
+                // success msg
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully saved.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Unable to save
+                $data['class']  = "danger";
+                $data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('type'=>'Order Type', 'dateFiled'=>'Date Filed','subject'=>'Subject','purpose'=>'Purpose');    
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;
+            // set fields for the current table
+            $this->record->setFields();
+            // extend fields - join tables  
+            // set joins                
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            $this->frameworkhelper->clear_session_item('order_dates');
+            
+            // get details
+            $this->db->where('orderID', $id);
+            $this->db->group_by('startDate');
+            $this->db->order_by('startDate','asc');
+            $items = $this->db->get('order_details');
+            
+            if ($items->num_rows()) {
+                foreach($items->result() as $item) {
+                    $d = array();
+                    $d['orderDateID']   = $item->orderDateID;
+                    $d['orderID']       = $item->orderID;
+                    $d['startDate']     = date('m/d/Y', strtotime($item->startDate));
+                    $d['endDate']       = date('m/d/Y', strtotime($item->endDate));
+                    $d['workCover']     = $item->workCover;
+                    $d['days']          = $item->days;
+                    $d['hours']         = $item->hours;
+                    $d['hoursLabel']    = ($item->hours) ? $item->hours : "--";
+                    $d['startHourLabel']= ($item->startHour!='0000-00-00 00:00:00') ? date('H:i:00', strtotime($item->startHour)) : "--:--:--";
+                    $d['endHourLabel']  = ($item->endHour!='0000-00-00 00:00:00') ? date('H:i:00', strtotime($item->endHour)) : "--:--:--";
+
+                    switch ($item->workCover) {
+                        case "1" : $d['workCoverLabel'] = "Whole Working Day"; break;
+                        case "2" : $d['workCoverLabel'] = "1st Half Working Day"; break;
+                        case "3" : $d['workCoverLabel'] = "2nd Half Working Day"; break;
+                        case "4" : $d['workCoverLabel'] = "Hours - Less Half Day"; break;
+                    }
+                    
+                    $_SESSION['order_dates'][] = $d;
+                }
+            }
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array('series','orderNo','dateFiled', 'subject', 'destination','purpose','remarks');
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                   
+            
+            $this->record->fields['dateFiled']  = ($this->input->post('dateFiled')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateFiled')))) : "0000-00-00";
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+
+            if ($this->record->update()) {
+                $this->db->where('orderID', $this->record->pk);
+                $this->db->delete('order_details');
+                
+                // save dates
+                if (!empty($_SESSION['order_dates'])) {
+                    $batch = array();
+                    foreach($_SESSION['order_dates'] as $item){
+                        $info = array();
+                        $info['orderID']     = $this->record->pk;
+                        $info['startDate']   = date('Y-m-d', strtotime($item['startDate']));
+                        $info['endDate']     = date('Y-m-d', strtotime($item['endDate']));
+                        $info['workCover']   = $item['workCover'];
+                        $info['hours']       = $item['hours'];
+                        $info['startHour']   = ($item['startHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['startDate'].' '.$item['startHourLabel'])) : '0000-00-00 00:00:00';
+                        $info['endHour']     = ($item['endHourLabel']!='--:--:--') ? date('Y-m-d H:i:s', strtotime($item['endDate'].' '.$item['endHourLabel'])) : '0000-00-00 00:00:00';
+                        $batch[] = $info;
+                    }
+                    $this->db->insert_batch('order_details', $batch);
+                }
+                
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        //Once retrieved field becomes an object
+        $this->record->fields = array();
+        $this->record->table  = $this->table;
+        $this->record->where[$this->pfield] = $id;
+        $this->record->retrieve();
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    $this->db->where('orderID', $id);
+                    $this->db->delete('order_details');
+                    
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;            
+            // set fields for the current table
+            $this->record->setFields();         
+            // extend fields - join tables  
+            // set joins        
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;    
+            
+            $this->db->where('orderID', $id);
+            $this->db->group_by('startDate');
+            $this->db->order_by('startDate','asc');
+            $data['order_details'] = $this->db->get('order_details');           
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+	
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where        
+        $this->record->where['orderNo'] = trim($this->input->post('orderNo'));
+        $this->record->where['series'] = trim($this->input->post('series'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+    //Ajax functions
+    public function getOrders()
+    {   
+        $empID = trim($this->input->post('empID'));
+        $employmentID = trim($this->input->post('employmentID'));
+        
+        if ($empID) {
+            $this->db->where('empID', $empID);
+        }
+        if ($employmentID) {
+            $this->db->where('employmentID', $employmentID);
+        }
+        $this->db->order_by('orderNo','asc');
+        $records = $this->db->get('orders');
+        echo $this->frameworkhelper->get_json_data($records, 'orderID', 'orderNo');
+    }   
+
+    public function delete_recipient($orderID=0, $employmentID=0, $pageType=0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        
+        // **************************************************
+        $orderID = $this->encrypter->decode($orderID);
+        $employmentID = $this->encrypter->decode($employmentID);
+        
+        // check roles
+        if ($this->roles['delete']) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $orderID;
+            // execute retrieve
+            $this->record->retrieve();
+            
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $orderID;
+                
+                // record logs
+                $logfield = $this->logfield;
+                
+                if ($this->record->field->status==1) {
+                    $this->db->where('orderID', $orderID);
+                    $this->db->where('employmentID', $employmentID);
+                    $this->db->delete('order_details');
+                    
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Remove Employee', $logs);
+                } else {
+                    $this->db->set('status', 0);
+                    $this->db->where('orderID', $orderID);
+                    $this->db->where('employmentID', $employmentID);
+                    $this->db->update('order_details');
+                    
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Cancel Employee', $logs);
+                }
+            }
+        }
+    }
+
+    // public function display_session()
+    // {               
+    //     echo var_dump($_SESSION);
+    // }
+
+
+
+
+
+
+
+
+
+
+
+
+    //More pages
+    public function setRecipients($recipientType=6, $employeeTypeID=0, $officeID=0, $divisionID=0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        
+        // **************************************************
+        
+        // check roles
+        if ($this->roles['create']) {   
+            $data['recipientType']  = $recipientType;           
+            $data['employeeTypeID'] = explode('_', $employeeTypeID);
+            $data['officeID']       = $officeID;
+            $data['divisionID']     = $divisionID;
+            
+            if ($data['recipientType']==1) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+            } elseif ($data['recipientType']==2) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }               
+                if ($this->session->userdata('assigned_officeID')) {
+                    $this->db->where('offices.officeID', $this->session->userdata('assigned_officeID'));
+                }
+                $this->db->select('offices.*');
+                $this->db->select('companies.companyAbbr');
+                $this->db->select('companies.companyName');
+                $this->db->from('offices');
+                $this->db->join('companies','offices.companyID=companies.companyID','left');
+                $this->db->where('offices.status', 1);
+                $this->db->order_by('companies.rank', 'asc');
+                $this->db->order_by('offices.rank', 'asc');
+                $this->db->order_by('offices.officeName', 'asc');
+                $data['offices'] = $this->db->get();
+                
+            } elseif ($data['recipientType']==3) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                if ($this->session->userdata('assigned_officeID')) {
+                    $this->db->where('offices.officeID', $this->session->userdata('assigned_officeID'));
+                }
+                if ($this->session->userdata('assigned_divisionID')) {
+                    $this->db->where('divisions.divisionID', $this->session->userdata('assigned_divisionID'));
+                }
+                $this->db->select('divisions.*');
+                $this->db->select('companies.companyAbbr');
+                $this->db->select('companies.companyName');
+                $this->db->select('offices.officeAbbr');
+                $this->db->select('offices.officeName');
+                $this->db->from('divisions');
+                $this->db->join('companies','divisions.companyID=companies.companyID','left');
+                $this->db->join('offices','divisions.officeID=offices.officeID','left');
+                $this->db->where('divisions.status', 1);
+                $this->db->order_by('companies.rank', 'asc');
+                $this->db->order_by('offices.rank', 'asc');
+                $this->db->order_by('divisions.rank', 'asc');
+                $this->db->order_by('divisions.divisionName', 'asc');
+                $data['divisions'] = $this->db->get();
+                
+            } elseif ($data['recipientType']==4) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+                if ($data['officeID']) {
+                    $this->db->select('employments.*');
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->select('employee_types.employeeType');
+                    $this->db->select('job_positions.positionCode');
+                    $this->db->select('job_titles.jobTitle');
+                    $this->db->from('employments');
+                    $this->db->join('employees','employments.empID=employees.empID','left');
+                    $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+                    $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                    $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                    $this->db->where('employments.detailedOfficeID', $data['officeID']);
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                    $data['employees'] = $this->db->get();                  
+                }
+            } elseif ($data['recipientType']==5) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+                if ($data['divisionID']) {
+                    $this->db->select('employments.*');
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->select('employee_types.employeeType');
+                    $this->db->select('job_positions.positionCode');
+                    $this->db->select('job_titles.jobTitle');
+                    $this->db->from('employments');
+                    $this->db->join('employees','employments.empID=employees.empID','left');
+                    $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+                    $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                    $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                    $this->db->where('employments.divisionID', $data['divisionID']);
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                    $data['employees'] = $this->db->get();
+                }
+            }  
+            
+            // load views
+            echo $this->load->view($this->module_path.'/recipients', $data, true);          
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function add_recipient($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        
+        // set fields
+        $this->record->fields = array();
+        // set table
+        $this->record->table  = $this->table;
+        // set where
+        $this->record->where[$this->pfield] = $id;
+        // execute retrieve
+        $this->record->retrieve();
+        
+        // check roles
+        if ($this->roles['create'] && $this->record->field->status!=0) {
+            $data['required_fields'] = array('empID'=>'Employee','employmentID'=>'Employment');
+            $data['orderID'] = $id;
+            
+            $this->frameworkhelper->clear_session_item('employees');
+            
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/add_recipient');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function save_recipient()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        
+        // check roles
+        if ($this->roles['create']) {
+            $orderID = trim($this->input->post('orderID'));
+            // get order detail
+            $this->db->where('orderID', $orderID);
+            $order = $this->db->get('orders', 1)->row();
+            
+            // get dates
+            $this->db->where('orderID', $orderID);
+            $this->db->group_by('employmentID');
+            $detail = $this->db->get('order_details', 1)->row();
+            
+            $this->db->where('orderID', $orderID);
+            $this->db->where('employmentID', $detail->employmentID);
+            $dates = $this->db->get('order_details');           
+            
+            if ($dates->num_rows()) {
+                if (!empty($_SESSION['employees'])) {
+                    $batch = array();
+                    foreach($_SESSION['employees'] as $employee){
+                        $this->db->where('orderID', $orderID);
+                        $this->db->where('employmentID', $employee['employmentID']);
+                        $exist = $this->db->count_all_results('order_details');
+                        
+                        if (!$exist) {
+                            $info = array();
+                            $info['orderID']        = $orderID;
+                            $info['empID']          = $employee['empID'];
+                            $info['employmentID']   = $employee['employmentID'];
+                            foreach($dates->result() as $item){
+                                $info['startDate']   = $item->startDate;
+                                $info['endDate']     = $item->endDate;
+                                $info['workCover']   = $item->workCover;
+                                $info['days']        = $item->days;
+                                $info['hours']       = $item->hours;
+                                $info['startHour']   = $item->startHour;
+                                $info['endHour']     = $item->endHour;
+                                $info['status']      = $order->status;
+                                $batch[] = $info;
+                            }
+                        }
+                    }
+                    $this->db->insert_batch('order_details', $batch);
+                }
+            }
+            
+            $this->frameworkhelper->clear_session_item('employees');
+            
+            // record logs
+            $logs = "";
+            $this->log_model->table_logs($this->module, $this->table, $this->pfield, $orderID, 'Add Recipient', $logs);
+            
+            $logfield = $this->pfield;
+            // success msg
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully saved.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array();
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+
+    private function _generateID($type,$series)
+    {
+        switch ($type) {
+            case "1" : $code = "MO"; $label = "Memo"; break;
+            case "2" : $code = "OO"; $label = "Office"; break;
+            case "3" : $code = "TO"; $label = "Travel"; break;
+        }
+        
+        $idSeries   = $this->config_model->getConfig($label.' Order Series');
+        $idLength   = $this->config_model->getConfig('Order Series Length');
+        
+        $id  = str_pad($idSeries, $idLength, "0", STR_PAD_LEFT);
+        return $code.substr($series, 2, 2).$id;
+    }
+
+    private function _incrementSeries($type)
+    {
+        switch ($type) {
+            case "1" : $query = "UPDATE `config` SET `value` = `value`+ 1 WHERE `name` = 'Memo Order Series'"; $this->db->query($query); break;
+            case "2" : $query = "UPDATE `config` SET `value` = `value`+ 1 WHERE `name` = 'Office Order Series'"; $this->db->query($query); break;
+            case "3" : $query = "UPDATE `config` SET `value` = `value`+ 1 WHERE `name` = 'Travel Order Series'"; $this->db->query($query); break;
+        }   
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Function needs help
+    public function display_session_items($display_area='')
+    {
+        $sessionSet = $this->input->post('sessionSet');
+        $records = isset($_SESSION[$sessionSet])? $_SESSION[$sessionSet]:array();
+        
+        // display session data
+        if ($sessionSet=='order_dates') {
+            $headers = array('Starting Date'=>'left','Ending Date'=>'left','Work Coverage'=>'left','Days'=>'right','Hours'=>'right','Start Hour'=>'center','End Hour'=>'center');
+            $display = array(
+                array('align'=>'left','fields'=>array('startDate'=>'')),
+                array('align'=>'left','fields'=>array('endDate'=>'')),
+                array('align'=>'left','fields'=>array('workCoverLabel'=>'')),
+                array('align'=>'right','fields'=>array('days'=>''),'display_total'=>true),
+                array('align'=>'right','fields'=>array('hoursLabel'=>''),'display_total'=>true),
+                array('align'=>'center','fields'=>array('startHourLabel'=>'')),
+                array('align'=>'center','fields'=>array('endHourLabel'=>'')),
+                );
+            echo $this->htmlhelper->session_tabular_view($records,$headers,$display,$sessionSet,'950',$display_area);
+        } else {
+            $headers = array('Employee'=>'left','Employment'=>'left');
+            $display = array(
+                array('align'=>'left','fields'=>array('employeename'=>'')),
+                array('align'=>'left','fields'=>array('employment'=>'')),
+                );
+            echo $this->htmlhelper->session_tabular_view($records,$headers,$display,$sessionSet,'950',$display_area);
+        }
+    }
+
+    public function recipientlist()
+    {
+
+    }
+}

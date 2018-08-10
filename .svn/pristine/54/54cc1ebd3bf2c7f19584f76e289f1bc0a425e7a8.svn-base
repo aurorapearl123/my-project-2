@@ -1,0 +1,565 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Office extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Office';
+        $this->module_label = 'Offices';
+        $this->table        = 'offices';
+        $this->module_path  = 'modules/Master/Office';
+        $this->module_path_submenu  = 'modules/Master/submenu';
+        $this->pfield = 'officeID';
+        $this->logfield = 'officeCode';
+        $this->data['controller_page'] = $this->controller_page = site_url('office');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('companyID'=>'Company', 'officeCode'=>'Code', 'officeName'=>'Name', 'officeAbbr'=>'Abbreviation'); 
+            $data['companyID']  = $this->session->userdata('current_companyID');
+            $data['motherOfficeID']  = $this->session->userdata('current_motherOfficeID');  
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            $table_fields = array('companyID', 'motherOfficeID','officeCode', 'officeName', 'officeAbbr', 'officeContact', 'officeEmail', 'officeAddress', 'officeHeadID',
+              'officeHeadTitle', 'adminOfficerID', 'rankTitle', 'timekeeperID', 'remarks');
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }
+            if ($this->record->save()) {
+                $this->record->fields = array();
+                $this->record->where['companyID']       = trim($this->input->post('companyID'));
+                $this->record->where['motherOfficeID']  = trim($this->input->post('motherOfficeID'));
+                $this->record->where['officeCode']      = trim($this->input->post('officeCode'));
+                $this->record->retrieve();
+
+                // save payroll groups
+                $batch = array();
+                for ($i = 1; $i <= 10; $i++) {
+                    $info = array();
+                    $info['companyID']      = $this->record->field->companyID;
+                    $info['officeID']       = $this->record->field->officeID;
+                    $info['payrollGroup']   = "Payroll Group ".$i;
+                    $info['rank']           = $i;
+                    $batch[] = $info;
+                }
+                $this->db->insert_batch('payroll_groups', $batch);
+                
+                $this->session->set_userdata('current_companyID', $this->record->field->companyID);
+                $this->session->set_userdata('current_motherOfficeID', $this->record->field->motherOfficeID);
+
+                // record logs
+                $logs = "Record - ".trim($this->input->post($this->logfield));
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                
+                $logfield = $this->pfield;
+
+                // success msg
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully saved.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Unable to save
+                $data['class']  = "danger";
+                $data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('officeCode'=>'Code', 'officeName'=>'Name', 'officeAbbr'=>'Abbreviation', 'status'=>'Status');     
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;
+            // set fields for the current table
+            $this->record->setFields();
+            // extend fields - join tables
+            $this->record->fields[] = 'head.empNo';
+            $this->record->fields[] = 'head.lname';
+            $this->record->fields[] = 'head.fname';
+            $this->record->fields[] = 'head.mname';
+            $this->record->fields[] = 'head.suffix';                                        
+            $this->record->fields[] = 'admin.empNo as adminEmpNo';
+            $this->record->fields[] = 'admin.lname as adminLname';
+            $this->record->fields[] = 'admin.fname as adminFname';
+            $this->record->fields[] = 'admin.mname as adminMname';
+            $this->record->fields[] = 'admin.suffix as adminSuffix';
+            $this->record->fields[] = 'timekeeper.empNo as timekeeperEmpNo';
+            $this->record->fields[] = 'timekeeper.lname as timekeeperLname';
+            $this->record->fields[] = 'timekeeper.fname as timekeeperFname';
+            $this->record->fields[] = 'timekeeper.mname as timekeeperMname';
+            $this->record->fields[] = 'timekeeper.suffix as timekeeperSuffix';
+            // set joins            
+            $this->record->joins[]  = array('employees head',$this->table.'.officeHeadID=head.empID','left');
+            $this->record->joins[]  = array('employees admin',$this->table.'.adminOfficerID=admin.empID','left');
+            $this->record->joins[]  = array('employees timekeeper',$this->table.'.timekeeperID=timekeeper.empID','left');
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array('companyID','motherOfficeID','officeCode', 'officeName', 'officeAbbr', 'officeContact', 'officeEmail', 'officeAddress', 'officeHeadID',
+          'officeHeadTitle', 'adminOfficerID', 'rankTitle', 'timekeeperID', 'remarks', 'status');
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                   
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+
+            if ($this->record->update()) {
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;            
+            // set fields for the current table
+            $this->record->setFields();         
+            // extend fields - join tables
+            $this->record->fields[] = 'companies.companyName';
+            $this->record->fields[] = 'motherOffices.officeName as motherOfficeName';           
+            $this->record->fields[] = 'head.empNo as headEmpNo';
+            $this->record->fields[] = 'head.lname as headLname';
+            $this->record->fields[] = 'head.fname as headFname';
+            $this->record->fields[] = 'head.mname as headMname';
+            $this->record->fields[] = 'head.suffix as headSuffix';                                      
+            $this->record->fields[] = 'admin.empNo as adminEmpNo';
+            $this->record->fields[] = 'admin.lname as adminLname';
+            $this->record->fields[] = 'admin.fname as adminFname';
+            $this->record->fields[] = 'admin.mname as adminMname';
+            $this->record->fields[] = 'admin.suffix as adminSuffix';
+            $this->record->fields[] = 'timekeeper.empNo as timekeeperEmpNo';
+            $this->record->fields[] = 'timekeeper.lname as timekeeperLname';
+            $this->record->fields[] = 'timekeeper.fname as timekeeperFname';
+            $this->record->fields[] = 'timekeeper.mname as timekeeperMname';
+            $this->record->fields[] = 'timekeeper.suffix as timekeeperSuffix';
+            // set joins
+            $this->record->joins[]  = array('companies',$this->table.'.companyID=companies.companyID','left');
+            $this->record->joins[]  = array('offices motherOffices',$this->table.'.motherOfficeID=motherOffices.officeID','left');          
+            $this->record->joins[]  = array('employees head',$this->table.'.officeHeadID=head.empID','left');
+            $this->record->joins[]  = array('employees admin',$this->table.'.adminOfficerID=admin.empID','left');
+            $this->record->joins[]  = array('employees timekeeper',$this->table.'.timekeeperID=timekeeper.empID','left');
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            $this->session->set_userdata('current_companyID', $this->record->field->companyID);
+            $this->session->set_userdata('current_officeID', $this->record->field->officeID);
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where
+        $this->record->where['companyID'] = trim($this->input->post('companyID'));
+        $this->record->where['motherOfficeID'] = trim($this->input->post('motherOfficeID'));
+        $this->record->where['officeCode'] = trim($this->input->post('officeCode'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+
+    //Ajax functions
+    public function getOffices()
+    {
+        if (trim($this->input->post('companyID'))!="") {
+            $companyID  = trim($this->input->post('companyID'));
+        } elseif (trim($this->input->post('detailedCompanyID'))!="") {
+            $companyID  = trim($this->input->post('detailedCompanyID'));
+        } 
+        $motherOfficeID = trim($this->input->post('motherOfficeID'));
+        
+        if ($this->session->userdata('assigned_companyID')) {
+            $this->db->where('companyID', $this->session->userdata('assigned_companyID'));
+        }
+        if ($this->session->userdata('assigned_officeID')) {
+            $this->db->where('officeID', $this->session->userdata('assigned_officeID'));
+        }
+        if ($companyID) {
+            $this->db->where('companyID', $companyID);
+        }
+        if ($motherOfficeID) {
+            $this->db->where('motherOfficeID', $motherOfficeID);
+        }
+        $this->db->order_by('rank','asc');
+        $this->db->order_by('officeName','asc');
+        $records = $this->db->get('offices');
+        echo $this->frameworkhelper->get_json_data($records, 'officeID', 'officeName');
+    }
+    
+    public function getOfficesEncrypt()
+    {
+        if (trim($this->input->post('companyID'))!="") {
+            $companyID  = $this->encrypter->decode(trim($this->input->post('companyID')));
+        } elseif (trim($this->input->post('detailedCompanyID'))!="") {
+            $companyID  = $this->encrypter->decode(trim($this->input->post('detailedCompanyID')));
+        }
+        $motherOfficeID = $this->encrypter->decode(trim($this->input->post('motherOfficeID')));
+    
+        if ($this->session->userdata('assigned_companyID')) {
+            $this->db->where('companyID', $this->session->userdata('assigned_companyID'));
+        }
+        if ($this->session->userdata('assigned_officeID')) {
+            $this->db->where('officeID', $this->session->userdata('assigned_officeID'));
+        }
+        if ($companyID) {
+            $this->db->where('companyID', $companyID);
+        }
+        if ($motherOfficeID) {
+            $this->db->where('motherOfficeID', $motherOfficeID);
+        }
+        $this->db->order_by('rank','asc');
+        $this->db->order_by('officeName','asc');
+        $records = $this->db->get('offices');
+        echo $this->frameworkhelper->get_json_data_encrypt($records, 'officeID', 'officeName');
+    }
+    
+    public function update_rank()
+    {
+        $id = trim($this->input->post('id'));
+        
+        $this->record->table  = $this->table;
+        $this->record->fields = array();
+        
+        $this->record->fields['rank'] = trim($this->input->post('rank'));
+        $this->record->pfield   = $this->pfield;
+        $this->record->pk       = $id;
+        
+        // field logs here
+        $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update Rank', $this->record->fields);
+        
+        if ($this->record->update()) {
+            $this->record->fields = array();
+            $this->record->table  = $this->table;
+            $this->record->where[$this->pfield] = $id;
+            $this->record->retrieve();
+            // record logs
+            if ($wasChange) {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update Rank', $logs);
+                echo "1";
+            } else {
+                echo "0";   
+            }                        
+        } else { 
+            echo "0";
+        }
+    }   
+    
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array('divisions','payroll_groups','employments');
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+}

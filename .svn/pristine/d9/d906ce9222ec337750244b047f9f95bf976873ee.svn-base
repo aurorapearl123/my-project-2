@@ -1,0 +1,119 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Leave')) {
+    $submenu[] = array('label'=>'Leaves','url'=>site_url('leave/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Travel Order')) {
+    $submenu[] = array('label'=>'Travel Orders','url'=>site_url('travel_order/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Suspension')) {
+    $submenu[] = array('label'=>'Suspensions','url'=>site_url('suspension/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'Manage Premiums')) {
+    $submenu[] = array('label'=>'Types and Credits','url'=>site_url('leave_credit/show'),'icon'=>'bullet','subitem'=>array(
+            array('label'=>'Leave Credits','url'=>site_url('leave_credit/show'),'icon'=>'bullet'),
+            array('label'=>'Leave Types','url'=>site_url('leave_type/show'),'icon'=>'bullet'),
+    ));
+}
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Leave and Travel';
+$module['main']['controller'] 	= 'leave';
+$module['main']['description'] 	= 'Manage all Leaves and Travels';
+$module['main']['icon'] 		= 'la-file-text';
+$module['main']['roles'] 		= array();
+
+
+// sub module
+$module['sub']['Leave'] = array(
+		'title'=>'Leaves',
+        'module_label'=>'Leave',
+		'controller'=>'leave',
+		'description'=>'Manage all Leaves',
+		'icon'=>'la-file-text',
+		'roles'=>array(
+		    'Add Leave',
+            'View Leave',
+            'Edit Existing Leave',
+            'Delete Existing Leave',
+		)
+);
+
+
+$module['sub']['Travel Order'] = array(
+    'title'=>'Travel Orders',
+    'module_label'=>'Travel Order',
+    'controller'=>'travel_order',
+    'description'=>'Manage all Travel Orders',
+    'icon'=>'la-plane',
+    'roles'=>array(
+        'Add Travel Order',
+        'View Travel Order',
+        'Edit Existing Travel Order',
+        'Delete Existing Travel Order',
+    )
+);
+
+$module['sub']['Suspensions'] = array(
+    'title'=>'Suspensions',
+    'module_label'=>'Suspension',
+    'controller'=>'suspension',
+    'description'=>'Manage all Suspensions',
+    'icon'=>'la-user-times',
+    'roles'=>array(
+        'Add Suspension',
+        'View Suspension',
+        'Edit Existing Suspension',
+        'Delete Existing Suspension',
+    )
+);
+
+$module['sub']['Leave Credit'] = array(
+    'title'=>'Leave Credits',
+    'module_label'=>'Leave Credit',
+    'controller'=>'leave_credit',
+    'description'=>'Manage all Leave Credits',
+    'icon'=>'la-copyright',
+    'roles'=>array(
+        'Add Leave Credit',
+        'View Leave Credit',
+        'Edit Existing Leave Credit',
+        'Delete Existing Leave Credit',
+    )
+);
+
+$module['sub']['Leave Type'] = array(
+    'title'=>'Leave Types',
+    'module_label'=>'Leave Type',
+    'controller'=>'leave_type',
+    'description'=>'Manage Leave Types',
+    'icon'=>'la-folder-o',
+    'roles'=>array(
+        'Add Leave Type',
+        'View Leave Type',
+        'Edit Existing Leave Type',
+        'Delete Existing Leave Type',
+    )
+);
+
+$module['main']['menu'] = $submenu;
+$this->modules['Leave and Travel']  = $module;
+?>

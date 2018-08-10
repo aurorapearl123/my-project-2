@@ -1,0 +1,253 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<div class="card-body">
+					<form method="post" name="frmAdd" id="frmAdd"  action="<?php echo $controller_page ?>/save" >
+						<input class="form-control" type="hidden" name="sessionSet" id="sessionSet" value="employees" />
+						<input class="form-control" type="hidden" name="employment" id="employment" value=""/>
+						<input class="form-control" type="hidden" name="employee" id="employee"/>
+						<table class="table-form column-3" width="100%" border="0">
+							<tbody>
+								<tr>
+									<td class="form-label" valign="top" nowrap>Employee <span class="asterisk">*</span></td>
+									<td class="form-group form-input" colspan="3">
+										<select class="form-control" id="empID" name="empID" data-live-search="true" livesearchnormalize="true" style="width:300px" onchange="setEmployee();get_employment();">
+											<option value="0" selected>&nbsp;</option>
+											<?php 
+												$this->db->where('status >=',1);
+												$emps = $this->db->get('employees')->result();
+												foreach($emps as $emp){
+												?>
+											<option value="<?php echo $emp->empID?>" <?php if($emp->empID == $empID){ echo "selected";}?>><?php echo $emp->lname.' '.$emp->fname.' '.$emp->mname?></option>
+											<?php }?>
+										</select>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td class="form-label" valign="top" nowrap>Employment <span class="asterisk">*</span></td>
+									<td class="form-group form-input" colspan="3">
+										<select class="form-control" id="employmentID" name="employmentID" data-live-search="true" livesearchnormalize="true" style="width:300px" onchange="setEmployment();">
+											<option value="0" selected>&nbsp;</option>
+											<?php 
+												$this->db->where('status >=',1);
+												$emps = $this->db->get('employments')->result();
+												foreach($emps as $emp){
+												?>
+											<option value="<?php echo $emp->employmentID?>" <?php if($emp->employmentID == $employmentID){ echo "selected";}?>><?php echo $emp->employmentNo?></option>
+											<?php }?>
+										</select>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td class="form-label" valign="top" style="width:120px" nowrap>Start Time </td>
+									<td class="form-group form-input" style="width:320px">
+										<input type="text" class="form-control" id="startDate" name="startDate" data-toggle="datetimepicker" value="<?php echo date('M d, Y 08:00')?>" data-target="#startDate" title="Start Date" style="width:250px" onchange="getHours();" required>
+									</td>
+									<td class="form-label" valign="top" style="width:100px" nowrap>End Time </td>
+									<td class="form-group form-input" style="width:320px">
+										<input type="text" class="form-control" id="endDate" name="endDate" data-toggle="datetimepicker" value="<?php echo date('M d, Y 17:00')?>" data-target="#endDate" title="End Date" style="width:250px" onchange="getHours();" required>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td class="form-label" valign="top" nowrap>Hours </td>
+									<td class="form-group form-input" colspan="3">
+										<input class="form-control" tabindex="28" type="text" name="hours" id="hours" value="8.00" style="width:100px;" readonly class="txtnumber hoursField" onchange="setDetails();" onkeypress="return keyRestrict(event, 1);"/>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td class="form-label" valign="top" nowrap>Remarks </td>
+									<td class="form-group form-input">
+										<textarea class="form-control" name="remarks" id="remarks" rows="1"></textarea>
+									</td>
+									<td class="form-label" valign="top" nowrap> 
+										<input class="btn btn-primary btn-raised pill" type="button" name="cmdAdd" id="cmdAdd" value=" Add Employee " onclick="add_session_item('frmAdd', 'empID,employee,employmentID,employment,startDate,endDate,hours,remarks', 'div_items',0,'employmentID','','',0,'','');" />
+									</td>
+									<td class="form-group form-input" colspan="2"></td>
+								</tr>
+							</tbody>
+						</table>
+					</form>
+					<div id="div_items">
+						<table class="table hover" width="100%">
+							<thead class="thead-light">
+							<tr>
+								<th class="w-5" nowrap>&nbsp;</th>
+								<th class="w-15" nowrap>Employee</th>
+								<th class="w-15" nowrap>Employment</th>
+								<th class="w-15" nowrap>Start Time</th>
+								<th class="w-15" nowrap>End Time</th>
+								<th class="w-15" nowrap>
+									<div align="right">Hours</div>
+								</th>
+								<th scope="col" class="listViewThS1" nowrap>  Remarks</th>
+							</tr>
+							</thead>
+							<tbody>
+							<?php 
+								//$default_rows = $this->config_model->getConfig('Default Rows');
+								$default_rows = 5;
+								for($i=0; $i<$default_rows; $i++) {
+									$view  = '';
+									$view .= '<tr>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '	<td align="center" valign="top">&nbsp;</td>'."\n";
+								   	$view .= '</tr>';
+								   	echo $view;
+								}
+								?>
+								</tbody>
+						</table>
+					</div>
+					<div class="form-sepator solid"></div>
+					<div class="form-group mb-0">
+						<button class="btn btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+						Save
+						</button>
+						<input type="button" id="cmdCancel" class="btn btn-outline-danger btn-raised pill" value="Cancel"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	<?php 
+	echo "\n";
+	$parameters = array('empID');
+	echo $this->htmlhelper->get_json_select('get_employment', $parameters, site_url('generic_ajax/get_emps'), 'employmentID', '');
+	?>
+	
+	$('#cmdSave').click(function(){
+		if (check_fields()) {
+	    	$('#cmdSave').attr('disabled','disabled');
+	    	$('#cmdSave').addClass('loader');
+	            	// submit
+	               	$('#frmAdd').submit();
+		}
+	});
+	
+	
+	function check_fields()
+	{
+		 var valid = true;
+		 var req_fields = "";
+		 
+		 $('#frmEntry [required]').each(function(){
+		    if($(this).val()=='' ) {
+		    	req_fields += "<br/>" + $(this).attr('title');
+			    valid = false;
+		    } 
+		 })
+		 
+		 if (!valid) {
+		 	swal("Required Fields",req_fields,"warning");
+		 }
+		 
+		 return valid;
+	}
+	
+	$('#cmdCancel').click(function(){
+		swal({
+		      title: "Are you sure?",
+		      text: "",
+		      icon: "warning",
+		      showCancelButton: true,
+		      confirmButtonColor: '#3085d6',
+		      cancelButtonColor: '#d33',
+		      confirmButtonText: 'Yes',
+		      cancelButtonText: 'No'
+		    })
+		    .then((willDelete) => {
+		      if (willDelete.value) {
+		    	  window.location = '<?php echo site_url('overtime_schedule/show') ?>';
+		      }
+		    });
+	    
+	});
+	
+	$('#cmdDelete2').click(function(){
+		swal({
+		      title: "Are you sure?",
+		      text: "",
+		      icon: "warning",
+		      showCancelButton: true,
+		      confirmButtonColor: '#3085d6',
+		      cancelButtonColor: '#d33',
+		      confirmButtonText: 'Yes',
+		      cancelButtonText: 'No'
+		    })
+		    .then((willDelete) => {
+		      if (willDelete.value) {
+		    	  window.location = '<?php echo site_url('overtime_schedule/delete_session_item') ?>';
+		      }
+		    });
+	});
+	
+	function setEmployment()
+	{
+		$('#employment').val($('#employmentID option:selected').text());
+
+		if ($('#employmentID').val() !="") {
+			$.post(site_url+"/sessionmanager/getJSON/employments/employmentID", { 
+				employmentID: $('#employmentID').val()},
+			  function(data){ 
+					$('#emp_companyID').val(data.companyID);
+					$('#emp_officeID').val(data.officeID);	
+			  }, "json");
+		} else {
+			$('#emp_companyID').val("");
+			$('#emp_officeID').val("");
+		}
+	}
+	
+	function setEmployee()
+	{
+		$('#employee').val($('#empID option:selected').text());
+	}
+	
+	function getHours()
+	{
+		if ($('#startDate').val() != '' && $('#endDate').val() != '') {
+			startTime   = $('#startDate').val();
+			endTime     = $('#endDate').val();
+			
+			start	= new Date(startTime);
+			end		= new Date(endTime);
+
+			hours = Math.abs((end.getTime() - start.getTime()) / (60*60)) / 1000;
+
+			$('#hours').val(hours.toFixed(3));
+			$('#hoursLabel').val(hours.toFixed(3)); 		
+
+			$('#startTimeLabel').val(startTime);
+			$('#endTimeLabel').val(endTime); 		
+				
+		} 
+	}
+</script>

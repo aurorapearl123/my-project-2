@@ -1,0 +1,118 @@
+<style>
+.checkBox { width:18px;height:18px;vertical-align:middle; }
+.bright { border-right: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.bleft { border-left: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.btop { border-top: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.bbottom { border-bottom: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.ball { border: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.label { height: 2px; font-size:7pt;  }
+.field { height: 2px; font-size:7pt; }
+.table_header { background-color: <?php echo $this->config_model->getConfig('Report Table BG Color')?>; font-size:7pt; }
+.table_row { height: 20px; font-size:7pt; vertical-align:middle; }
+.signatory { background-color: #eee; height: 20px; font-size:7pt; }
+.signatory_table { position: absolute; bottom: 0;}
+</style>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin-top:5px;">
+<thead>
+<tr class="table_header">
+	<td colspan="" rowspan="2" nowrap align="center" width="20px" class="table_row btop bbottom bleft bright" nowrap>
+		<span class="label">#</span></td>
+	<td colspan="2" rowspan="" nowrap align="center" width="" class="table_row btop bbottom bright" nowrap>
+		<span class="label">EMPLOYEE</span></td>	
+	<td colspan="" rowspan="2" nowrap align="center" width="80px" class="table_row btop bbottom bright" nowrap>
+		<span class="label">BASIC<br>SALARY</span></td>
+	<td colspan="3" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">TARDINESS</span></td>
+	<td colspan="3" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">UNDERTIME</span></td>
+	<td colspan="2" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">ABSENCES</span></td>
+	<td colspan="<?php echo ($leave_types->num_rows() + 2)?>" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">LEAVES / ORDERS / SUSPENSIONS </span></td>
+</tr>
+<tr class="table_header">
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">ID No.</span></td>
+	<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+		<span class="label">NAME</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">NO. OF<br>TARDY</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">MINS</span></td>
+	<td colspan="" nowrap align="center" width="100px" class="table_row bbottom bright">
+		<span class="label">DATES</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">NO. OF<br>UT</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">MINS</span></td>
+	<td colspan="" nowrap align="center" width="100px" class="table_row bbottom bright">
+		<span class="label">DATES</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">NO. OF<br>ABS.</span></td>
+	<td colspan="" nowrap align="center" width="100px" class="table_row bbottom bright">
+		<span class="label">DATES</span></td>
+	<?php 
+	if ($leave_types->num_rows()) {
+		foreach ($leave_types->result() as $leave_type) {?>
+			<td colspan="" nowrap align="center" width="40px" class="table_row bbottom bright">
+				<span class="label"><?php echo $leave_type->code?></span></td>
+	<?php }
+	}?>
+	<td colspan="" nowrap align="center" width="40px" class="table_row bbottom bright">
+		<span class="label">ORDR</span></td>
+	<td colspan="" nowrap align="center" width="40px" class="table_row bbottom bright">
+		<span class="label">SUSPN</span></td>
+</tr>
+</thead>
+<?php 
+$ctr = $offset;
+if ($records->num_rows()) { 
+	foreach($records->result() as $row) { ?> 		
+		<tr class="">
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bleft bright">
+				<span class="field">&nbsp;<?php echo ++$ctr;?>&nbsp;</span></td>					
+			<td colspan="" nowrap align="left" width="" class="table_row bbottom bright" nowrap>
+				<span class="field">&nbsp;<?php echo $row->empNo;?>&nbsp;</span></td>
+			<td colspan="" nowrap align="left" width="" class="table_row bbottom bright">
+				<span class="field" style="font-size:9pt;">&nbsp;<?php echo strtoupper($row->lname.', '.$row->fname.' '.substr($row->mname, 0, 1).' '.$row->suffix)?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+				<span class="field">&nbsp;<?php echo number_format($row->basicSalary, 2);?> 
+		    		<?php 
+						 switch ($row->salaryType) {
+							case "1" : echo "(M)"; break;
+							case "2" : echo "(D)"; break;
+							case "3" : echo "(H)"; break;
+						 }?>&nbsp;</span></td>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['tardy_count'] > 0) ? number_format($log[$row->employmentID]['tardy_count']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['tardy_min'] > 0) ? number_format($log[$row->employmentID]['tardy_min']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo $log[$row->employmentID]['tardy_date'];?>&nbsp;</span></td>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['ut_count'] > 0) ? number_format($log[$row->employmentID]['ut_count']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['ut_min'] > 0) ? number_format($log[$row->employmentID]['ut_min']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo $log[$row->employmentID]['ut_date'];?>&nbsp;</span></td>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['absent_count'] > 0) ? number_format($log[$row->employmentID]['absent_count']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="right" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo $log[$row->employmentID]['absent_date'];?>&nbsp;</span></td>
+			<?php 
+			if ($leave_types->num_rows()) {
+				foreach ($leave_types->result() as $leave_type) {?>
+					<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+						<span class="field">&nbsp;<?php echo ($log[$row->employmentID][$leave_type->code] > 0) ? number_format($log[$row->employmentID][$leave_type->code]) : '';?>&nbsp;</span></td>
+			<?php }
+			}?>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['ORDR'] > 0) ? number_format($log[$row->employmentID]['ORDR']) : '';?>&nbsp;</span></td>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field">&nbsp;<?php echo ($log[$row->employmentID]['SUSPN'] > 0) ? number_format($log[$row->employmentID]['SUSPN']) : '';?>&nbsp;</span></td>
+		</tr>
+		<?php }?>
+<?php }?>
+</table>
+	

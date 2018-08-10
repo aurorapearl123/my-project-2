@@ -1,0 +1,37 @@
+ <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+ <tr style="font-weight: bold;font-size: 11px;">
+    <td class="top left">DATE POSTED</td>
+    <td class="top left">JOB POSITION</td>
+    <td class="top left">COMPANY</td>
+    <td class="top left">BRANCH</td>
+    <td class="top left">DIVISION</td>
+    <td class="top left">EMPLOYMENT</td>
+    <td class="top left right" align="center">STATUS</td>
+ </tr>
+<?php 
+        foreach($records as $row) {
+?>
+        <tr>
+            <td class="top left"><?php echo date('m/d/Y', strtotime($row->datePosted)) ?></td>
+            <td class="top left"><?php echo $row->jobTitle ?></td>
+            <td class="top left"><?php echo $row->companyAbbr ?></td>
+            <td class="top left"><?php echo $row->branchAbbr ?></td>
+            <td class="top left"><?php echo $row->divisionAbbr ?></td>
+            <td class="top left"><?php echo $row->employeeType ?></td>
+            <td class="top left right" align="center">
+                <?php 
+                    if ($row->status == 1) {
+                    	echo "<font color='green'>Open</font>";
+                    } else {
+                    	echo "<font color='red'>Close</font>";
+                    }
+                ?>
+            </td>
+        </tr>
+<?php 
+        }
+?>
+<tr style="background-color: #ffffff;">
+    <td class="top" colspan="7">&nbsp;</td>
+</tr>
+</table>

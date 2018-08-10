@@ -1,0 +1,76 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ * 
+ * Sub module name must be equal to controller name, space separated.
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_userID'),'View Dashboard')) {
+    $submenu[] = array('label'=>'Applications','url'=>site_url('applications/show'),'icon'=>'bullet','subitem'=>array());
+    $submenu[] = array('label'=>'Applicants','url'=>site_url('applicant/show'),'icon'=>'bullet','subitem'=>array());
+    $submenu[] = array('label'=>'Job Post','url'=>site_url('job_post/show'),'icon'=>'bullet','subitem'=>array());
+    $submenu[] = array('label'=>'Job Positions','url'=>site_url('plantilla/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Recruitment';
+$module['main']['controller'] 	= 'recruitment';
+$module['main']['description'] 	= 'Manage all Recruitment';
+$module['main']['icon'] 		= 'la-black-tie';
+$module['main']['roles'] 		= array();
+
+ 
+// sub module
+$module['sub']['Applications'] = array(
+    'title'=>'Applications',
+    'module_label'=>'Applications', // this will display on create/view/edit form
+    'controller'=>'applications',
+    'description'=>'Manage all Application',
+    'icon'=>'la-black-tie',
+    'roles'=>array(   'View Application',
+    )
+);
+$module['sub']['Applicant'] = array(
+    'title'=>'Applicants',
+    'module_label'=>'Applicant', // this will display on create/view/edit form
+    'controller'=>'applicant',
+    'description'=>'Manage all Applicant',
+    'icon'=>'la-black-tie',
+    'roles'=>array(   'View Applicant',
+    )
+);
+
+$module['sub']['Job Post'] = array(
+    'title'=>'Job Posts',
+    'module_label'=>'Job Post', // this will display on create/view/edit form
+    'controller'=>'job_post',
+    'description'=>'Manage all Job Posts',
+    'icon'=>'la-paper-o',
+    'roles'=>array(   'View Job Posts',
+    )
+);
+
+$module['sub']['Job Positions'] = array(
+    'title'=>'Job Positions',
+    'module_label'=>'Job Positions', // this will display on create/view/edit form
+    'controller'=>'plantilla',
+    'description'=>'Manage all Job Positions',
+    'icon'=>'la-black-tie',
+    'roles'=>array(   'View Job Positions',
+    )
+);
+$module['main']['menu'] = $submenu;
+$this->modules['Recruitment']  = $module;
+?>

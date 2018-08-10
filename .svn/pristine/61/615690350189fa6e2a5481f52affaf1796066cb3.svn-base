@@ -1,0 +1,180 @@
+<div class="subtitle mt-20">
+	<h5 class="title mr-auto"><i class="icon left la la-group"></i> Recipients</h5>
+	<div class="subtitle-tools">
+		<button class="btn btn-primary btn-raised bmd-btn-fab bmd-btn-fab-sm" type="button" onclick="popUp('<?php echo site_url('travel_order/add_form/'.$orderID) ?>',1000, 700)"><i class="icon la la-plus md"></i><div class="ripple-container"></div></button>
+	</div>
+</div>
+<form name="frmFilter_recipient" id="frmFilter_recipient" method="POST" action="<?php echo $controller_page ?>/recipientlist">
+	<input type="hidden" id="sortby" name="sortby" value="<?php echo $sortby ?>" />
+	<input type="hidden" id="sortorder" name="sortorder" value="<?php echo $sortorder ?>" />
+	<input type="hidden" id="id" name="id" value="<?php echo $orderID ?>" />
+
+<!-- 	<div class="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card-box full-body"> -->
+
+					<!--  sorting_asc -->
+					<!-- <div class="card-body"> -->
+						<div class="datatables_wrapper">
+							<div class="table-responsive">
+								<table class="table">
+									<thead class="thead-light">
+										<tr>
+											<?php 
+											$headers = array(
+												array('column_header'=>'','column_field'=>'','width'=>'w-5','align'=>''),
+												array('column_header'=>'Company','column_field'=>'companyName','width'=>'w-10','align'=>''),
+												array('column_header'=>'Branch','column_field'=>'branchName','width'=>'w-10','align'=>''),
+												array('column_header'=>'Division','column_field'=>'divisionName','width'=>'w-10','align'=>''),
+												array('column_header'=>'Employment','column_field'=>'employeeType','width'=>'w-10','align'=>''),
+												array('column_header'=>'Position','column_field'=>'jobTitle','width'=>'w-10','align'=>''),
+												array('column_header'=>'Employee','column_field'=>'lname','width'=>'w-10','align'=>''),			
+												array('column_header'=>'Status','column_field'=>'status','width'=>'w-5','align'=>'center'),
+											);
+
+											echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder, 'frmFilter_recipient', 'submit_form_recipient()');
+											?>	
+										</tr>
+
+									</thead>
+									<tbody>
+										<?php
+										if (!empty($records2)) {
+
+											foreach($records2 as $row) {
+
+												$id = $row->$pfield;
+												?>
+
+
+												<tr>
+													<td>
+														<?php if ($roles['edit'] && $row->status >= 1) { ?>
+															<i style="font-size: 24px; color: #14699e!important;"class="la la-trash-o" alt="Delete" title="Delete Row" style="cursor: pointer;" onclick="removeRecipient('<?php echo $row->orderID ?>', '<?php echo $row->employmentID ?>')"></i>
+														<?php }?>
+													</td>
+
+													<td><?php echo $row->companyAbbr ?></td>
+													<td><?php echo $row->branchAbbr ?></td>
+													<td><?php echo $row->divisionAbbr ?></td>
+													<td><?php echo $row->employeeType ?></td>
+													<td><?php echo $row->jobTitle ?></td>
+													<td><?php echo $row->lname ?>, <?php echo $row->fname ?> <?php echo $row->mname ?> <?php echo $row->suffix ?></td>
+													<td align="center">
+														<?php
+														if ($row->status=="1") {
+															echo '<span class="badge badge-pill badge-warning">Pending</span>';
+														} else if ($row->status=="2") {
+															echo '<span class="badge badge-pill badge-success">Approved</span>';
+														} else if ($row->status=="0") {
+															echo '<span class="badge badge-pill badge-danger">Cancelled</span>'; 
+														}?>
+													</td>
+												</tr>
+											<?php }
+										} else {	?>
+											<tr>
+												<td colspan="8" align="center"> <i>No records found!</i></td>
+											</tr>
+										<?php } ?>
+										<?php echo $ctr ?>
+									</tbody>
+								</table>
+							</div>
+							<div class="datatable-footer d-flex">
+								<div class="datatable-pagination">
+									Pages: &nbsp;&nbsp; 
+								</div>
+								<div class="datatable-pagination">
+									<?php 
+									$pagination = $this->pagination->create_links(); 
+
+									if ($pagination) {
+										echo $pagination;      
+									} else {
+										echo "1";
+									}
+									?>
+								</div>
+								<div class="datatable-pager-info float-right ml-auto">
+									<div class="d-flex">
+										<div class="datatable-pager-size">
+											<div class="dataTables_length">
+												<select aria-controls="table1" class="form-control select-sm pill" tabindex="-98" id="limit" name="limit" onchange="$('#frmFilter').submit();">
+													<option value="25" <?php if ($limit==25) echo "selected"; ?>>25</option>
+													<option value="50" <?php if ($limit==50) echo "selected"; ?>>50</option>
+													<option value="75" <?php if ($limit==75) echo "selected"; ?>>75</option>
+													<option value="100" <?php if ($limit==100) echo "selected"; ?>>100</option>
+													<option value="125" <?php if ($limit==125) echo "selected"; ?>>125</option>
+													<option value="150" <?php if ($limit==150) echo "selected"; ?>>150</option>
+													<option value="175" <?php if ($limit==175) echo "selected"; ?>>175</option>
+													<option value="200" <?php if ($limit==200) echo "selected"; ?>>200</option>
+													<option value="all" <?php if ($limit=='All') echo "selected"; ?>>All</option>
+												</select>
+											</div>
+										</div>
+										<div class="datatable-pager-detail">
+											<div class="dataTables_info">Displaying <?php echo ($offset+1) ?> - <?php if ($offset+$limit < $ttl_rows) { echo ($offset+$limit); } else  { echo $ttl_rows; } ?> of <?php echo number_format($ttl_rows,0)?> records</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- </div> -->
+<!-- 				</div>
+			</div>
+		</div>
+	</div> -->
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<script>
+
+		$('#pagination a').click(function(e) {
+			var url = $(this).attr('href');
+			$('#container_recipient').load(url);
+			e.preventDefault();
+		});
+
+		function submit_form_recipient()
+		{	
+			$('#sort_loading_img_recipient').show();
+			$.ajax({
+				type	: "POST",
+				url		: "<?php echo $controller_page ?>/recipientlist/",
+				data	: $('#frmFilter_recipient').serialize(),
+				timeout	: <?php echo $this->config_model->getConfig('Request Timeout');?>,
+				success	: function(data){	
+					$('#container_recipient').html(data).show(); 
+					$('#sort_loading_img_recipient').hide();
+				},								
+			});
+		}
+		function removeRecipient(orderID, employmentID)
+		{
+			$.ajax({
+				type	: "GET",
+				url		: "<?php echo $controller_page ?>/delete_recipient/"+orderID+"/"+employmentID+"/3",
+				timeout	: <?php echo $this->config_model->getConfig('Request Timeout');?>,
+				success	: function(data){	
+					submit_form_recipient();
+				},							
+			});
+		}
+
+	</script>

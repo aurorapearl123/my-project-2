@@ -1,0 +1,402 @@
+
+<div class="subheader">
+  <div class="d-flex align-items-center">
+    <div class="title mr-auto">
+      <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div class="row">
+      <div class="col-3">
+        <div class="card-box">
+          <div class="card-head">
+            <div class="head-caption">
+              <div class="head-title">
+                <h4 class="head-text">Select Employee</h4>
+              </div>
+            </div>
+            <div class="card-head-tools"></div>
+            
+            </div>
+          <div class="card-body">
+            <div class="employee-filters">
+                <div class="form-group form-input">
+                    <select id="branchID" name="branchID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Branch" required>
+                      <option value="">&nbsp;</option>
+                      <?php 
+                        $this->db->where('status', 1);
+                        $this->db->order_by('branchName', 'asc');
+                      	$result = $this->db->get('branches')->result();
+                      	foreach($result as $res){
+                      ?>
+                      	<option value="<?php echo $res->branchID?>"><?php echo $res->branchName?></option>
+                      <?php }?>
+                    </select>
+                </div>
+                <div class="form-group form-input">
+                    <select id="deptID" name="deptID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Department" required>
+                      <option value="">&nbsp;</option>
+                    </select>
+                </div>
+                <div class="form-group form-input">
+                    <select id="divisionID" name="divisionID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Section" required>
+                      <option value="">&nbsp;</option>
+                    </select>
+                </div>
+            </div>
+            <div class="employee-list" style="height: 350px; overflow-y: auto; overflow-x: hidden">
+                <table class="table table-striped hover">
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-9">
+        <div class="card-box">
+          <div class="card-head">
+            <div class="head-caption">
+              <div class="head-title">
+                <ul id="inner-tab" class="nav nav-tabs w-icon">
+                  <li class="nav-item" data-nav="1">
+                    <a class="nav-link active" href="#/">
+                      <i class="icon left la la-user"></i>
+                      <span class="nav-text">Overview</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-nav="2">
+                    <a class="nav-link" href="#/">
+                      <i class="icon left la la-money"></i>
+                      <span class="nav-text">Incentives</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-nav="3">
+                    <a class="nav-link" href="#/">
+                      <i class="icon left la la-money"></i>
+                      <span class="nav-text">Contributions</span>
+                    </a>
+                  </li>
+                  <li class="nav-item" data-nav="4">
+                    <a class="nav-link" href="#/">
+                      <i class="icon left la la-money"></i>
+                      <span class="nav-text">Loans & Other Deductions</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="card-head-tools"></div>
+          </div>
+          <div class="card-body content1 tab-content">
+            <table class="view-table">
+              <tr>
+                <td class="data-title" width="12%" nowrap>Employee Name:</td>
+                <td class="data-input rec-name" width="" colspan="3"></td>
+              </tr>
+              <tr>
+                <td class="data-title" width="12%" nowrap>Employment No:</td>
+                <td class="data-input rec-employmentNo" width="35%"></td>
+                <td class="data-title" width="12%" nowrap>Date Apppointed:</td>
+                <td class="data-input rec-dateAppointed"></td>
+              </tr>
+              <tr>
+                <td class="data-title" width="12%" nowrap>Branch:</td>
+                <td class="data-input rec-branchName" width="35%"></td>
+                <td class="data-title" width="12%" nowrap>Position No:</td>
+                <td class="data-input rec-positionCode"></td>
+              </tr>
+              <tr>
+                <td class="data-title">Department:</td>
+                <td class="data-input rec-deptName"></td>
+                <td class="data-title">Job Position:</td>
+                <td class="data-input rec-jobTitle"></td>
+              </tr>
+              <tr>
+                <td class="data-title">Section:</td>
+                <td class="data-input rec-divisionName"></td>
+                <td class="data-title" nowrap>Employment:</td>
+                <td class="data-input rec-employeeType"></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+          <div class="card-body content2 tab-content" style="display: none">
+            <div class="datatables_wrapper">
+              <div class="table-responsive-xl">
+                <table id="incentives" class="table hover">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="">Incentive</th>
+                      <th class="">Effectivity</th>
+                      <th class="">Amount</th>
+                      <th class="">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="card-body content3 tab-content" style="display: none">
+            <div class="datatables_wrapper">
+              <div class="table-responsive-xl">
+                <table id="contributions" class="table hover">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="">Premium</th>
+                      <th class="">Effectivity</th>
+                      <th class="">EE Share</th>
+                      <th class="">ER Share</th>
+                      <th class="">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="card-body content4 tab-content" style="display: none">
+            <div class="datatables_wrapper">
+              <div class="table-responsive-xl">
+                <table id="loans" class="table hover">
+                  <thead class="thead-light">
+                    <tr>
+                      <th class="">Loan</th>
+                      <th class="">Date Granted</th>
+                      <th class="">Principal</th>
+                      <th class="">Paid</th>
+                      <th class="">Balance</th>
+                      <th class="">Amortization</th>
+                      <th class="">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var employmentID = '';
+$(document).ready(function() {
+    showEmployees();
+    
+    $(this).on({
+        click: function () {
+            $('.tab-content').hide();
+    		$('.content1').show();
+
+    		employmentID = $(this).attr('data-id');
+    		
+    		showOverview(employmentID);
+        },
+    }, '.row-employment');
+                          
+    $('#branchID').change(function() {
+    	get_departments();
+    	showEmployees();
+    });
+    
+    $('#deptID').change(function() {
+    	get_sections();
+    	showEmployees();
+    });
+    
+    $('#divisionID').change(function() {
+    	showEmployees();
+    });
+    
+    $('#inner-tab .nav-item').click(function(){
+    	$('#inner-tab .nav-item').find('.nav-link').removeClass('active');
+    	$(this).find('.nav-link').addClass('active');
+    
+    	contentNo = $(this).attr('data-nav');
+    
+    	if (contentNo == 1) {
+    	    showOverview();
+    	    
+    		$('.tab-content').hide();
+    		$('.content1').show();
+    	} else if (contentNo == 2) {
+    	    showIncentives();
+    	    
+    	    $('.tab-content').hide();
+    		$('.content2').show();
+    	} else if (contentNo == 3) {
+    	    showContributions();
+    	    
+    	    $('.tab-content').hide();
+    		$('.content3').show();
+    	} else if (contentNo == 4) {
+    // 		showLoans();
+    	    
+    	    $('.tab-content').hide();
+    		$('.content4').show();
+    	} else {
+    	    $('.content1').hide();
+    	}
+    });
+});
+
+<?php 
+    echo "\n";
+    $parameters = array('branchID');
+    echo $this->htmlhelper->get_json_select('get_departments', $parameters, site_url('generic_ajax/get_departments'), 'deptID', '');
+    
+    echo "\n";
+    $parameters = array('deptID');
+    echo $this->htmlhelper->get_json_select('get_sections', $parameters, site_url('generic_ajax/get_sections'), 'divisionID', '');
+?>
+
+function showEmployees() {
+    $.ajax({
+        url: '<?php echo site_url('salary_wage/show_employees')?>',
+        data: { branchID: $('#branchID').val(), deptID: $('#deptID').val(), divisionID: $('#divisionID').val() },
+        type: 'POST',
+        dataType:'json',
+        success:function(response) {
+            if (response.status == '1') {
+                
+                list = '';
+                for (i = 0; i < response.records.length; i++) {
+                    record = response.records[i];
+                    
+					list += '<tr class="row-employment" data-id="'+record.employmentID+'">';
+					if (record.imageExtension != '') {
+					    list += '	<td style="padding-left: 5px"><img src="<?php echo base_url('assets/records/employee/')?>'+record.empID+'/avatar_thumb'+record.imageExtension+'" class="text-center rounded" alt="" width="40"></td>';
+					} else {
+					    list += '	<td style="padding-left: 5px"><span class="user-text">CD</span></td>';
+					}
+					list += '	<td nowrap><span>'+record.lname+', '+record.fname+' '+record.mname+'</span></td>';
+					list += '</tr>';
+                }
+
+                $('.employee-list table tbody').html(list);
+            } else if (response.status == '0') {
+                if (response.message) {
+                    alert(response.message);
+                }
+            } else {
+                alert(response.message, 1);
+            }
+        }, error:function(xhr) {
+        }
+    });
+}
+
+function showOverview(employmentID) {
+    $.ajax({
+        url: '<?php echo site_url('salary_wage/show_overview')?>',
+        data: { employmentID: employmentID },
+        type: 'POST',
+        dataType:'json',
+        success:function(response) {
+            if (response.status == '1') {
+                record = response.record;
+                $('.rec-name').html(record.lname+', '+record.fname+' '+record.mname+' '+record.suffix);
+                $('.rec-employmentNo').html(record.employmentNo);
+                $('.rec-dateAppointed').html(record.dateAppointed);
+                $('.rec-branchName').html(record.branchName);
+                $('.rec-deptName').html(record.deptName);
+                $('.rec-divisionName').html(record.divisionName);
+                $('.rec-positionCode').html(record.positionCode);
+                $('.rec-jobTitle').html(record.jobTitle);
+                $('.rec-employeeType').html(record.employeeType);
+            } else if (response.status == '0') {
+                if (response.message) {
+                    alert(response.message);
+                }
+            } else {
+                alert(response.message, 1);
+            }
+        }, error:function(xhr) {
+        }
+    });
+}
+
+function showIncentives() {
+    $.ajax({
+        url: '<?php echo site_url('salary_wage/show_incentives')?>',
+        data: { employmentID: employmentID },
+        type: 'POST',
+        dataType:'json',
+        success:function(response) {
+            if (response.status == '1') {
+                
+                list = '';
+                for (i = 0; i < response.records.length; i++) {
+                    record = response.records[i];
+                    
+					list += '<tr class="row-incentive" data-id="'+record.payID+'">';
+					list += '	<td><span>'+record.name+'</span></td>';
+					list += '	<td><span>'+record.effectivity+'</span></td>';
+					list += '	<td><span>'+format_number(record.amount)+'</span></td>';
+					if (record.status == 1) {
+					    list += '	<td><span class="badge badge-pill badge-success">Active</span></td>';
+					} else {
+					    list += '	<td><span class="badge badge-pill badge-danger">Inactive</span></td>';
+					}
+					list += '</tr>';
+                }
+
+                $('#incentives tbody').html(list);
+            } else if (response.status == '0') {
+                if (response.message) {
+                    alert(response.message);
+                }
+            } else {
+                alert(response.message, 1);
+            }
+        }, error:function(xhr) {
+        }
+    });
+}
+
+function showContributions() {
+    $.ajax({
+        url: '<?php echo site_url('salary_wage/show_contributions')?>',
+        data: { employmentID: employmentID },
+        type: 'POST',
+        dataType:'json',
+        success:function(response) {
+            if (response.status == '1') {
+                
+                list = '';
+                for (i = 0; i < response.records.length; i++) {
+                    record = response.records[i];
+                    
+					list += '<tr class="row-incentive" data-id="'+record.payID+'">';
+					list += '	<td><span>'+record.name+'</span></td>';
+					list += '	<td><span>'+record.effectivity+'</span></td>';
+					list += '	<td><span>'+((!record.isAutomatic) ? format_number(record.employeeShare) : '--')+'</span></td>';
+					list += '	<td><span>'+((!record.isAutomatic) ? format_number(record.employerShare) : '--')+'</span></td>';
+					if (record.status == 1) {
+					    list += '	<td><span class="badge badge-pill badge-success">Active</span></td>';
+					} else {
+					    list += '	<td><span class="badge badge-pill badge-danger">Inactive</span></td>';
+					}
+					list += '</tr>';
+                }
+
+                $('#contributions tbody').html(list);
+            } else if (response.status == '0') {
+                if (response.message) {
+                    alert(response.message);
+                }
+            } else {
+                alert(response.message, 1);
+            }
+        }, error:function(xhr) {
+        }
+    });
+}
+</script>

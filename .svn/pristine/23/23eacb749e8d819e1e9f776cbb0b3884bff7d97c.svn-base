@@ -1,0 +1,140 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+ 
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Item Inventory')) {
+    $submenu[] = array('label'=>'Item','url'=>site_url('inventory/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Item Inventory')) {
+    $submenu[] = array('label'=>'Item Inventory','url'=>site_url('item_inventory/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View RR')) {
+    $submenu[] = array('label'=>'Receiving Report','url'=>site_url('Receiving_report/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View RR')) {
+    $submenu[] = array('label'=>'Physical Count','url'=>site_url('physical_count/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View RR')) {
+    $submenu[] = array('label'=>'Adjustment','url'=>site_url('Adjustment/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View RR')) {
+    $submenu[] = array('label'=>'Withdrawal Slip','url'=>site_url('Withdrawal_slip/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View RR')) {
+    $submenu[] = array('label'=>'Stock Card','url'=>site_url('stockcard/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Item Inventory';
+$module['main']['controller'] 	= 'Item_Inventory';
+$module['main']['description'] 	= 'Manage all Item Inventory';
+$module['main']['icon'] 		= 'la-group';
+$module['main']['roles'] 		= array();
+
+// sub module
+$module['sub']['Item_Inventory'] = array(
+		'title'=>'Item Inventory',
+		'module_label'=>'Item Inventory',
+		'controller'=>'item',
+		'description'=>'Manage all Item Inventory',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Item',
+		                  'Edit Existing Item',
+		                  'Delete Existing Item',
+						  'View Item',
+						  'Print Item',
+						  'Export Item'
+						)
+);
+
+$module['sub']['Receiving Report'] = array(
+		'title'=>'Receiving Report',
+		'module_label'=>'Receiving Report',
+		'controller'=>'receiving_report',
+		'description'=>'Manage all Receiving Report',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Receiving Report',
+		                  'Edit Receiving Report',
+		                  'Delete Receiving Report',
+						  'View Receiving Report',
+						)
+);
+
+
+$module['sub']['Physical count'] = array(
+		'title'=>'Physical count',
+		'module_label'=>'Physical count',
+		'controller'=>'physical_count',
+		'description'=>'Manage all Physical count',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Physical count',
+		                  'Edit Physical count',
+		                  'Delete Physical count',
+						  'View Physical count',
+						)
+);
+
+$module['sub']['Adjustment'] = array(
+		'title'=>'Adjustment',
+		'module_label'=>'Adjustment',
+		'controller'=>'Adjustment',
+		'description'=>'Manage all Adjustment',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Adjustment',
+		                  'Edit Adjustment',
+		                  'Delete Adjustment',
+						  'View Adjustment',
+						)
+);
+
+$module['sub']['Withdrawal slip'] = array(
+		'title'=>'Withdrawal slip',
+		'module_label'=>'Withdrawal slip',
+		'controller'=>'Withdrawal_slip',
+		'description'=>'Manage all Withdrawal',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Withdrawal slip',
+		                  'Edit Withdrawal slip',
+		                  'Delete Withdrawal slip',
+						  'View Withdrawal slip',
+						)
+);
+
+
+$module['sub']['Stockcard'] = array(
+		'title'=>'Stockcard',
+		'module_label'=>'Stockcard',
+		'controller'=>'Stockcard',
+		'description'=>'Manage Stockcard',
+		'icon'=>'la-group',
+		'roles'=>array(   'Add Stockcard',
+		                  'Edit Stockcard',
+		                  'Delete Stockcard',
+						  'View Stockcard',
+						)
+);
+
+
+$module['main']['menu'] = $submenu;
+$this->modules['Inventory']  = $module;
+?>

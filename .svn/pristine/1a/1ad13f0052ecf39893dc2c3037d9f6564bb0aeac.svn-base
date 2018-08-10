@@ -1,0 +1,204 @@
+<style>
+.checkBox { width:18px;height:18px;vertical-align:middle; }
+.bright { border-right: 1px solid #ccc;}
+.bleft { border-left: 1px solid #ccc;}
+.btop { border-top: 1px solid #cccccc;}
+.bbottom { border-bottom: 1px solid #cccccc;}
+.ball { border: 1px solid #cccccc;}
+.label { height: 2px; font-size:7pt;  }
+.field { height: 2px; font-size:8pt; }
+.table_header { background-color: #ebebed; font-size:7pt; }
+.table_row { height: 23px; font-size:7pt; vertical-align:middle; }
+.signatory { background-color: #eee; height: 20px; font-size:7pt; }
+.signatory_table { position: absolute; bottom: 0;}
+</style>
+
+<?php $col = 8;?>
+
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin-top:5px;">
+<thead>
+<tr class="table_header">
+	<td colspan="" rowspan="2" nowrap align="center" width="20px" class="table_row btop bbottom bleft bright" nowrap>
+		<span class="label">#</span></td>
+	<td colspan="" rowspan="2" nowrap align="center" width="" class="table_row btop bbottom bright" nowrap>
+		<span class="label">EMPLOYEE</span></td>	
+	<td colspan="" rowspan="2" nowrap align="center" width="60px" class="table_row btop bbottom bright" nowrap>
+		<span class="label">BASIC<br>SALARY</span></td>	
+    <?php 
+    if ($incentives->num_rows()) {
+        foreach ($incentives->result() as $incentive) {
+            $col++;
+            $total[$incentive->abbr] = 0;?>
+        	<td colspan="" rowspan="2" nowrap align="center" width="50px" class="table_row btop bbottom bright" nowrap>
+        		<span class="label"><?php echo $incentive->abbr?></span></td>
+	<?php }
+    }?>
+	<td colspan="" rowspan="2" nowrap align="center" width="80px" class="table_row btop bbottom bright" nowrap>
+		<span class="label">GROSS PAY</span></td>		
+	<td colspan="<?php echo (2 + $contributions->num_rows() + $deductions->num_rows())?>" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">DEDUCTIONS</span></td>
+	<td colspan="" rowspan="2" nowrap align="center" width="80px" class="table_row btop bbottom bright">
+		<span class="label">NET PAY</span></td>
+	<td colspan="" rowspan="2" nowrap align="center" width="80px" class="table_row btop bbottom bright">
+		<span class="label">SIGNATURE</span></td>
+</tr>
+<tr class="table_header">
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">ABSENT</span></td>
+	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">W/TAX</span></td>
+	<?php 
+    if ($contributions->num_rows()) {
+        foreach ($contributions->result() as $contribution) {
+            $col++;
+            $total[$contribution->abbr] = 0;?>
+        	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+        		<span class="label"><?php echo $contribution->abbr?></span></td>
+	<?php }
+    }?>
+    <?php 
+    if ($deductions->num_rows()) {
+        foreach ($deductions->result() as $deduction) {
+            $col++;
+            $total[$deduction->abbr] = 0;?>
+        	<td colspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+        		<span class="label"><?php echo $deduction->abbr?></span></td>
+	<?php }
+    }?>
+</tr>
+</thead>	
+<?php 
+	$ctr = 0;
+	if (!empty($records)) {
+	    foreach ($groups as $group) {
+	       if (!empty($records[$group->$groupID])) {?>
+	           <tr>
+    	           <td colspan="" nowrap align="center" width="" class="table_row bbottom bleft bright">
+            			<span class="field">&nbsp;&nbsp;</span></td>					
+            		<td colspan="<?php echo $col - 1?>" nowrap align="left" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<strong><?php echo strtoupper($group->$group_label)?>&nbsp;</strong></span></td>
+    	        </tr>
+	           <?php 
+	           foreach ($records[$group->$groupID] as $row) {?>
+            	<tr class="">
+            		<td colspan="" nowrap align="center" width="" class="table_row bbottom bleft bright">
+            			<span class="field">&nbsp;<?php echo ++$ctr;?>.&nbsp;</span></td>					
+            		<td colspan="" nowrap align="left" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field" style="font-size:9pt;">&nbsp;<?php echo strtoupper($row['employee'])?>&nbsp;</span></td>
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<?php 
+                			$total['basicRate'] += $row['basicRate'];
+                			echo ($row['basicRate'] > 0) ? number_format($row['basicRate'], 2) : ''?>&nbsp;</span></td>
+            		<?php 
+                    if ($incentives->num_rows()) {
+                        foreach ($incentives->result() as $incentive) {?>
+                    		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+                    			<span class="field">&nbsp;<?php 
+                    			$total[$incentive->abbr] += ($row[$incentive->abbr] > 0) ? $row[$incentive->abbr] : 0;
+                    			echo ($row[$incentive->abbr] > 0) ? number_format($row[$incentive->abbr], 2) : '';?>&nbsp;</span></td>	
+            		<?php }
+                    }?>	
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<?php 
+                			$total['totalGross'] += $row['totalGross'];
+                			echo ($row['totalGross'] > 0) ? number_format($row['totalGross'], 2) : ''?>&nbsp;</span></td>
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<?php 
+                			$total['wop'] += $row['wop'];
+                			echo ($row['wop'] > 0) ? number_format($row['wop'], 2) : ''?>&nbsp;</span></td>
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<?php 
+                			$total['wtax'] += $row['wtax'];
+                			echo ($row['wtax'] > 0) ? number_format($row['wtax'], 2) : ''?>&nbsp;</span></td>	
+            		<?php 
+                    if ($contributions->num_rows()) {
+                        foreach ($contributions->result() as $contribution) {?>		
+                        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+                            <span class="field">&nbsp;<?php 
+                                $total[$contribution->abbr] += ($row[$contribution->abbr] > 0) ? $row[$contribution->abbr] : 0;
+                                echo ($row[$contribution->abbr] > 0) ? number_format($row[$contribution->abbr], 2) : '';?>&nbsp;</span></td>	
+            		<?php }
+                    }?>	
+            		<?php 
+                    if ($deductions->num_rows()) {
+                        foreach ($deductions->result() as $deduction) {?>		
+                        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+                            <span class="field">&nbsp;<?php 
+                                $total[$deduction->abbr] += ($row[$deduction->abbr] > 0) ? $row[$deduction->abbr] : 0;
+                                echo ($row[$deduction->abbr] > 0) ? number_format($row[$deduction->abbr], 2) : '';?>&nbsp;</span></td>	
+            		<?php }
+                    }?>	
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;<?php 
+                			$total['netPay'] += $row['netPay'];
+                			echo ($row['netPay'] > 0) ? number_format($row['netPay'], 2) : ''?>&nbsp;</span></td>
+            		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+            			<span class="field">&nbsp;&nbsp;</span></td>
+            	</tr>
+            <?php }
+    		}
+           }?>
+	<tr class="">
+		<td colspan="2" nowrap align="RIGHT" width="" class="table_row bbottom bleft bright">
+			<span class="field" style="font-size:9pt;">&nbsp;<strong>GRAND TOTAL</strong>&nbsp;</span></td>
+		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong><?php echo number_format($total['basicRate'], 2);?></strong>&nbsp;</span></td>
+		<?php 
+        if ($incentives->num_rows()) {
+            foreach ($incentives->result() as $incentive) {?>
+        		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+        			<span class="field">&nbsp;<strong><?php echo number_format($total[$incentive->abbr], 2);?></strong>&nbsp;</span></td>	
+		<?php }
+        }?>	
+        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong><?php echo number_format($total['totalGross'], 2);?></strong>&nbsp;</span></td>
+        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong><?php echo number_format($total['wop'], 2);?></strong>&nbsp;</span></td>
+        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong><?php echo number_format($total['wtax'], 2);?></strong>&nbsp;</span></td>
+		<?php 
+        if ($contributions->num_rows()) {
+            foreach ($contributions->result() as $contribution) {?>
+        		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+        			<span class="field">&nbsp;<strong><?php echo number_format($total[$contribution->abbr], 2);?></strong>&nbsp;</span></td>	
+		<?php }
+        }?>	
+		<?php 
+        if ($deductions->num_rows()) {
+            foreach ($deductions->result() as $deduction) {?>
+        		<td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+        			<span class="field">&nbsp;<strong><?php echo number_format($total[$deduction->abbr], 2);?></strong>&nbsp;</span></td>	
+		<?php }
+        }?>	
+        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong><?php echo number_format($total['netPay'], 2);?></strong>&nbsp;</span></td>
+        <td colspan="" nowrap align="right" width="" class="table_row bbottom bright" nowrap>
+			<span class="field">&nbsp;<strong></strong>&nbsp;</span></td>
+	</tr>
+<?php }?>
+</table>
+	
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin-top:20px;">
+<tr>
+    <td width="25%">Prepared By:</td>
+    <td width="25%">Noted By:</td>
+    <td width="25%">Checked By:</td>
+    <td width="25%">Approved By:</td>
+</tr>
+<tr>
+    <td colspan="4" height="30px"></td>
+</tr>
+<tr>
+    <td><strong><?php echo $this->config_model->getConfig('Payroll Signatory Accounting Clerk')?></strong></td>
+    <td><strong><?php echo $this->config_model->getConfig('Payroll Signatory Finance Manager')?></strong></td>
+    <td><strong><?php echo $this->config_model->getConfig('Payroll Signatory Internal Auditor')?></strong></td>
+    <td><strong><?php echo $this->config_model->getConfig('Payroll Signatory School President')?></strong></td>
+</tr>
+<tr>
+    <td>Accounting Clerk</td>
+    <td>Finance Manager</td>
+    <td>Internal Auditor</td>
+    <td>President</td>
+</tr>
+</table>

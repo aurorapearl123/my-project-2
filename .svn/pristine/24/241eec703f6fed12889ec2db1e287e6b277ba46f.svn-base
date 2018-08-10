@@ -1,0 +1,800 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Suspension extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Suspension Order';
+        $this->module_label = 'Suspension Orders';
+        $this->table        = 'suspensions';
+        $this->module_path  = 'modules/Leave/Suspension';
+        $this->module_path_submenu  = 'modules/Leave/submenu';
+        $this->pfield = 'suspensionID';
+        $this->logfield = 'suspensionNo';
+        $this->data['controller_page'] = $this->controller_page = site_url('suspension');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('dateFiled'=>'Date Filed','startDate'=>'Start Date','endDate'=>'End Date',
+                'subject'=>'Subject','reason'=>'Reason');
+            $data['series']  = ($this->session->userdata('current_series')!="") ? $this->session->userdata('current_series') : date('Y');
+
+            $this->frameworkhelper->clear_session_item('employees');
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            $table_fields = array('series','dateFiled', 'subject', 'reason','remarks','totalDays');
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                           
+
+            $this->record->fields['suspensionNo'] = $genNo = $this->_generateID($this->record->fields['series']);
+            $this->record->fields['dateFiled']  = ($this->input->post('dateFiled')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateFiled')))) : "0000-00-00";
+            $this->record->fields['startDate']  = ($this->input->post('startDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('startDate')))) : "0000-00-00";
+            $this->record->fields['endDate']    = ($this->input->post('endDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('endDate')))) : "0000-00-00";
+
+            if ($this->record->save()) {
+                $this->record->fields = array();
+                $this->record->where['suspensionNo']  = $genNo;
+                $this->record->where['series']   = trim($this->input->post('series'));
+                $this->record->retrieve();  
+                
+                $this->_incrementSeries();                          
+                
+                if (!empty($_SESSION['employees'])) {
+                    $batch = array();
+                    foreach($_SESSION['employees'] as $item){
+                        $info = array();
+                        $info['suspensionID']   = $this->record->field->suspensionID;                           
+                        $info['empID']          = $item['empID'];
+                        $info['employmentID']   = $item['employmentID'];    
+                        $batch[] = $info;                   
+                    }
+                    $this->db->insert_batch('suspension_details', $batch);
+                }
+                
+                $this->frameworkhelper->clear_session_item('employees');
+                
+                $this->session->set_userdata('current_series', $this->record->field->series);
+                
+                // record logs
+                $logs = "Record - ".$genNo;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                
+                $logfield = $this->pfield;
+
+                // success msg
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully saved.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Unable to save
+                $data['class']  = "danger";
+                $data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('dateFiled'=>'Date Filed','startDate'=>'Start Date','endDate'=>'End Date',
+                'subject'=>'Subject','reason'=>'Reason');
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;
+            // set fields for the current table
+            $this->record->setFields();
+            // extend fields - join tables  
+            // set joins                
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            $this->frameworkhelper->clear_session_item('employees');
+            
+            $this->db->select('suspension_details.*');
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.lname');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.mname');
+            $this->db->select('employees.suffix');
+            $this->db->select('employees.imageExtension');
+            $this->db->select('employments.employmentNo');
+            $this->db->select('companies.companyName');
+            $this->db->select('companies.companyAbbr');
+            $this->db->select('offices.officeName');
+            $this->db->select('offices.officeAbbr');
+            $this->db->select('employee_types.employeeType');
+            $this->db->select('job_positions.positionCode');
+            $this->db->select('job_titles.jobTitle');
+            $this->db->from('suspension_details');
+            $this->db->join('employees','suspension_details.empID=employees.empID','left');
+            $this->db->join('employments','suspension_details.employmentID=employments.employmentID','left');
+            $this->db->join('companies','employments.companyID=companies.companyID','left');
+            $this->db->join('offices','employments.officeID=offices.officeID','left');
+            $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+            $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+            $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+            $this->db->where('suspensionID', $id);
+            $this->db->order_by('employees.lname','asc');
+            $this->db->order_by('employees.fname','asc');
+            $items = $this->db->get();  
+            
+            if ($items->num_rows()) {
+                foreach($items->result() as $item) {
+                    $d = array();
+                    $d['suspensionDetailID']= $item->orderDateID;
+                    $d['suspensionID']      = $item->suspensionID;
+                    $d['empID']             = $item->empID;
+                    $d['employeename']      = $item->empNo.' - '.$item->lname.', '.$item->fname.' '.$item->mname.' - '.$item->suffix;
+                    $d['employmentID']      = $item->employmentID;
+                    $d['employment']        = $item->employmentNo.' - '.$item->companyAbbr.' / '.$item->officeAbbr.' / '.$item->employeeType.' / '.$item->jobTitle;
+                    
+                    $_SESSION['employees'][] = $d;
+                }
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array('series','dateFiled', 'subject', 'reason','remarks','totalDays');
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                   
+            
+            $this->record->fields['dateFiled']  = ($this->input->post('dateFiled')!="") ? date('Y-m-d', strtotime(trim($this->input->post('dateFiled')))) : "0000-00-00";
+            $this->record->fields['startDate']  = ($this->input->post('startDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('startDate')))) : "0000-00-00";
+            $this->record->fields['endDate']    = ($this->input->post('endDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('endDate')))) : "0000-00-00";
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+            if ($this->record->update()) {
+                $this->db->where('suspensionID', $this->record->pk);
+                $this->db->delete('suspension_details');
+                
+                if (!empty($_SESSION['employees'])) {
+                    $batch = array();
+                    foreach($_SESSION['employees'] as $item){
+                        $info = array();
+                        $info['suspensionID']   = $this->record->pk;                            
+                        $info['empID']          = $item['empID'];
+                        $info['employmentID']   = $item['employmentID'];    
+                        $batch[] = $info;                   
+                    }
+                    $this->db->insert_batch('suspension_details', $batch);
+                }
+                
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    $this->db->where('suspensionID', $id);
+                    $this->db->delete('suspension_details');
+                    
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;            
+            // set fields for the current table
+            $this->record->setFields();         
+            // extend fields - join tables  
+            // set joins        
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;    
+            
+            
+            $this->db->select('suspension_details.*');
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.lname');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.mname');
+            $this->db->select('employees.suffix');
+            $this->db->select('employees.imageExtension');
+            $this->db->select('employments.employmentNo');
+            $this->db->select('companies.companyName');
+            $this->db->select('companies.companyAbbr');
+            $this->db->select('offices.officeName');
+            $this->db->select('offices.officeAbbr');
+            $this->db->select('employee_types.employeeType');
+            $this->db->select('job_positions.positionCode');
+            $this->db->select('job_titles.jobTitle');
+            $this->db->from('suspension_details');
+            $this->db->join('employees','suspension_details.empID=employees.empID','left');
+            $this->db->join('employments','suspension_details.employmentID=employments.employmentID','left');
+            $this->db->join('companies','employments.companyID=companies.companyID','left');
+            $this->db->join('offices','employments.officeID=offices.officeID','left');
+            $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+            $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+            $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+            $this->db->where('suspensionID', $id);
+            $this->db->order_by('employees.lname','asc');
+            $this->db->order_by('employees.fname','asc');
+            $data['suspension_details'] = $this->db->get();         
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+	
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where        
+        $this->record->where['suspensionNo'] = trim($this->input->post('suspensionNo'));
+        $this->record->where['series'] = trim($this->input->post('series'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+
+
+
+    //Ajax functions
+    public function getSuspensions()
+    {   
+        $empID = trim($this->input->post('empID'));
+        $employmentID = trim($this->input->post('employmentID'));
+        
+        if ($empID) {
+            $this->db->where('empID', $empID);
+        }
+        if ($employmentID) {
+            $this->db->where('employmentID', $employmentID);
+        }
+        $this->db->order_by('suspensionNo','asc');
+        $records = $this->db->get('suspensions');
+        echo $this->frameworkhelper->get_json_data($records, 'suspensionID', 'suspensionNo');
+    }
+
+    public function setRecipients($recipientType=6, $employeeTypeID=0, $officeID=0, $divisionID=0)
+    {
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        
+        // **************************************************
+        
+        // check roles
+        if ($this->roles['create']) {   
+            $data['recipientType']  = $recipientType;           
+            $data['employeeTypeID'] = explode(',', $employeeTypeID);
+            $data['officeID']       = $officeID;
+            $data['divisionID']     = $divisionID;
+            
+            if ($data['recipientType']==1) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+            } elseif ($data['recipientType']==2) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }               
+                if ($this->session->userdata('assigned_officeID')) {
+                    $this->db->where('offices.officeID', $this->session->userdata('assigned_officeID'));
+                }
+                $this->db->select('offices.*');
+                $this->db->select('companies.companyAbbr');
+                $this->db->select('companies.companyName');
+                $this->db->from('offices');
+                $this->db->join('companies','offices.companyID=companies.companyID','left');
+                $this->db->where('offices.status', 1);
+                $this->db->order_by('companies.rank', 'asc');
+                $this->db->order_by('offices.rank', 'asc');
+                $this->db->order_by('offices.officeName', 'asc');
+                $data['offices'] = $this->db->get();
+                
+            } elseif ($data['recipientType']==3) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                if ($this->session->userdata('assigned_officeID')) {
+                    $this->db->where('offices.officeID', $this->session->userdata('assigned_officeID'));
+                }
+                if ($this->session->userdata('assigned_divisionID')) {
+                    $this->db->where('divisions.divisionID', $this->session->userdata('assigned_divisionID'));
+                }
+                $this->db->select('divisions.*');
+                $this->db->select('companies.companyAbbr');
+                $this->db->select('companies.companyName');
+                $this->db->select('offices.officeAbbr');
+                $this->db->select('offices.officeName');
+                $this->db->from('divisions');
+                $this->db->join('companies','divisions.companyID=companies.companyID','left');
+                $this->db->join('offices','divisions.officeID=offices.officeID','left');
+                $this->db->where('divisions.status', 1);
+                $this->db->order_by('companies.rank', 'asc');
+                $this->db->order_by('offices.rank', 'asc');
+                $this->db->order_by('divisions.rank', 'asc');
+                $this->db->order_by('divisions.divisionName', 'asc');
+                $data['divisions'] = $this->db->get();
+                
+            } elseif ($data['recipientType']==4) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+                if ($data['officeID']) {
+                    $this->db->select('employments.*');
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->select('employee_types.employeeType');
+                    $this->db->select('positions.jobTitle');
+                    $this->db->from('employments');
+                    $this->db->join('employees','employments.empID=employees.empID','left');
+                    $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+                    $this->db->join('positions','employments.positionID=positions.positionID','left');
+                    $this->db->where('employments.detailedOfficeID', $data['officeID']);
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                    $data['employees'] = $this->db->get();
+                }
+            } elseif ($data['recipientType']==5) {
+                if ($this->session->userdata('assigned_companyID')) {
+                    $this->db->where('companies.companyID', $this->session->userdata('assigned_companyID'));
+                }
+                $this->db->where('status', 1);
+                $this->db->order_by('rank', 'asc');
+                $this->db->order_by('companyName', 'asc');
+                $data['companies'] = $this->db->get('companies');
+                
+                if ($data['divisionID']) {
+                    $this->db->select('employments.*');
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->select('employee_types.employeeType');
+                    $this->db->select('positions.jobTitle');
+                    $this->db->from('employments');
+                    $this->db->join('employees','employments.empID=employees.empID','left');
+                    $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID','left');
+                    $this->db->join('positions','employments.positionID=positions.positionID','left');
+                    $this->db->where('employments.divisionID', $data['divisionID']);
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                    $data['employees'] = $this->db->get();
+                }
+            }  
+            
+            // load views
+            echo $this->load->view($this->module_path.'/recipients', $data, true);          
+        } else {
+            // error
+            $data["class"]   = "danger";
+            $data["msg"]     = "Sorry, you don't have access to this page!";
+            echo $this->load->view("message", $data, true);
+        }
+    }
+
+    // public function display_session()
+    // {               
+    //     echo var_dump($_SESSION);
+    // }
+
+
+
+
+
+
+    //More pages
+    public function confirm_record($id=0, $status=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+        
+        $this->record->table = $this->table;
+        $this->record->where[$this->pfield] = $id;
+        $this->record->retrieve();
+        
+        // check roles
+        if ($this->roles['approve'] && $this->record->field->status==1) {
+            $this->record->fields = array();
+            
+            $this->record->fields['status'] = $status;
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = $id;
+            
+            switch ($status) {
+                case 2: $operation = "Approve"; break;
+                case 0: $operation = "Cancel"; break;
+                case -1: $operation = "Disapprove"; break;
+            }
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, $operation, $this->record->fields);
+            
+            if ($this->record->update()) {                              
+                if ($status==2) {
+                    $this->db->set('status', 2);
+                } else {
+                    $this->db->set('status', 0);
+                }
+                $this->db->where('suspensionID', $this->record->field->suspensionID);
+                $this->db->update('suspension_details');
+                
+                
+                // record logs
+                if ($wasChange) {
+                    $logfield = $this->logfield;
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, $operation, $logs);
+                }
+                
+                // successfully changed status
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully changed status.";
+                $data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "refresh";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error changing status
+                $data['class']  = "success";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = (!$isPopup) ? $this->controller_page."/view/".$this->encrypter->encode($this->record->pk) : "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array();
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+
+    private function _generateID($series)
+    {       
+        $idSeries   = $this->config_model->getConfig('Suspension Order Series');
+        $idLength   = $this->config_model->getConfig('Order Series Length');
+        
+        $id  = str_pad($idSeries, $idLength, "0", STR_PAD_LEFT);
+        return "SO".substr($series, 2, 2).$id;
+    }
+
+    private function _incrementSeries()
+    {   
+        $query = "UPDATE `config` SET `value` = `value`+ 1 WHERE `name` = 'Suspension Order Series'"; $this->db->query($query);     
+    }
+
+
+    //function needs help
+    public function display_session_items($display_area='')
+    {
+        $sessionSet = $this->input->post('sessionSet');
+        $records = isset($_SESSION[$sessionSet])? $_SESSION[$sessionSet]:array();
+        
+        // display session data     
+        $headers = array('Employee'=>'left','Employment'=>'left');
+        $display = array(
+            array('align'=>'left','fields'=>array('employeename'=>'')),
+            array('align'=>'left','fields'=>array('employment'=>'')),
+            );
+        echo $this->htmlhelper->session_tabular_view($records,$headers,$display,$sessionSet,'900',$display_area);
+    }
+}

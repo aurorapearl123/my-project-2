@@ -1,0 +1,62 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Reports')) {
+    $submenu[] = array('label'=>'Attendance Summary','url'=>site_url('reports/attendance_summary'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Shift Schedule')) {
+    $submenu[] = array('label'=>'Tardiness Summary','url'=>site_url('reports/tardiness_summary'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Overtime')) {
+    $submenu[] = array('label'=>'Undertime Summary','url'=>site_url('reports/undertime_summary'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Biometric Logs')) {
+    $submenu[] = array('label'=>'Payroll','url'=>site_url('biometric_logs/show'),'icon'=>'bullet','subitem'=>array(
+            array('label'=>'Notice To Credit','url'=>site_url('reports/notice_to_credit'),'icon'=>'bullet'),
+            array('label'=>'Tax Alpha List','url'=>site_url('reports/tax_alpha_list'),'icon'=>'bullet'),
+    ));
+}
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Reports';
+$module['main']['controller'] 	= 'reports';
+$module['main']['description'] 	= 'Manage all Reports';
+$module['main']['icon'] 		= 'la-newspaper-o';
+$module['main']['roles'] 		= array();
+
+
+// sub module
+$module['sub']['Reports'] = array(
+		'title'=>'Reports',
+        'module_label'=>'Reports',
+		'controller'=>'reports',
+		'description'=>'Manage all Reports',
+		'icon'=>'la-money',
+		'roles'=>array(
+		    'Add Report',
+            'View Report',
+            'Edit Existing Report',
+            'Delete Existing Report',
+		)
+);
+
+$module['main']['menu'] = $submenu;
+$this->modules['Reports']  = $module;
+?>

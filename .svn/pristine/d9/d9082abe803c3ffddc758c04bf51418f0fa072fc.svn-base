@@ -1,0 +1,1475 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Attendance extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Daily Time Record';
+        $this->module_label = 'Daily Time Record';
+        $this->table        = 'attendance';
+        $this->module_path  = 'modules/Attendance';
+        $this->module_path_submenu  = 'modules/Attendance/submenu';
+        $this->pfield = 'attendanceID';
+        $this->logfield = 'date';
+        $this->data['controller_page'] = $this->controller_page = site_url('attendance');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->view_list();
+    }
+    
+    public function view_list($empID=0,$employmentID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        if ($empID && $startDate && $endDate) {
+            $data['empID']          = $this->encrypter->decode($empID);
+            $data['employmentID']   = $this->encrypter->decode($employmentID);
+            $data['startDate']      = date('Y-m-d', $startDate);
+            $data['endDate']        = date('Y-m-d', $endDate);
+
+            // set sessions
+            $this->session->set_userdata('current_empID', $data['empID']);
+            $this->session->set_userdata('current_employmentID', $data['employmentID']);
+            $this->session->set_userdata('current_startDate', $data['startDate']);
+            $this->session->set_userdata('current_endDate', $data['endDate']);
+        } else {
+            $data['empID']          = ($this->session->userdata('current_empID')) ? $this->session->userdata('current_empID') : 0;
+            $data['empNo']          = ($this->session->userdata('current_empNo')) ? $this->session->userdata('current_empNo') : "";
+            $data['employmentID']   = ($this->session->userdata('current_employmentID')) ? $this->session->userdata('current_employmentID') : 0;
+            $data['startDate']      = ($this->session->userdata('current_startDate')) ? $this->session->userdata('current_startDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-01'));
+            $data['endDate']        = ($this->session->userdata('current_endDate')) ? $this->session->userdata('current_endDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-'.date('t')));
+        }
+
+        // check roles
+        if ($this->roles['view']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'employmentID'=>'Employment', 'startDate'=>'Start Date','endDate'=>'End Date');                       
+            
+            if ($data['empID']) {               
+                $this->db->where('empID', $data['empID']);
+                $query = $this->db->get('employees', 1)->row();
+
+                $data['empNo']         = $query->empNo;
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+                
+                $this->session->set_userdata('current_empNo', $data['empNo']);
+            } elseif ($data['employmentID']) {
+                $this->db->select('employments.*');
+                $this->db->select('employees.lname');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.mname');
+                $this->db->select('employees.suffix');
+                $this->db->from('employments');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->where('employments.employmentID', $data['employmentID']);
+                $this->db->limit(1);
+                $query = $this->db->get()->row();
+
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+
+            $data['start']   = strtotime($data['startDate']);
+            $data['end']     = strtotime($data['endDate']);                 
+            $data['records'] = array();
+            $data['overtime']= array();
+            
+            if ($data['employmentID']) {
+                for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                    $dtr = $this->dtrlog->analyze($data['employmentID'], $current);
+                    
+                    if (!empty ($dtr)) {
+                        foreach ($dtr as $info) {                       
+                            $data['records'][] = $info;                         
+                        }
+                    } else {
+                        $info = array();
+                        $info['base']   = date('Y-m-d', $current);
+                        $data['records'][] = $info;
+                    }
+                    
+                    // overtime
+                    $this->db->where('date', date('Y-m-d', $current));
+                    $this->db->where('attendanceType', 2);
+                    $overtime = $this->db->get('attendance', 1)->row();
+                    
+                    if (!empty($overtime)) { 
+                        $data['overtime'][$current] = $overtime;
+                    }
+                }
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_record($empID=0,$employmentID=0,$startDate=0,$endDate=0,$printType=1)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        if ($this->roles['view']) { 
+            if ($employmentID && $startDate && $endDate) {
+                $data['empID']          = $this->encrypter->decode($empID);
+                $data['employmentID']   = $this->encrypter->decode($employmentID);
+                $data['startDate']      = date('Y-m-d', $startDate);
+                $data['endDate']        = date('Y-m-d', $endDate);
+
+                // set sessions
+                $this->session->set_userdata('current_empID', $data['empID']);              
+                $this->session->set_userdata('current_employmentID', $data['employmentID']);
+                $this->session->set_userdata('current_startDate', $data['startDate']);
+                $this->session->set_userdata('current_endDate', $data['endDate']);
+
+                $this->db->select('employees.empNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employments.lname');             
+                $this->db->select('employments.mname');             
+                $this->db->select('employments.title');
+                $this->db->select('detailedCompany.companyAbbr as detailedCompanyAbbr');                
+                $this->db->select('detailedOffice.officeAbbr as detailedOfficeAbbr');
+                $this->db->select('detailedOffice.officeHeadID');
+                $this->db->select('detailedOffice.officeHeadTitle');
+                $this->db->select('detailedDivision.divisionAbbr as detailedDivisionAbbr');
+                $this->db->select('detailedDivision.divisionHeadID');
+                $this->db->select('detailedDivision.divisionHeadTitle');
+                $this->db->select('employee_types.employeeType');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('employments');             
+                $this->db->join('employees','employments.empID=employees.empID', 'left');
+                $this->db->join('companies detailedCompany','employments.detailedCompanyID=detailedCompany.companyID', 'left');
+                $this->db->join('offices detailedOffice','employments.detailedOfficeID=detailedOffice.officeID', 'left');
+                $this->db->join('divisions detailedDivision','employments.detailedDivisionID=detailedDivision.divisionID', 'left');         
+                $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID', 'left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');             
+                $this->db->where('employments.employmentID', $data['employmentID']);
+                $this->db->order_by('employments.lname', 'asc');
+                $this->db->order_by('employees.fname', 'asc');
+                $this->db->limit(1);
+                $data['rec'] = $this->db->get()->row();
+
+                $data['empNo']   = $data['rec']->empNo;
+                $data['name']    = $data['rec']->lname.', '.$data['rec']->fname.' '.substr($data['rec']->mname, 0, 1).' '.$data['rec']->suffix;
+                $data['jobTitle']= $data['rec']->jobTitle;
+                $data['start']   = strtotime($data['startDate']);
+                $data['end']     = strtotime($data['endDate']);
+                $data['records'] = array();
+                $data['overtime']= array();
+
+                if ($data['employmentID']) {
+                    for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                        $dtr = $this->dtrlog->analyze($data['employmentID'], $current);
+                        
+                        if (!empty ($dtr)) {
+                            foreach ($dtr as $info) {
+                                $data['records'][] = $info;
+                            }
+                        } else {
+                            $info = array();
+                            $info['base']   = date('Y-m-d', $current);
+                            $data['records'][] = $info;
+                        }
+                        
+                        // overtime
+                        $this->db->where('date', date('Y-m-d', $current));
+                        $this->db->where('attendanceType', 2);
+                        $overtime = $this->db->get('attendance', 1)->row();
+
+                        if (!empty($overtime)) {
+                            $data['overtime'][$current] = $overtime;
+                        }
+                    }
+                }
+                
+                $twoPeriod = false; 
+                if (!empty($data['records'])) {
+                    foreach ($data['records'] as $record) {
+                        if ($record['shiftType']==1) {
+                            $twoPeriod = true;
+                        }
+                    }
+                }
+                
+                if (date('M', strtotime($data['startDate'])) == date('M', strtotime($data['endDate']))) {
+                    $data['period'] = date('M', strtotime($data['startDate']));
+                    $data['period'] .= ' '.date('j', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('j, Y', strtotime($data['endDate']));
+                } else {                                        
+                    if (date('Y', strtotime($data['startDate'])) == date('Y', strtotime($data['endDate']))) {
+                        $data['period'] = date('M j', strtotime($data['startDate']));
+                        $data['period'] .= ' - '.date('M j', strtotime($data['endDate']));
+                        $data['period'] .= ', '.date('Y', strtotime($data['startDate']));
+                    } else {
+                        $data['period'] = date('M j, Y', strtotime($data['startDate']));
+                        $data['period'] .= ' - '.date('M j, Y', strtotime($data['endDate']));
+                    }
+                } 
+                
+                if ($data['rec']->detailedDivisionAbbr) {
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->where('empID', $data['rec']->divisionHeadID);
+                    $head = $this->db->get('employees', 1)->row();
+                    
+                    $data['headName']  =  $head->lname.', '.$head->fname.' '.substr($head->mname, 0, 1).' '.$head->suffix;
+                    $data['headTitle'] =  $data['rec']->divisionHeadTitle;
+                } else {
+                    $this->db->select('employees.empNo');
+                    $this->db->select('employees.fname');
+                    $this->db->select('employees.lname');
+                    $this->db->select('employees.mname');
+                    $this->db->select('employees.suffix');
+                    $this->db->where('empID', $data['rec']->officeHeadID);
+                    $head = $this->db->get('employees', 1)->row();
+
+                    $data['headName']  =  $head->lname.', '.$head->fname.' '.substr($head->mname, 0, 1).' '.$head->suffix;
+                    $data['headTitle'] =  $data['rec']->officeHeadTitle;
+                }
+                
+                $data['headName']  =  "";
+                $data['headTitle'] =  "";
+                
+                $data['pdf_paging'] = false;
+                $data['title']      = "DAILY TIME RECORD";
+                $data['modulename'] = "DAILY TIME RECORD";              
+
+                // load pdf class
+                $this->load->library('mpdf');                                       
+
+                if ($printType==1) {
+                    // load pdf class
+                    if (count($data['records']) > 20) {
+                        $this->mpdf->mpdf('en-GB',array(150,285),10,'Garamond',3,3,3,10,0,0,'P');
+                    } else {
+                        $this->mpdf->mpdf('en-GB',array(150,190),10,'Garamond',3,3,3,10,0,0,'P');
+                    }
+                    $this->mpdf->setTitle($data['title']);
+                    $this->mpdf->SetDisplayMode('fullpage');
+                    $this->mpdf->shrink_tables_to_fit = 1;
+                    $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                    $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                    $this->mpdf->watermarkImageAlpha = 0.1;
+                    $this->mpdf->watermarkImgBehind = TRUE;
+                    $this->mpdf->showWatermarkImage = TRUE;
+                    
+                    $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                    $this->mpdf->SetHTMLFooter($footer);
+                    
+                    $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_con_2_period', $data, TRUE) : $this->load->view($this->module_path.'/print_form_con_1_period', $data, TRUE);
+                    $this->mpdf->WriteHTML($html);
+                    $this->mpdf->WriteHTML($html);
+                } elseif ($printType==2) {  
+                    // load pdf class
+                    if (count($data['records']) > 20) {
+                        $this->mpdf->mpdf('en-GB',array(100,285),10,'Garamond',3,3,3,10,0,0,'P');
+                    } else {
+                        $this->mpdf->mpdf('en-GB',array(100,190),10,'Garamond',3,3,3,10,0,0,'P');
+                    }
+                    $this->mpdf->setTitle($data['title']);
+                    $this->mpdf->SetDisplayMode('fullpage');
+                    $this->mpdf->shrink_tables_to_fit = 1;
+                    $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                    $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                    $this->mpdf->watermarkImageAlpha = 0.1;
+                    $this->mpdf->watermarkImgBehind = TRUE;
+                    $this->mpdf->showWatermarkImage = TRUE;
+
+                    $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                    $this->mpdf->SetHTMLFooter($footer);
+                    $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_reg_2_period', $data, TRUE) : $this->load->view($this->module_path.'/print_form_reg_1_period', $data, TRUE);
+                    $this->mpdf->WriteHTML($html);
+                    $this->mpdf->WriteHTML($html);
+                } elseif ($printType==3) {  
+                    // load pdf class
+                    if (count($data['records']) > 20) {
+                        $this->mpdf->mpdf('en-GB',array(100,285),10,'Garamond',3,3,3,10,0,0,'P');
+                    } else {
+                        $this->mpdf->mpdf('en-GB',array(100,190),10,'Garamond',3,3,3,10,0,0,'P');
+                    }
+                    $this->mpdf->setTitle($data['title']);
+                    $this->mpdf->SetDisplayMode('fullpage');
+                    $this->mpdf->shrink_tables_to_fit = 1;
+                    $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                    $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                    $this->mpdf->watermarkImageAlpha = 0.1;
+                    $this->mpdf->watermarkImgBehind = TRUE;
+                    $this->mpdf->showWatermarkImage = TRUE;
+
+                    $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                    $this->mpdf->SetHTMLFooter($footer);
+                    
+                    $html   = $this->load->view($this->module_path.'/print_form_ot', $data, TRUE);
+                    $this->mpdf->WriteHTML($html);
+                } elseif ($printType==4) {  
+                    // load pdf class
+                    if (count($data['records']) > 20) {
+                        $this->mpdf->mpdf('en-GB',array(100,285),10,'Garamond',3,3,3,10,0,0,'P');
+                    } else {
+                        $this->mpdf->mpdf('en-GB',array(100,190),10,'Garamond',3,3,3,10,0,0,'P');
+                    }
+                    $this->mpdf->setTitle($data['title']);
+                    $this->mpdf->SetDisplayMode('fullpage');
+                    $this->mpdf->shrink_tables_to_fit = 1;
+                    $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                    $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                    $this->mpdf->watermarkImageAlpha = 0.1;
+                    $this->mpdf->watermarkImgBehind = TRUE;
+                    $this->mpdf->showWatermarkImage = TRUE;
+
+                    $footer = $this->load->view('print_pdf_footer_nologo', $data, TRUE);
+                    $this->mpdf->SetHTMLFooter($footer);
+                    $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_cs2', $data, TRUE) : $this->load->view($this->module_path.'/print_form_cs1', $data, TRUE);
+                    $this->mpdf->WriteHTML($html);
+                    $this->mpdf->WriteHTML($html);
+                } elseif ($printType==5) {  
+                    // get duties
+                    $this->db->where('employmentID', $data['employmentID']);
+                    $this->db->order_by('rank', 'asc');
+                    $data['duty'] = $this->db->get('employment_duties', 1)->row()->duty;
+                    
+                    // load pdf class
+                    if (count($data['records']) > 20) {
+                        $this->mpdf->mpdf('en-GB','A4',10,'Garamond',10,10,10,10,0,0,'P');
+                    } else {
+                        $this->mpdf->mpdf('en-GB','A4',10,'Garamond',10,10,10,10,0,0,'P');
+                    }
+                    $this->mpdf->setTitle($data['title']);
+                    $this->mpdf->SetDisplayMode('fullpage');
+                    $this->mpdf->shrink_tables_to_fit = 1;
+                    $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                    $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                    $this->mpdf->watermarkImageAlpha = 0.1;
+                    $this->mpdf->watermarkImgBehind = TRUE;
+                    $this->mpdf->showWatermarkImage = TRUE;
+
+                    $footer = $this->load->view('print_pdf_footer_nologo', $data, TRUE);
+                    $this->mpdf->SetHTMLFooter($footer);
+                    $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_accomplishment2', $data, TRUE) : $this->load->view($this->module_path.'/print_form_accomplishment1', $data, TRUE);
+                    $this->mpdf->WriteHTML($html);
+                    $this->mpdf->WriteHTML($html);
+                }
+
+                $this->mpdf->Output("DAILY_TIME_RECORD.pdf","I");
+            } else {
+                // Error
+                $data['class']  = "danger";
+                $data['msg']    = "Sorry, you don't have records to print!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');               
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_batch($employmentNo=0,$startDate=0,$endDate=0,$printType=1)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['view']) {
+            if ($employmentNo && $startDate && $endDate) {
+                $data['employmentNo']   = explode('_', $employmentNo);
+                $data['startDate']      = date('Y-m-d', $startDate);
+                $data['endDate']        = date('Y-m-d', $endDate);
+
+                // set sessions             
+                $this->session->set_userdata('current_startDate', $data['startDate']);
+                $this->session->set_userdata('current_endDate', $data['endDate']);
+
+                $this->db->select('employees.empNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('employments.employmentID');
+                $this->db->select('employments.employmentNo');
+                $this->db->select('employments.lname');
+                $this->db->select('employments.mname');
+                $this->db->select('employments.title');
+                $this->db->select('detailedCompany.companyAbbr as detailedCompanyAbbr');
+                $this->db->select('detailedOffice.officeAbbr as detailedOfficeAbbr');
+                $this->db->select('detailedOffice.officeHeadID');
+                $this->db->select('detailedOffice.officeHeadTitle');
+                $this->db->select('detailedDivision.divisionAbbr as detailedDivisionAbbr');
+                $this->db->select('detailedDivision.divisionHeadID');
+                $this->db->select('detailedDivision.divisionHeadTitle');
+                $this->db->select('employee_types.employeeType');
+                $this->db->select('job_positions.positionCode');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('employments');
+                $this->db->join('employees','employments.empID=employees.empID', 'left');
+                $this->db->join('companies detailedCompany','employments.detailedCompanyID=detailedCompany.companyID', 'left');
+                $this->db->join('offices detailedOffice','employments.detailedOfficeID=detailedOffice.officeID', 'left');
+                $this->db->join('divisions detailedDivision','employments.detailedDivisionID=detailedDivision.divisionID', 'left');
+                $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID', 'left');
+                $this->db->join('job_positions','employments.jobPositionID=job_positions.jobPositionID', 'left');
+                $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where_in('employments.employmentNo', $data['employmentNo']);
+                $this->db->order_by('employments.lname', 'asc');
+                $this->db->order_by('employees.fname', 'asc');
+                $records = $this->db->get();                                    
+                
+                $data['pdf_paging'] = false;
+                $data['title']      = "DAILY TIME RECORD";
+                $data['modulename'] = "DAILY TIME RECORD";
+                
+                $dStart = new DateTime($data['startDate']);
+                $dEnd   = new DateTime($data['endDate']);
+                $dDiff  = $dStart->diff($dEnd);
+                $days   = $dDiff->days;
+                
+                $height = ($days > 16) ? 285 : 185;
+                
+                // load pdf class
+                $this->load->library('mpdf');
+
+                if ($printType==1) {
+                    $this->mpdf->mpdf('en-GB',array(150,$height),10,'Garamond',3,3,3,10,0,0,'P');
+                } elseif ($printType==2) {
+                    $this->mpdf->mpdf('en-GB',array(100,$height),10,'Garamond',3,3,3,10,0,0,'P');
+                } elseif ($printType==3) {
+                    $this->mpdf->mpdf('en-GB',array(100,$height),10,'Garamond',3,3,3,10,0,0,'P');
+                } elseif ($printType==4) {
+                    $this->mpdf->mpdf('en-GB',array(100,$height),10,'Garamond',3,3,3,10,0,0,'P');
+                }
+                $this->mpdf->setTitle($data['title']);
+                $this->mpdf->SetDisplayMode('fullpage');
+                $this->mpdf->shrink_tables_to_fit = 1;
+                $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                $this->mpdf->watermarkImageAlpha = 0.1;
+                $this->mpdf->watermarkImgBehind = TRUE;
+                $this->mpdf->showWatermarkImage = TRUE;
+                
+                // content
+                //              $header = $this->load->view('print_pdf_header', $data, TRUE);
+                //              $this->mpdf->SetHTMLHeader($header);                                
+
+                if ($records->num_rows()) { 
+                    foreach ($records->result() as $row) {
+                        $data['empNo']   = $row->empNo;
+                        $data['name']    = $row->lname.', '.$row->fname.' '.substr($row->mname, 0, 1).' '.$row->suffix;
+                        $data['jobTitle']= $row->jobTitle;
+                        $data['start']   = strtotime($data['startDate']);
+                        $data['end']     = strtotime($data['endDate']);
+                        $data['records'] = array();
+                        $data['overtime']= array();
+                        
+                        for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                            $dtr = $this->dtrlog->analyze($row->employmentID, $current);
+
+                            if (!empty ($dtr)) {
+                                foreach ($dtr as $info) {
+                                    $data['records'][] = $info;
+                                }
+                            } else {
+                                $info = array();
+                                $info['base']   = date('Y-m-d', $current);
+                                $data['records'][] = $info;
+                            }
+                            
+                            // overtime
+                            $this->db->where('date', date('Y-m-d', $current));
+                            $this->db->where('attendanceType', 2);
+                            $overtime = $this->db->get('attendance', 1)->row();
+
+                            if (!empty($overtime)) {
+                                $data['overtime'][$current] = $overtime;
+                            }
+                        }
+                        
+                        $twoPeriod = false;
+                        if (!empty($data['records'])) {
+                            foreach ($data['records'] as $record) {
+                                if ($record['shiftType']==1) {
+                                    $twoPeriod = true;
+                                }
+                            }
+                        }
+                        
+                        if (date('M', strtotime($data['startDate'])) == date('M', strtotime($data['endDate']))) {
+                            $data['period'] = date('M', strtotime($data['startDate']));
+                            $data['period'] .= ' '.date('j', strtotime($data['startDate']));
+                            $data['period'] .= ' - '.date('j, Y', strtotime($data['endDate']));
+                        } else {
+                            if (date('Y', strtotime($data['startDate'])) == date('Y', strtotime($data['endDate']))) {
+                                $data['period'] = date('M j', strtotime($data['startDate']));
+                                $data['period'] .= ' - '.date('M j', strtotime($data['endDate']));
+                                $data['period'] .= ', '.date('Y', strtotime($data['startDate']));
+                            } else {
+                                $data['period'] = date('M j, Y', strtotime($data['startDate']));
+                                $data['period'] .= ' - '.date('M j, Y', strtotime($data['endDate']));
+                            }
+                        }                   
+
+                        if ($data['rec']->detailedDivisionAbbr) {
+                            $this->db->select('employees.empNo');
+                            $this->db->select('employees.fname');
+                            $this->db->select('employees.lname');
+                            $this->db->select('employees.mname');
+                            $this->db->select('employees.suffix');
+                            $this->db->where('empID', $data['rec']->divisionHeadID);
+                            $head = $this->db->get('employees', 1)->row();
+                            
+                            $data['headName']  =  $head->lname.', '.$head->fname.' '.substr($head->mname, 0, 1).' '.$head->suffix;
+                            $data['headTitle'] =  $data['rec']->divisionHeadTitle;
+                        } else {
+                            $this->db->select('employees.empNo');
+                            $this->db->select('employees.fname');
+                            $this->db->select('employees.lname');
+                            $this->db->select('employees.mname');
+                            $this->db->select('employees.suffix');
+                            $this->db->where('empID', $data['rec']->officeHeadID);
+                            $head = $this->db->get('employees', 1)->row();
+
+                            $data['headName']  =  $head->lname.', '.$head->fname.' '.substr($head->mname, 0, 1).' '.$head->suffix;
+                            $data['headTitle'] =  $data['rec']->officeHeadTitle;
+                        }
+
+                        if ($printType==1) {
+                            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                            $this->mpdf->SetHTMLFooter($footer);
+                            
+                            $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_con_2_period', $data, TRUE) : $this->load->view($this->module_path.'/print_form_con_1_period', $data, TRUE);
+                            $this->mpdf->WriteHTML($html);                        
+                        } elseif ($printType==2) {
+                            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                            $this->mpdf->SetHTMLFooter($footer);
+                            
+                            $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_reg_2_period', $data, TRUE) : $this->load->view($this->module_path.'/print_form_reg_1_period', $data, TRUE);
+                            $this->mpdf->WriteHTML($html);  
+                        } elseif ($printType==3) {
+                            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+                            $this->mpdf->SetHTMLFooter($footer);
+                            
+                            $html   = $this->load->view($this->module_path.'/print_form_ot', $data, TRUE);
+                            $this->mpdf->WriteHTML($html);
+                        } elseif ($printType==4) {
+                            $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_form_cs2', $data, TRUE) : $this->load->view($this->module_path.'/print_form_reg_1_period', $data, TRUE);
+                            $this->mpdf->WriteHTML($html);  
+                        }
+                    }
+                }   
+
+                $this->mpdf->Output("DAILY_TIME_RECORD.pdf","I");
+            } else {
+                // Error
+                $data['class']  = "danger";
+                $data['msg']    = "Sorry, you don't have records to print!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer'); 
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function edit($empID = 0, $employmentID=0, $date=0)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $empID = $this->encrypter->decode($empID);
+        $employmentID = $this->encrypter->decode($employmentID);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'skill'=>'Special Skill');            
+
+            $data['empID'] = $empID;
+            $data['employmentID'] = $employmentID;
+            $data['date'] = date('Y-m-d', $date);
+            
+            // get daily time records
+            $this->db->select('attendance.*');
+            $this->db->select('shifts.shiftType');
+            $this->db->select('shifts.workHours');
+            $this->db->from('attendance');
+            $this->db->join('shifts','attendance.shiftID=shifts.shiftID','left');
+            $this->db->where('attendance.employmentID', $data['employmentID']);
+            $this->db->where('attendance.attendanceType', 1);
+            $this->db->where('attendance.date', $data['date']);                 
+            $this->db->order_by('attendance.date', 'asc');
+            $this->db->order_by('attendance.login1', 'asc');
+            $this->db->limit(1);
+            $data['rec'] = $this->db->get()->row();
+            
+            // get payroll details
+            $this->db->where('employmentID', $data['employmentID']);
+            $this->db->where('date', $data['date']);
+            $data['shift_schedule'] = $this->db->get('shift_schedules', 1)->row();
+            
+            // get payroll details
+            $this->db->where('date', $data['date']);    
+            $data['payroll_detail'] = $this->db->get('payroll_details', 1)->row();
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function edit_overtime($empID = 0, $employmentID=0, $date=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;  
+        $empID = $this->encrypter->decode($empID);
+        $employmentID = $this->encrypter->decode($employmentID);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'skill'=>'Special Skill');
+    
+            $data['empID'] = $empID;
+            $data['employmentID'] = $employmentID;
+            $data['date'] = date('Y-m-d', $date);
+                
+            // get overtime records
+            $this->db->select('attendance.*');
+            $this->db->from('attendance');
+            $this->db->where('attendance.employmentID', $data['employmentID']);
+            $this->db->where('attendance.attendanceType', 2);
+            $this->db->where('attendance.date', $data['date']);
+            $this->db->order_by('attendance.date', 'asc');
+            $this->db->order_by('attendance.login1', 'asc');
+            $this->db->limit(1);
+            $data['rec'] = $this->db->get()->row();
+                
+            // get shift schedule
+            $this->db->where('employmentID', $data['employmentID']);
+            $this->db->where('date', $data['date']);
+            $data['shift_schedule'] = $this->db->get('shift_schedules', 1)->row();
+                
+            // get payroll details
+            $this->db->where('date', $data['date']);
+            $data['payroll_detail'] = $this->db->get('payroll_details', 1)->row();
+            
+            // get overtime schedule
+            $this->db->where('employmentID', $data['employmentID']);
+            $this->db->where('date', $data['date']);
+            $data['overtime_schedule'] = $this->db->get('overtime_schedules', 1)->row();
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit_overtime');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        if ($this->roles['edit']) {
+            $empID = trim($this->input->post('empID'));
+            $employmentID = trim($this->input->post('employmentID'));
+            $date = trim($this->input->post('date'));
+            $note = trim($this->input->post('note'));
+            
+            $this->db->where('employmentID', $employmentID);
+            $employment = $this->db->get('employments', 1)->row();                      
+            
+            $this->db->where('employmentID', $employmentID);
+            $this->db->where('date', $date);
+            $shift_schedule = $this->db->get('shift_schedules', 1)->row();
+            
+            
+            if (trim($this->input->post('isNoWork'))==1) {
+                $shiftID = 0;                                                                                       
+            } elseif (trim($this->input->post('isDayOff'))==1) {
+                $shiftID = -1;              
+            }
+            
+            $attendanceID = trim($this->input->post('attendanceID'));
+            
+            if ($attendanceID != "") {
+                if (trim($this->input->post('isAbsent'))==1 || trim($this->input->post('isNoWork'))==1) {
+                    $this->db->where('attendanceID', $attendanceID);
+                    $this->db->delete('attendance');
+                    
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $attendanceID, 'Delete', $logs);
+                } elseif (trim($this->input->post('isDayOff'))==1) {
+                    $this->db->set('shiftID', -1);                      
+                    $this->db->set('login1', '0000-00-00 00:00:00'); 
+                    $this->db->set('logout1', '0000-00-00 00:00:00'); 
+                    $this->db->set('login2', '0000-00-00 00:00:00');       
+                    $this->db->set('logout2', '0000-00-00 00:00:00');     
+                    $this->db->set('hours', 0);         
+                    $this->db->set('tardy', 0);         
+                    $this->db->set('undertime', 0);         
+                    $this->db->set('remarks', 'DAY OFF');   
+                    $this->db->set('note', $note);
+                    $this->db->set('isEdited', 1);
+                    $this->db->where('attendanceID', $attendanceID);
+                    $this->db->update('attendance');
+                    
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $attendanceID, 'Update Day Off', $logs);
+                } else {
+                    $this->db->where('shiftID', trim($this->input->post('shiftID')));
+                    $shift = $this->db->get('shifts', 1)->row();
+                    
+                    $login1  = (trim($this->input->post('login1NL'))!=1) ? strtotime(trim($this->input->post('login1Date')).' '.trim($this->input->post('login1H')).':'.trim($this->input->post('login1M')).':00 '.trim($this->input->post('login1AP'))) : "";
+                    $logout1 = (trim($this->input->post('logout1NL'))!=1) ? strtotime(trim($this->input->post('logout1Date')).' '.trim($this->input->post('logout1H')).':'.trim($this->input->post('logout1M')).':00 '.trim($this->input->post('logout1AP'))) : "";
+                    $login2  = (trim($this->input->post('login2NL'))!=1 && $shift->shiftType=='1') ? strtotime(trim($this->input->post('login2Date')).' '.trim($this->input->post('login2H')).':'.trim($this->input->post('login2M')).':00 '.trim($this->input->post('login2AP'))) : "";
+                    $logout2 = (trim($this->input->post('logout2NL'))!=1 && $shift->shiftType=='1') ? strtotime(trim($this->input->post('logout2Date')).' '.trim($this->input->post('logout2H')).':'.trim($this->input->post('logout2M')).':00 '.trim($this->input->post('logout2AP'))) : "";
+                    $hours   = 0;
+                    $tardy   = 0;
+                    $undertime  = 0;    
+                    
+                    $result = $this->dtrlog->calculate($shift, $date, $login1, $logout1, $login2, $logout2);
+
+                    if ($login1 != "" || $logout1 != "" || $login2 != "" || $logout2 != "") {                       
+                        if ($result['noLog'][1]) {
+                            $remarks = ($result['noLog'][2]) ? 'UT' : 'Tardy';
+                        } elseif ($result['noLog'][2]) {
+                            $remarks = ($result['tardy'] > 0 && $result['tardy'] < $work_min) ? 'Tardy' : '';
+                            $remarks .= ($remarks!="") ? '/UT' : 'UT';
+                        } else {
+                            $remarks = ($result['tardy'] > 0) ? 'Tardy' : '';
+                            if ($result['undertime'] > 0) {
+                                $remarks .= ($remarks!="") ? '/UT' : 'UT';
+                            }
+                        }
+                            
+                        $this->db->set('empID', $empID);
+                        $this->db->set('employmentID', $employmentID);
+                        $this->db->set('shiftID', $shift->shiftID);
+                        $this->db->set('date', $date);
+                        $this->db->set('attendanceType', 1);
+                        $this->db->set('login1', ($login1) ? date('Y-m-d H:i:s', $login1) : '0000-00-00 00:00:00');
+                        $this->db->set('logout1', ($logout1) ? date('Y-m-d H:i:s', $logout1) : '0000-00-00 00:00:00');
+                        $this->db->set('login2', ($login2) ? date('Y-m-d H:i:s', $login2) : '0000-00-00 00:00:00');
+                        $this->db->set('logout2', ($logout2) ? date('Y-m-d H:i:s', $logout2) : '0000-00-00 00:00:00');
+                        $this->db->set('hours', $result['hours']);
+                        $this->db->set('tardy',  $result['tardy']);
+                        $this->db->set('undertime', $result['undertime']);
+                        $this->db->set('remarks', $remarks);
+                        $this->db->set('note', $note);
+                        $this->db->set('isEdited', 1);
+                        $this->db->where('attendanceID', $attendanceID);
+                        $this->db->update('attendance');
+
+                        $logs = "Record - ".$date."-".$employment->employmentNo;
+                        $this->log_model->table_logs($this->module, $this->table, $this->pfield, $attendanceID, 'Update', $logs);
+                    }   
+                                                                            
+                    $shiftID = $shift->shiftID;                 
+                }
+            } else { 
+                if (trim($this->input->post('isDayOff'))==1) { 
+                    $this->db->set('empID', $empID);
+                    $this->db->set('employmentID', $employmentID);
+                    $this->db->set('shiftID', -1);
+                    $this->db->set('date', $date);
+                    $this->db->set('attendanceType', 1);
+                    $this->db->set('login1', '0000-00-00 00:00:00'); 
+                    $this->db->set('logout1', '0000-00-00 00:00:00'); 
+                    $this->db->set('login2', '0000-00-00 00:00:00');       
+                    $this->db->set('logout2', '0000-00-00 00:00:00');
+                    $this->db->set('hours', 0);
+                    $this->db->set('tardy', 0);
+                    $this->db->set('undertime', 0);                 
+                    $this->db->set('remarks', 'DAY OFF');
+                    $this->db->set('note', $note);
+                    $this->db->set('isEdited', 1);
+                    $this->db->insert('attendance');
+                    
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->db->insert_id(), 'Insert Day Off', $logs);
+                } else { 
+                    $this->db->where('shiftID', trim($this->input->post('shiftID')));
+                    $shift = $this->db->get('shifts', 1)->row();
+                    
+                    $login1  = (trim($this->input->post('login1NL'))!=1) ? strtotime(trim($this->input->post('login1Date')).' '.trim($this->input->post('login1H')).':'.trim($this->input->post('login1M')).':00 '.trim($this->input->post('login1AP'))) : "";
+                    $logout1 = (trim($this->input->post('logout1NL'))!=1) ? strtotime(trim($this->input->post('logout1Date')).' '.trim($this->input->post('logout1H')).':'.trim($this->input->post('logout1M')).':00 '.trim($this->input->post('logout1AP'))) : "";
+                    $login2  = (trim($this->input->post('login2NL'))!=1 && $shift->shiftType=='1') ? strtotime(trim($this->input->post('login2Date')).' '.trim($this->input->post('login2H')).':'.trim($this->input->post('login2M')).':00 '.trim($this->input->post('login2AP'))) : "";
+                    $logout2 = (trim($this->input->post('logout2NL'))!=1 && $shift->shiftType=='1') ? strtotime(trim($this->input->post('logout2Date')).' '.trim($this->input->post('logout2H')).':'.trim($this->input->post('logout2M')).':00 '.trim($this->input->post('logout2AP'))) : "";
+                    $hours   = 0;
+                    $tardy   = 0;
+                    $undertime  = 0;    
+                    
+                    $result = $this->dtrlog->calculate($shift, $date, $login1, $logout1, $login2, $logout2);
+                                                                            
+                    if ($login1 != "" || $logout1 != "" || $login2 != "" || $logout2 != "") {
+                        if ($result['noLog'][1]) {
+                            $remarks = ($result['noLog'][2]) ? 'UT' : 'Tardy';
+                        } elseif ($result['noLog'][2]) {
+                            $remarks = ($result['tardy'] > 0 && $result['tardy'] < $work_min) ? 'Tardy' : '';
+                            $remarks .= ($remarks!="") ? '/UT' : 'UT';
+                        } else {
+                            $remarks = ($result['tardy'] > 0) ? 'Tardy' : '';
+                            if ($result['undertime'] > 0) {
+                                $remarks .= ($remarks!="") ? '/UT' : 'UT';
+                            }
+                        }
+                            
+                        $this->db->set('empID', $empID);
+                        $this->db->set('employmentID', $employmentID);
+                        $this->db->set('shiftID', $shift->shiftID);
+                        $this->db->set('date', $date);
+                        $this->db->set('attendanceType', 1);
+                        $this->db->set('login1', ($login1) ? date('Y-m-d H:i:s', $login1) : '0000-00-00 00:00:00');
+                        $this->db->set('logout1', ($logout1) ? date('Y-m-d H:i:s', $logout1) : '0000-00-00 00:00:00');
+                        $this->db->set('login2', ($login2) ? date('Y-m-d H:i:s', $login2) : '0000-00-00 00:00:00');
+                        $this->db->set('logout2', ($logout2) ? date('Y-m-d H:i:s', $logout2) : '0000-00-00 00:00:00');
+                        $this->db->set('hours', $result['hours']);
+                        $this->db->set('tardy',  $result['tardy']);
+                        $this->db->set('undertime', $result['undertime']);
+                        $this->db->set('remarks', $remarks);
+                        $this->db->set('note', $note);
+                        $this->db->set('isEdited', 1);
+                        $this->db->insert('attendance');
+                        
+                        $logs = "Record - ".$date."-".$employment->employmentNo;
+                        $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->db->insert_id(), 'Insert', $logs);
+                        
+                        $shiftID = $shift->shiftID;
+                    }
+                }
+            }                                                   
+            
+            if (trim($this->input->post('isAbsent'))!=1) {
+                if (!empty($shift_schedule)) {
+                    $this->db->set('shiftID', $shiftID);
+                    $this->db->where('shiftScheduleID', $shift_schedule->shiftScheduleID);
+                    $this->db->update('shift_schedules');
+                        
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs('Shift Schedule', 'shift_schedules', 'shiftScheduleID', $shift_schedule->shiftScheduleID, 'Update', $logs);
+                } else {
+                    $this->db->set('shiftID', $shiftID);
+                    $this->db->set('employmentID', $employmentID);
+                    $this->db->set('date', $date);
+                    $this->db->insert('shift_schedules');
+                        
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs('Shift Schedule', 'shift_schedules', 'shiftScheduleID', $this->db->insert_id(), 'Update', $logs);
+                }
+            }
+
+            // Successfully updated
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully updated.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function update_shift()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check roles
+        if ($this->roles['edit']) {
+            $shiftID      = trim($this->input->post('shiftID'));
+            $empID        = $this->encrypter->decode($this->input->post('empID'));
+            $employmentID = $this->encrypter->decode($this->input->post('employmentID'));                       
+            $current      = $this->input->post('date');
+            
+            if ($shiftID && $employmentID && $current) {
+                // delete current shift schedules
+                $this->db->where('employmentID', $employmentID);
+                $this->db->where('date', date('Y-m-d', $current));
+                $this->db->delete('shift_schedules');
+                
+                $info = array();
+                $info['empID']          = $empID;
+                $info['employmentID']   = $employmentID;
+                $info['date']           = date('Y-m-d', $current);
+                $info['shiftID']        = $shiftID;
+                $info['dateUpdated']    = date('Y-m-d H:i:s');
+                $info['updatedBy']      = $this->session->userdata('current_userID');
+                $this->db->insert('shift_schedules', $info);
+                
+                $this->db->where('employmentID', $employmentID);
+                $this->db->where('date', date('Y-m-d', $current));
+                $this->db->where('attendanceType', 1);
+                $this->db->delete('attendance');
+                
+                $log = $this->dtrlog->organize_log($empID, $employmentID, $current);
+                
+                if (!empty($log)) {
+                    $this->db->insert('attendance', $log[0]);
+                    $id = $this->db->insert_id();
+                    
+                    $this->db->set('isEdited', 1);
+                    $this->db->where('attendanceID', $id);
+                    $this->db->update('attendance');
+                }                               
+                
+                if ($info['shiftID']=='0') {
+                    $shift = 'NO WORK';
+                } elseif ($info['shiftID']=='-1') {
+                    $shift = 'DAY OFF';
+                } else {
+                    $this->db->where('shiftID', $info['shiftID']);
+                    $shift = $this->db->get('shifts', 1)->row()->shiftName;
+                }
+                
+                // record logs
+                $logs = "Record - ".trim($this->input->post('empNo')).' - '.$info['date'].' - '.$shift;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, 0, 'Update', $logs);
+                
+                echo "1";
+            } else {
+                echo "0";   
+            }
+        } else {
+            echo "0";
+        }
+    }
+
+    public function update_overtime()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check roles
+        if ($this->roles['edit']) {
+            $empID = trim($this->input->post('empID'));
+            $employmentID = trim($this->input->post('employmentID'));
+            $date = trim($this->input->post('date'));
+                        
+            $attendanceID = trim($this->input->post('attendanceID'));
+            
+            $this->db->where('employmentID', $employmentID);
+            $employment = $this->db->get('employments', 1)->row();
+            
+            // get overtime schedule
+            $this->db->where('employmentID', $employmentID);
+            $this->db->where('date', date('Y-m-d', strtotime($date)));
+            $overtime_schedule = $this->db->get('overtime_schedules', 1)->row();
+                
+            if ($attendanceID != "") {                              
+                $login1  = (trim($this->input->post('login1NL'))!=1) ? strtotime(trim($this->input->post('login1Date')).' '.trim($this->input->post('login1H')).':'.trim($this->input->post('login1M')).':00 '.trim($this->input->post('login1AP'))) : "";
+                $logout1 = (trim($this->input->post('logout1NL'))!=1) ? strtotime(trim($this->input->post('logout1Date')).' '.trim($this->input->post('logout1H')).':'.trim($this->input->post('logout1M')).':00 '.trim($this->input->post('logout1AP'))) : "";             
+                $hours   = 0;
+                
+                if ($login1 != "" || $logout1 != "") {
+                    // calculate hours
+                    if ($login1 != "" && $logout1 != "") {
+                        $start = ($login1 < strtotime($overtime_schedule->startTime)) ? $overtime_schedule->startTime : date('Y-m-d H:i:s', $login1);
+                        $end   = ($logout1 > strtotime($overtime_schedule->endTime)) ? $overtime_schedule->endTime : date('Y-m-d H:i:s', $logout1);
+                        
+                        $total      = strtotime($end) - strtotime($start);
+                        $hours      = floor($total / 60 / 60);
+                        $minutes    = floor((($total - ($hours * 60 * 60)) / 60) / 60);
+                        
+                        $hours      = $hours.'.'.$minutes;
+                    }                   
+                    $this->db->set('login1', ($login1) ? date('Y-m-d H:i:s', $login1) : '0000-00-00 00:00:00');
+                    $this->db->set('logout1', ($logout1) ? date('Y-m-d H:i:s', $logout1) : '0000-00-00 00:00:00');
+                    $this->db->set('hours', $hours);
+                    $this->db->where('attendanceID', $attendanceID);
+                    $this->db->update('attendance');
+
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $attendanceID, 'Update Overtime', $logs);
+                } else {
+                    $this->db->where('attendanceID', $attendanceID);
+                    $this->db->delete('attendance');
+                        
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $attendanceID, 'Delete Overtime', $logs);
+                }                   
+            } else {                                                
+                $login1  = (trim($this->input->post('login1NL'))!=1) ? strtotime(trim($this->input->post('login1Date')).' '.trim($this->input->post('login1H')).':'.trim($this->input->post('login1M')).':00 '.trim($this->input->post('login1AP'))) : "";
+                $logout1 = (trim($this->input->post('logout1NL'))!=1) ? strtotime(trim($this->input->post('logout1Date')).' '.trim($this->input->post('logout1H')).':'.trim($this->input->post('logout1M')).':00 '.trim($this->input->post('logout1AP'))) : "";             
+                $hours   = 0;                           
+                    
+                if ($login1 != "" || $logout1 != "") {
+                    // calculate hours
+                    if ($login1 != "" && $logout1 != "") {
+                        $start = ($login1 < strtotime($overtime_schedule->startTime)) ? $overtime_schedule->startTime : date('Y-m-d H:i:s', $login1);
+                        $end   = ($logout1 > strtotime($overtime_schedule->endTime)) ? $overtime_schedule->endTime : date('Y-m-d H:i:s', $logout1);
+                        
+                        $total      = strtotime($end) - strtotime($start);
+                        $hours      = floor($total / 60 / 60);
+                        $minutes    = floor((($total - ($hours * 60 * 60)) / 60) / 60);
+                        
+                        $hours      = $hours.'.'.$minutes;
+                    }
+                        
+                    $this->db->set('empID', $empID);
+                    $this->db->set('employmentID', $employmentID);
+                    $this->db->set('shiftID', 0);
+                    $this->db->set('date', $date);
+                    $this->db->set('attendanceType', 2);
+                    $this->db->set('login1', ($login1) ? date('Y-m-d H:i:s', $login1) : '0000-00-00 00:00:00');
+                    $this->db->set('logout1', ($logout1) ? date('Y-m-d H:i:s', $logout1) : '0000-00-00 00:00:00');
+                    $this->db->set('login2', '0000-00-00 00:00:00');
+                    $this->db->set('logout2', '0000-00-00 00:00:00');
+                    $this->db->set('hours', $hours);
+                    $this->db->set('tardy', 0);
+                    $this->db->set('undertime', 0);
+                    $this->db->set('remarks', 'Overtime');
+                    $this->db->insert('attendance');
+
+                    $logs = "Record - ".$date."-".$employment->employmentNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->db->insert_id(), 'Insert Overtime', $logs);
+                }   
+            }
+                
+            // Successfully updated
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully updated.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+
+    // AJAX HANDLER FUNCTIONS           
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+
+    public function fill_logs()
+    {
+        $date     = $this->input->post('date');
+        $shiftID  = $this->input->post('shiftID');
+        $data     = array();
+    
+        $this->db->where('shiftID', $shiftID);
+        $shift = $this->db->get('shifts', 1)->row();
+    
+        $data['login1Date']  = date('m/d/Y', strtotime($date)); 
+        if(strtotime($shift->out1) < strtotime($shift->in1)) {
+            $data['logout1Date']  = date('m/d/Y', strtotime('+1 day', strtotime($date)));
+        } else {
+            $data['logout1Date']  = date('m/d/Y', strtotime($date));
+        }
+        
+        $data['login1H']  = date('h', strtotime($data['login1Date'].' '.$shift->in1));
+        $data['login1M']  = date('i', strtotime($data['login1Date'].' '.$shift->in1));
+        $data['login1AP'] = date('A', strtotime($data['login1Date'].' '.$shift->in1));      
+        $data['logout1H']  = date('h', strtotime($data['logout1Date'].' '.$shift->out1));
+        $data['logout1M']  = date('i', strtotime($data['logout1Date'].' '.$shift->out1));
+        $data['logout1AP'] = date('A', strtotime($data['logout1Date'].' '.$shift->out1));
+        
+        $data['login2Date']  = date('m/d/Y', strtotime($data['logout1Date']));
+        if(strtotime($shift->out2) < strtotime($shift->in2)) {
+            $data['logout2Date']  = date('m/d/Y', strtotime('+1 day', strtotime($data['logout1Date'])));
+        } else {
+            $data['logout2Date']  = date('m/d/Y', strtotime($data['logout1Date']));
+        }
+        
+        $data['login2H']  = date('h', strtotime($data['login2Date'].' '.$shift->in2));
+        $data['login2M']  = date('i', strtotime($data['login2Date'].' '.$shift->in2));
+        $data['login2AP'] = date('A', strtotime($data['login2Date'].' '.$shift->in2));
+        $data['logout2H']  = date('h', strtotime($data['logout2Date'].' '.$shift->out2));
+        $data['logout2M']  = date('i', strtotime($data['logout2Date'].' '.$shift->out2));
+        $data['logout2AP'] = date('A', strtotime($data['logout2Date'].' '.$shift->out2));           
+            
+        $res    json_encode($data);
+        echo $res;
+    }
+
+    public function view_list_row()
+    {
+        $date  = $this->input->post('date');
+        $base  = date('Y-m-d', $date);
+        $data['empIDEncrypt']  = $this->input->post('empID');
+        $data['employmentIDEncrypt']  = $this->input->post('employmentID');
+        $data['controller_page'] = site_url('attendance'); 
+        
+        $data['record'] = $this->dtrlog->analyze($this->encrypter->decode($data['employmentIDEncrypt']), $date);
+        $data['record'] = $data['record'][0];
+        
+        // overtime
+        $this->db->where('date', date('Y-m-d', $date));
+        $this->db->where('attendanceType', 2);
+        $overtime = $this->db->get('attendance', 1)->row();
+            
+        if (!empty($overtime)) {
+            $data['overtime'][$date] = $overtime;
+        }       
+        
+        echo $this->load->view($this->module_path."/view_list_row", $data, true);
+    }
+
+    public function summary_employee($employmentID, $year)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode(trim($this->input->post('id')));
+        $employmentID = $this->encrypter->decode($employmentID);
+
+        if ($this->roles['view']) {
+            $data['employmentID'] = $employmentID;
+            $data['year']  = $year;
+            
+            $data['xAxis']      = array('01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'May','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec');
+            $data['records']    = array();
+            $data['tardy']      = array();
+            $data['undertime']  = array();
+            $data['absent']     = array();
+            if(!empty($data['xAxis'])) {
+                foreach($data['xAxis'] as $month=>$label) {         
+                    $start      = strtotime($data['year'].'-'.$month.'-01');
+                    $end        = strtotime($data['year'].'-'.$month.'-'.date('t', strtotime($data['year'].'-'.$month)));
+                        
+                    $res = array();
+                    $res['label']       = $label;
+                    $res['tardy_count'] = 0;
+                    $res['tardy_min']   = 0;
+                    $res['tardy_date']  = "";
+                    $res['ut_count']    = 0;
+                    $res['ut_min']      = 0;
+                    $res['ut_date']     = "";
+                    $res['absent_count']= 0;
+                    $res['absent_date'] = "";               
+                    
+                    for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                        $dtr = $this->dtrlog->analyze($employmentID, $current);
+                            
+                        if (!empty ($dtr)) {
+                            foreach ($dtr as $info) {
+                                // tardiness
+                                if (strlen($info['tardy_date']) > 5) {
+                                    $res['tardy_count']  += 2;
+                                } elseif (intval($info['tardy']) > 0) {
+                                    $res['tardy_count']  += 1;
+                                }
+                                $res['tardy_min']    += intval($info['tardy']);
+                                $res['tardy_date']   .= ($info['tardy_date']) ? ' '.$info['tardy_date'] : '';
+                                    
+                                // undertime
+                                if (strlen($info['ut_date']) > 5) {
+                                    $res['ut_count']  += 2;
+                                } elseif (intval($info['ut_date']) > 0) {
+                                    $res['ut_count']  += 1;
+                                }
+                                $res['ut_min']       += intval($info['undertime']);
+                                $res['ut_date']      .= ($info['ut_date']) ? ' '.$info['ut_date'] : '';
+                                    
+                                // absences
+                                $res['absent_count'] += ($info['remarks'] == 'ABSENT') ? 1 : 0;
+                                $res['absent_date']  .= ($info['remarks'] == 'ABSENT') ? date(' j', strtotime($info['base'])) : '';
+                                    
+                                // leaves, orders, suspension
+                                $res[$info['los']]   += ($info['los']) ? $info['los_day'] : 0;
+                                    
+                            }
+                        }
+                    }
+                    $data['records'][] = $res;
+                    
+                    $info = array();
+                    $info['label'] =  $label;
+                    $info['value'] =  ($res['tardy_count']) ? $res['tardy_count'] : 0;
+                    $data['tardy'][] = $info;
+                    
+                    $info = array();
+                    $info['label'] =  $label;
+                    $info['value'] =  ($res['ut_count']) ? $res['ut_count'] : 0;
+                    $data['undertime'][] = $info;
+                    
+                    $info = array();
+                    $info['label'] =  $label;
+                    $info['value'] =  ($res['absent_count']) ? $res['absent_count'] : 0;
+                    $data['absent'][] = $info;
+                }
+            }
+            
+            $this->db->order_by('rank', 'asc');
+            $this->db->order_by('code', 'asc');
+            $data['leave_types'] =  $this->db->get('leave_types');
+    
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/summary_employee');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function view_batch()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+                // check roles
+        if ($this->userrole_model->has_access($this->session->userdata('current_userID'),'View Print Daily Time Records')) {
+            $data['required_fields'] = array('detailedCompanyID'=>'Company', 'detailedOfficeID'=>'OfficeID', 'attendanceID'=>'Attendance period');
+                
+            if ($this->input->post('cmdSubmit')) {
+                $data['detailedCompanyID']  = $this->encrypter->decode($this->input->post('detailedCompanyID'));
+                $data['detailedOfficeID']   = $this->encrypter->decode($this->input->post('detailedOfficeID'));
+                $data['detailedDivisionID'] = $this->encrypter->decode($this->input->post('detailedDivisionID'));
+                $data['payrollGroupID']     = $this->encrypter->decode($this->input->post('payrollGroupID'));
+                $data['attendanceID']       = $this->encrypter->decode($this->input->post('attendanceID'));
+                $data['employeeTypeID']     = $this->input->post('employeeTypeID');
+    
+                // set sessions
+                $this->session->set_userdata('current_detailedCompanyID', $data['detailedCompanyID']);
+                $this->session->set_userdata('current_detailedOfficeID', $data['detailedOfficeID']);
+                $this->session->set_userdata('current_detailedDivisionID', $data['detailedDivisionID']);
+                $this->session->set_userdata('current_payrollGroupID', $data['payrollGroupID']);
+                $this->session->set_userdata('current_attendanceID', $data['attendanceID']);
+                $this->session->set_userdata('current_employeeTypeID', $data['employeeTypeID']);
+                
+                $this->db->select('employments.*');
+                $this->db->select('employees.empNo');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.suffix');
+                $this->db->select('job_titles.jobTitle');
+                $this->db->from('employments');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->join('job_titles','employments.jobTitleID=job_titles.jobTitleID', 'left');
+                $this->db->where('employments.detailedCompanyID', $data['detailedCompanyID']);
+                $this->db->where('employments.detailedOfficeID', $data['detailedOfficeID']);
+                if ($data['detailedDivisionID']) {
+                    $this->db->where('employments.detailedDivisionID', $data['detailedDivisionID']);
+                }
+                if ($data['payrollGroupID']) {
+                    $this->db->where('employments.payrollGroupID', $data['payrollGroupID']);
+                }
+                if (!empty($data['employeeTypeID'])) {
+                    $this->db->where_in('employments.employeeTypeID', $data['employeeTypeID']);
+                }
+                $this->db->where('employments.isBiometric', 1);
+                $this->db->where('employments.status', 1);
+                $this->db->order_by('employments.lname', 'asc');
+                $this->db->order_by('employees.fname', 'asc');
+                
+                if ($data['limit']) {
+                    if ($data['offset']) {
+                        $this->db->limit($data['limit'],$data['offset']);
+                    } else {
+                        $this->db->limit($data['limit']);
+                    }
+                }
+                
+                $data['records'] = $this->db->get();
+                
+                // analyze attendance
+                $this->db->where('payrollPeriodID', $data['attendanceID']);
+                $payroll = $this->db->get('payroll_periods', 1)->row();
+                
+                $start      = strtotime($payroll->startDate);
+                $end        = strtotime($payroll->endDate);
+                $data['log']= array();
+                    
+                if ($data['records']->num_rows()) {
+                    foreach ($data['records']->result() as $row) {
+                        $res['tardy_count'] = 0;
+                        $res['tardy_min']   = 0;
+                        $res['ut_count']    = 0;
+                        $res['ut_min']      = 0;
+                        $res['absent_count']= 0;
+                        for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                            $dtr = $this->dtrlog->analyze($row->employmentID, $current);
+                                
+                            if (!empty ($dtr)) {
+                                foreach ($dtr as $info) {
+                                    // tardiness
+                                    if (strlen($info['tardy_date']) > 4) {
+                                        $res['tardy_count']  += 2;
+                                    } elseif (intval($info['tardy']) > 0) {
+                                        $res['tardy_count']  += 1;
+                                    }
+                                    $res['tardy_min']    += intval($info['tardy']);
+                                        
+                                    // undertime
+                                    if (strlen($info['ut_date']) > 4) {
+                                        $res['ut_count']  += 2;
+                                    } elseif (intval($info['ut_date']) > 0) {
+                                        $res['ut_count']  += 1;
+                                    }
+                                    $res['ut_min']       += intval($info['undertime']);
+                                        
+                                    // absences
+                                    $res['absent_count'] += ($info['remarks'] == 'ABSENT') ? 1 : 0;
+                                        
+                                    // leaves, orders, suspension
+                                    $res[$info['los']]   += ($info['los']) ? $info['los_day'] : 0;                                      
+                                }
+                            }
+                        }
+                        $data['log'][$row->employmentID] = $res;
+                    }
+                }
+                
+                $data['startDate'] = $start;
+                $data['endDate']   = $end;
+                    
+            } else {
+                $data['companyID']      = ($this->session->userdata('current_detailedCompanyID')) ? $this->session->userdata('current_detailedCompanyID') : 0;
+                $data['officeID']       = ($this->session->userdata('current_detailedOfficeID')) ? $this->session->userdata('current_detailedOfficeID') : 0;
+                $data['divisionID']     = ($this->session->userdata('current_detailedDivisionID')) ? $this->session->userdata('current_detailedDivisionID') : 0;
+                $data['payrollGroupID'] = ($this->session->userdata('current_payrollGroupID')) ? $this->session->userdata('current_payrollGroupID') : 0;
+                $data['attendanceID']   = ($this->session->userdata('current_attendanceID')) ? $this->session->userdata('current_attendanceID') : 0;
+                $data['employeeTypeID'] = ($this->session->userdata('current_employeeTypeID')) ? $this->session->userdata('current_employeeTypeID') : array();
+    
+                $this->db->where('attendanceID', 0);
+                $data['records']        = $this->db->get('attendance');
+            }
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view_batch');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    function sample()
+    {
+        // $dbName = "E:\RAMS\Database\RAS.mdb";
+        // if (!file_exists($dbName)) {
+        //     die("Could not find database file.");
+        // }
+        // $db     = new PDO("odbc:DRIVER={Microsoft Access Driver (*.mdb)}; DBQ=$dbName; Uid=; Pwd=ras258;");
+        
+        // $sql    = "SELECT * FROM ras_AttRecord";
+        // $result = $db->query($sql);
+        // $row    = $result->fetch();
+        
+        // echo $productPrice = $row["Clock"];
+    }
+
+    function info()
+    {
+        echo phpinfo();
+    }
+
+}

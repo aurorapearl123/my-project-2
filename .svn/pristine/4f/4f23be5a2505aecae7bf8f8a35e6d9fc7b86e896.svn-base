@@ -1,0 +1,284 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<ul id="inner-tab" class="nav nav-tabs w-icon">
+								<li class="nav-item" data-nav="1">
+									<a class="nav-link <?php if($tab == 1) { echo "active";}?>" href="<?php echo $controller_page.'/create/1';?>">
+									<i class="icon left la la-user"></i>
+									<span class="nav-text">Employee <?php echo $current_module['title'] ?></span>
+									</a>
+								</li>
+								<li class="nav-item" data-nav="3">
+									<a class="nav-link <?php if($tab == 2) { echo "active";}?>" href="<?php echo $controller_page.'/create2/2';?>">
+									<i class="icon left la la-briefcase"></i>
+									<span class="nav-text">Set <?php echo $current_module['title'] ?> By Group</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<div class="card-body content1 tab-content">
+					<div class="subtitle">
+						<h5 class="title"><i class="icon left la la-group"></i> Set <?php echo $current_module['title'] ?> By Employee</h5>
+					</div>
+					<div class="data-view">
+						<table class="table-form column-3">
+							<tbody>
+								<tr>
+									<td class="form-label" width="130px" valign="top" nowrap>Employee : </td>
+									<td class="form-group form-input" width="320px" valign="top">
+										<select class="form-control" id="empID" name="empID" data-live-search="true" livesearchnormalize="true" style="width:300px">
+											<option value="0" selected required>&nbsp;</option>
+											<?php 
+												$this->db->where('status >=',1);
+												$emps = $this->db->get('employees')->result();
+												foreach($emps as $emp){
+												?>
+											<option value="<?php echo $emp->empID?>" <?php if($emp->empID == $empID){ echo "selected";}?>><?php echo $emp->lname.' '.$emp->fname.' '.$emp->mname?></option>
+											<?php }?>
+										</select>
+									</td>
+									<td class="data-title" align="right" width="100px" valign="top">Period </td>
+									<td class="data-input" align="right" width="200px" valign="top" nowrap>
+										<input type="text" class="form-control datepicker" id="startDate" name="startDate" data-toggle="datetimepicker" value="<?php echo date('M d, Y',strtotime($startDate))?>" data-target="#startDate" title="Start Date" style="width:150px" required>
+									</td>
+									<td class="data-input" width="200px" valign="top" nowrap>
+										<input type="text" valign="top" class="form-control datepicker" id="endDate" name="endDate" data-toggle="datetimepicker" value="<?php echo date('M d, Y',strtotime($endDate))?>" data-target="#endDate" title="End Date" style="width:150px" required>
+									</td>
+									<td class="data-title" valign="top" width="300px">
+										<button class="btn btn-primary btn-raised btn-xs pill" type="button" name="cmdViewRec" id="cmdViewRec" onclick="filterRecord('1');"> View Schedule </button>
+									</td>
+									<td style="width:400px"></td>
+								</tr>
+								<tr>
+									<td class="data-title" valign="top">Employment : </td>
+									<td class="data-input" valign="top" colspan="3">
+										<select class="form-control" id="employmentID" name="employmentID" data-live-search="true" livesearchnormalize="true" style="width:300px">
+											<option value="0" selected required>&nbsp;</option>
+											<?php 
+												$this->db->where('status >=',1);
+												$emps = $this->db->get('employments')->result();
+												foreach($emps as $emp){
+												?>
+											<option value="<?php echo $emp->employmentID?>" <?php if($emp->employmentID == $employmentID){ echo "selected";}?>><?php echo $emp->employmentNo?></option>
+											<?php }?>
+										</select>
+									</td>
+									<td class="data-title" colspan="" valign="top">
+									</td>
+									<td style="width:400px"></td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="subtitle mt-20">
+							<h5 class="title mr-auto"><i class="icon left la la-clock-o"></i> Schedules</h5>
+						</div>
+						<?php if ($employmentID) {?>
+						<table class="table hover">
+							<thead>
+								<tr>
+									<td valign="top">
+										<table class="table hover">
+											<thead class="thead-light">
+												<tr height="20">
+													<th class="" colspan="2">Date</th>
+													<th class="">First Period</th>
+													<th class="">Second Period</th>
+													<th class="">Remarks</th>
+													<th class=""></th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php 
+													$ctr = 0;
+													for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+														if ($ctr <= (intval(date('d', $end))/2)) { ?>
+												<tr>
+													<td>
+														<?php echo date('D', $current)?>
+													</td>
+													<td>
+														<?php echo date('Y M d', $current)?> :
+													</td>
+													<td>
+														<label id="fp_<?php echo $current?>" name="fp_<?php echo $current?>"><?php echo ($dates[$current]['in1']) ? date('h:i A', strtotime($dates[$current]['in1'])) : ""; ?> - <?php echo  ($dates[$current]['out1']) ? date('h:i A', strtotime($dates[$current]['out1'])) : ""; ?></label>
+													</td>
+													<?php if ($dates[$current]['shiftType']=="1") {?>
+													<td>
+														<label id="sp_<?php echo $current?>" name="sp_<?php echo $current?>"><?php echo ($dates[$current]['in2']) ? date('h:i A', strtotime($dates[$current]['in2'])) : ""; ?> - <?php echo  ($dates[$current]['out2']) ? date('h:i A', strtotime($dates[$current]['out2'])) : ""; ?></label>
+													</td>
+													<?php } else {?>
+													<td><label id="sp_<?php echo $current?>" name="sp_<?php echo $current?>"> - </label></td>
+													<?php }?>
+													<td>
+														<select name="shiftID_<?php echo $current?>" id="shiftID_<?php echo $current?>" onchange="updateRec('<?php echo $current?>')" class="form-control">
+												    		<option value="0" <?php echo ($dates[$current]['shiftID']=='0') ? 'selected' : ''?>>NO WORK</option>
+												    		<option value="-1" <?php echo ($dates[$current]['shiftID']=='-1') ? 'selected' : ''?>>DAY OFF</option>
+												    		<option value="-3" <?php echo ($dates[$current]['shiftID']=='-3') ? 'selected' : ''?>>FLEXIBLE SHIFTS</option>
+												    		<option value="-2" <?php echo ($dates[$current]['shiftID']=='-2') ? 'selected' : ''?>>FLEXIBLE HOURS</option>
+													    	<?php   
+													    	$this->db->where('status',1);
+															$this->db->order_by('shiftName','asc');
+															$this->db->order_by('in1','asc');
+															$shifts = $this->db->get('shifts')->result();    					        				
+																foreach ($shifts as $row) {?>
+																	<option value="<?php echo $row->shiftID?>" <?php echo ($row->shiftID==$dates[$current]['shiftID']) ? 'selected' : ''?>><?php echo $row->shiftName?></option>					
+															<?php 
+																} 
+															?>
+														</select>
+													</td>
+													<td><div id="updatedSched_<?php echo $current?>" style="display: none;"><font color="green"><i class="icon left la la-check"></i></font></div></td>
+												</tr>
+												<?php 
+														}
+														$ctr++;
+													}
+												?>
+											</tbody>
+										</table>
+									</td>
+									<td valign="top">
+										<table class="table hover" style="width:100%">
+											<thead class="thead-light">
+												<tr height="20">
+													<th class="" colspan="2">Date</th>
+													<th class="">First Period</th>
+													<th class="">Second Period</th>
+													<th class="">Remarks</th>
+													<th class=""></th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php 
+													$ctr = 0;
+													for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+														if ($ctr > (intval(date('d', $end))/2)) { ?>
+												<tr>
+													<td>
+														<?php echo date('D', $current)?>
+													</td>
+													<td>
+														<?php echo date('Y M d', $current)?> :
+													</td>
+													<td>
+														<label id="fp_<?php echo $current?>" name="fp_<?php echo $current?>"><?php echo ($dates[$current]['in1']) ? date('h:i A', strtotime($dates[$current]['in1'])) : ""; ?> - <?php echo  ($dates[$current]['out1']) ? date('h:i A', strtotime($dates[$current]['out1'])) : ""; ?></label>
+													</td>
+													<?php if ($dates[$current]['shiftType']=="1") {?>
+													<td>
+														<label id="sp_<?php echo $current?>" name="sp_<?php echo $current?>"><?php echo ($dates[$current]['in2']) ? date('h:i A', strtotime($dates[$current]['in2'])) : ""; ?> - <?php echo  ($dates[$current]['out2']) ? date('h:i A', strtotime($dates[$current]['out2'])) : ""; ?></label>
+													</td>
+													<?php } else {?>
+													<td><label id="sp_<?php echo $current?>" name="sp_<?php echo $current?>"> - </label></td>
+													<?php }?>
+													<td>
+														<select name="shiftID_<?php echo $current?>" id="shiftID_<?php echo $current?>" onchange="updateRec('<?php echo $current?>')" class="form-control">
+												    		<option value="0" <?php echo ($dates[$current]['shiftID']=='0') ? 'selected' : ''?>>NO WORK</option>
+												    		<option value="-1" <?php echo ($dates[$current]['shiftID']=='-1') ? 'selected' : ''?>>DAY OFF</option>
+												    		<option value="-3" <?php echo ($dates[$current]['shiftID']=='-3') ? 'selected' : ''?>>FLEXIBLE SHIFTS</option>
+												    		<option value="-2" <?php echo ($dates[$current]['shiftID']=='-2') ? 'selected' : ''?>>FLEXIBLE HOURS</option>
+													    	<?php   
+													    	$this->db->where('status',1);
+															$this->db->order_by('shiftName','asc');
+															$this->db->order_by('in1','asc');
+															$shifts = $this->db->get('shifts')->result();    					        				
+																foreach ($shifts as $row) {?>
+																	<option value="<?php echo $row->shiftID?>" <?php echo ($row->shiftID==$dates[$current]['shiftID']) ? 'selected' : ''?>><?php echo $row->shiftName?></option>					
+															<?php 
+																} 
+															?>
+														</select>
+													</td>
+													<td><div id="updatedSched_<?php echo $current?>" style="display: none;"><font color="green"><i class="icon left la la-check"></i></font></div></td>
+												</tr>
+												<?php }
+													$ctr++;
+													}?>
+										</table>
+									</td>
+							</thead>
+						</table>
+						<button class="btn btn-primary btn-raised btn-xs pill" type="button" name="cmdEditRec" id="cmdEditRec" onclick="printRecord()"> Print Schedule </button>
+						<?php }?>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	function filterRecord(id)
+	{
+		if ($('#employmentID').val()) {
+			startDate = new Date($('#startDate').val());
+			endDate = new Date($('#endDate').val());
+			
+			window.location='<?php echo $controller_page ?>/create/'+$('#empID').val()+'/'+$('#employmentID').val()+'/'+(startDate.getTime()/1000.0)+'/'+(endDate.getTime()/1000.0)+'/'+id;
+		} else {
+			$('#employmentID').data('chosen').activate_action();
+			alert('No Employment Selected!');		
+		}
+	}
+	function updateRec(id) 
+	{
+		startDate = new Date($('#startDate').val());
+		endDate = new Date($('#endDate').val());
+		
+		//alert('update record');
+		$.post("<?php echo $controller_page ?>/updateRec", { 
+			empID: $('#empID').val(), 
+			employmentID: $('#employmentID').val(), 
+			startDate: (startDate.getTime()/1000.0), 
+			endDate: (endDate.getTime()/1000.0), 
+			shiftID: id, 
+			shiftVal: $('#shiftID_'+id).val(), 
+			tab: '1'
+		},
+          function(response) {
+	          if(response.emps.in1 != null) {
+	        	// updated successfully
+              	//swal("Success","Record successfully updated!","success");
+              	$("#fp_"+id).html(response.emps.in1+' - '+response.emps.out1);
+              	document.getElementById('updatedSched_'+id).style.display = "block";
+		      } else {
+		    	  $("#fp_"+id).html(' - ');
+		    	  document.getElementById('updatedSched_'+id).style.display = "block";
+			  }
+	          if(response.emps.in2 != null && response.emps.in2 != response.emps.out2) {
+		        	// updated successfully
+	              	//swal("Success","Record successfully updated!","success");
+	              	$("#sp_"+id).html(response.emps.in2+' - '+response.emps.out2);
+	              	document.getElementById('updatedSched_'+id).style.display = "block";
+		      } else {
+		    	  $("#sp_"+id).html(' - ');
+		    	  document.getElementById('updatedSched_'+id).style.display = "block";
+			  }
+          }, "json");
+	}
+	function printRecord()
+	{
+		if ($('#employmentID').val()) {
+			startDate = new Date($('#startDate').val());
+			endDate = new Date($('#endDate').val());
+			
+			popUp('<?php echo $controller_page ?>/print_employee/'+$('#empID').val()+'/'+$('#employmentID').val()+'/'+(startDate.getTime()/1000.0)+'/'+(endDate.getTime()/1000.0), 900, 500);
+			
+		} else {
+			$('#employmentID').data('chosen').activate_action();
+			alert('No Employment Selected!');		
+		}
+	}
+</script>

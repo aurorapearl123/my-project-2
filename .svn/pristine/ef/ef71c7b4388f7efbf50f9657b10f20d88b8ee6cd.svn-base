@@ -1,0 +1,39 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">SERIES</td>
+		<td class="top left">DATE FILED</td>
+		<td class="top left">SUSPENSION NO.</td>
+		<td class="top left">SUBJECT</td>
+		<td class="top left">PERIOD</td>
+		<td class="top left">REASON</td>
+		<td class="top left">DAYS</td>
+		<td class="top left right" align="center">STATUS</td>
+	</tr>
+	<?php 
+		foreach($records as $row) {
+		?>
+	<tr>
+		<td class="top left"><?php echo $row->series ?></td>
+		<td class="top left"><?php echo date('M d, Y', strtotime($row->dateFiled)) ?></td>
+		<td class="top left"><?php echo $row->suspensionNo ?></td>
+		<td class="top left"><?php echo $row->subject ?></td>
+		<td class="top left"></td>
+		<td class="top left"><?php echo $row->reason ?></td>
+		<td class="top left"><?php echo $row->totalDays ?></td>
+		<td class="top left right" align="center">
+			<?php 
+				if ($row->status == 1) {
+					echo "<font color='green'>Active</font>";
+				} else {
+					echo "<font color='red'>Inactive</font>";
+				}
+				?>
+		</td>
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="7">&nbsp;</td>
+	</tr>
+</table>

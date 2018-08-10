@@ -1,0 +1,347 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">New <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<div class="card-body">
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page.'/save'; ?>" >
+						<div class="table-form column-3">
+							<table class="table-form">
+								<tbody>
+									<tr>
+										<td class="form-label"  width="12%" >
+											Company<span class="asterisk">*</span>
+										</td>
+										<td class="form-group form-input" width="21.33%">
+											<select id="companyID" name="companyID" class="form-control" onchange="get_branches(); "  title="Company" required readonly>
+												
+												<?php           
+												$this->db->where('companyID', 1);
+												$this->db->order_by('companyName','asc');
+												$results = $this->db->get('companies')->result();
+												foreach($results as $res){
+													?>
+													<option value="1" selected><?php echo $res->companyName ?></option>
+												<?php }?>
+											</select>
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+									</tr>
+									<tr><td colspan="3">&nbsp;</td></tr>
+									<tr>
+										<td class="form-label">
+											Branch<span class="asterisk">*</span>
+										</td>
+										<td class="form-group form-input">
+											<select id="branchID" name="branchID" class="form-control" onchange="get_departments();getPayrollGroupsEncrypt();setEmployees();"  title="Branch" required>
+												<option value="" selected>&nbsp;</option>
+												<?php           
+												$this->db->where('status', 1);
+												$this->db->order_by('branchName','asc');
+												$results = $this->db->get('branches')->result();
+												foreach($results as $res){
+													?>
+													<option value="<?php echo $res->branchID ?>"><?php echo $res->branchCode ?></option>
+												<?php }?>
+											</select>
+										</td>
+										<td class="form-label" width="12%">Payroll Period
+										</td>
+										<td class="form-group form-input" width="21.33%">
+											<?php 
+											$this->db->where('status',2); 
+											$this->db->order_by('startDate','asc');
+											$data = $this->db->get('payroll_periods');
+
+											echo $this->htmlhelper->select_object_encrypt('payrollPeriodID', $data, 'payrollPeriodID', array('type'=>' - ', 'payrollPeriod'=>''), 300, $payrollPeriodID, 'setEmployees()', '', 'tabindex=""');
+											?>
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+									</tr>
+
+									<tr>
+										<td class="form-label">
+											Department
+										</td>
+										<td class="form-group form-input">
+											<select id="deptID" name="deptID" class="form-control" onchange="get_sections();getPayrollGroupsEncrypt();setEmployees();"  title="Department">
+												<option value="" selected>&nbsp;</option>
+												<?php           
+												$this->db->where('status', 1);
+												$this->db->order_by('deptName','asc');
+												$results = $this->db->get('departments')->result();
+												foreach($results as $res){
+													?>
+													<option value="<?php echo $res->deptID ?>"><?php echo $res->deptCode ?></option>
+												<?php }?>
+											</select>
+										</td>
+										<td class="form-label" width="12%">Attendance Period
+										</td>
+										<td class="form-group form-input" width="21.33%">
+											<?php 
+											$this->db->where('status',2); 
+											$this->db->order_by('startDate','asc');
+											$data = $this->db->get('payroll_periods');
+
+											echo $this->htmlhelper->select_object_encrypt('attendancePeriodID', $data, 'payrollPeriodID', array('type'=>' - ', 'payrollPeriod'=>''), 300, $attendancePeriodID, 'setEmployees()', '', 'tabindex=""');
+											?>
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+									</tr>
+									<tr>
+										<td class="form-label">
+											Section
+										</td>
+										<td class="form-group form-input">
+											<select id="divisionID" name="divisionID" class="form-control" data-live-search="true" liveSearchNormalize="true"  title="Section" onchange="get_plantilla();getPayrollGroupsEncrypt();setEmployees();">
+												<option value="" selected>&nbsp;</option>
+												<?php           
+												$this->db->where('status', 1);
+												$this->db->order_by('divisionName','asc');
+												$results = $this->db->get('divisions')->result();
+												foreach($results as $res){
+													?>
+													<option value="<?php echo $res->divisionID ?>"><?php echo $res->divisionName ?></option>
+												<?php }?>
+											</select>
+										</td>
+										<td class="form-label" width="12%">Payroll Group
+										</td>
+										<td class="form-group form-input" width="21.33%">
+											<?php 
+											$this->db->where('companyID', 1);
+											$this->db->where('branchID', $branchID);
+    										// $this->db->where('divisionID', $divisionID);
+											$this->db->where('status',1); 
+											$this->db->order_by('rank','asc');
+											$this->db->order_by('payrollGroup','asc');
+											$data = $this->db->get('payroll_groups');
+
+											echo $this->htmlhelper->select_object_encrypt('payrollGroupID', $data, 'payrollGroupID', 'payrollGroup', 300, $payrollGroupID, 'setEmployees()', '', 'tabindex=""');
+											?>
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+									</tr>
+
+									<tr>
+										<td class="form-label" width="12%" nowrap>
+											Employment Type<span class="asterisk">*</span>
+										</td>
+										<td class="form-group form-input" colspan="3" width="21.33%">
+											<select id="employeeTypeID" name="employeeTypeID[]" class="multipleSelect" title="Employment Type" onchange="setEmployees();" multiple required>
+												<option value="">&nbsp;</option>
+												<?php           
+												$this->db->where('status', 1);
+												$this->db->order_by('employeeType','asc');
+												$results = $this->db->get('employee_types')->result();
+												foreach($results as $res){
+													?>
+													<option value="<?php echo $res->employeeTypeID ?>" selected><?php echo $res->employeeType ?></option>
+												<?php }?>
+											</select>
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+										<td class="form-label" width="12%">
+										</td>
+										<td class="form-group form-input" width="21.33%">
+										</td>
+									</tr>
+
+
+
+
+									
+								</tbody>
+							</table>
+						</div>
+
+
+
+
+
+
+
+
+
+						<div class="form-sepator solid"></div>
+						<div id="form_container"></div>
+
+
+
+
+						<div class="form-sepator solid"></div>
+						<div class="form-group mb-0">
+							<button class="btn btn-xs btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+								Save
+							</button>
+							<input type="button" id="cmdCancel" class="btn btn-xs btn-outline-danger btn-raised pill" value="Cancel"/>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+
+	$('#cmdSave').click(function(){
+		if (check_fields()) {
+			$('#cmdSave').attr('disabled','disabled');
+			$('#cmdSave').addClass('loader');
+			$.post("<?php echo $controller_page ?>/check_duplicate", { 
+				companyID: $('#companyID').val(),
+				branchID: $('#branchID').val(),
+				deptID: $('#deptID').val(),
+				divisionID: $('#divisionID').val(),
+				payrollPeriodID: $('#payriollPeriodID').val(),
+				employeeTypeID: $('#employeeTypeID').val().join('_') },
+				function(data){
+					if (parseInt(data)) {
+						$('#cmdSave').removeClass("loader");
+						$('#cmdSave').removeAttr('disabled');
+              	// duplicate
+              	swal("Duplicate","Record is already exist!","warning");
+              } else {
+            	// submit
+            	$('#frmEntry').submit();
+            }
+        }, "text");
+		}
+	});
+
+
+	function check_fields()
+	{
+		var valid = true;
+		var req_fields = "";
+
+		$('#frmEntry [required]').each(function(){
+			if($(this).val()=='' ) {
+				req_fields += "<br/>" + $(this).attr('title');
+				valid = false;
+			} 
+		})
+
+		if (!valid) {
+			swal("Required Fields",req_fields,"warning");
+		}
+
+		return valid;
+	}
+
+	$('#cmdCancel').click(function(){
+		swal({
+			title: "Are you sure?",
+			text: "",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: '#3085d6',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		})
+		.then((willDelete) => {
+			if (willDelete.value) {
+				window.location = '<?php echo $controller_page.'/show' ?>';
+			}
+		});
+
+	});
+
+
+	
+
+	<?php 
+	echo "\n";
+	$parameters = array('companyID');
+	echo $this->htmlhelper->get_json_select('get_branches', $parameters, site_url('generic_ajax/get_code_branches'), 'branchID', '');
+
+	echo "\n";
+	$parameters = array('branchID');
+	echo $this->htmlhelper->get_json_select('get_departments', $parameters, site_url('generic_ajax/get_code_departments'), 'deptID', '');
+
+	echo "\n";
+	$parameters = array('deptID');
+	echo $this->htmlhelper->get_json_select('get_sections', $parameters, site_url('generic_ajax/get_code_sections'), 'divisionID', '');
+
+	echo "\n";
+	$parameters = array('branchID','deptID','divisionID');
+	echo $this->htmlhelper->get_json_select('get_plantilla', $parameters, site_url('generic_ajax/get_plantilla'), 'jobPositionID', '');
+
+	echo "\n";
+	$parameters = array('companyID','branchID','deptID','divisionID');
+	echo $this->htmlhelper->get_json_select('getPayrollGroupsEncrypt', $parameters, site_url('payroll_group/getPayrollGroupsEncrypt'), 'payrollGroupID', 'activeID') ;
+	?>
+
+
+	$('#employeename').focus();
+
+	<?php 
+	if ($empID) {?>
+		setEmploymentsEncrypt();
+	<?php }?>
+
+	function setEmployees()
+	{
+		if ($('#branchID').val() && $('#payrollPeriodID').val()) {				
+			$('#form_container').hide();
+			$('#main_loader').show();
+
+			companyID 			= ($('#companyID').val()!="") ? $('#companyID').val() : 0;
+			branchID 			= ($('#branchID').val()!="") ? $('#branchID').val() : 0;
+			deptID 				= ($('#deptID').val()!="") ? $('#deptID').val() : 0;
+			divisionID 			= ($('#divisionID').val()!="") ? $('#divisionID').val() : 0;
+			payrollGroupID 		= ($('#payrollGroupID').val()!="") ? $('#payrollGroupID').val() : 0;
+			payrollPeriodID 	= ($('#payrollPeriodID').val()!="") ? $('#payrollPeriodID').val() : 0;
+			attendancePeriodID 	= ($('#attendancePeriodID').val()!="") ? $('#attendancePeriodID').val() : 0;  
+
+			$.ajax({
+				type	: 'GET',
+				url		: '<?php echo site_url('payroll_gnp/setEmployees')?>/'+companyID+'/'+branchID+'/'+deptID+'/'+divisionID+'/'+payrollGroupID+'/'+payrollPeriodID+'/'+attendancePeriodID+'/'+$('#employeeTypeID').val().join('_'),
+				timeout	: <?php echo $this->config_model->getConfig('Request Timeout');?>,
+				success	: function(data){	
+					$('#form_container').html(data).show(); 
+					$('#main_loader').hide();},
+					error	: function(xhr,textStatus,errorThrown) {
+						$('#form_container').html(errorThrown).show(); 
+						$('#main_loader').hide();
+					}								
+				});
+		} 
+	}
+</script>

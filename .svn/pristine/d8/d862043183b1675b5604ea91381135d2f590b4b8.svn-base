@@ -1,0 +1,518 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Payroll_period extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Payroll Period';
+        $this->module_label = 'Payroll Periods';
+        $this->table        = 'payroll_periods';
+        $this->module_path  = 'modules/Payroll/Payroll_Period';
+        $this->module_path_submenu  = 'modules/Payroll/submenu';
+        $this->pfield = 'payrollPeriodID';
+        $this->logfield = 'payrollPeriod';
+        $this->data['controller_page'] = $this->controller_page = site_url('payroll_period');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('payrollPeriod'=>'Period', 'type'=>'Type', 'startDate'=>'Start Date', 'endDate'=>'End Date');  
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            $table_fields = array('payrollPeriod', 'type', 'remarks');
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                                   
+            
+            $this->record->fields['startDate']  = ($this->input->post('startDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('startDate')))) : "0000-00-00";
+            $this->record->fields['endDate']    = ($this->input->post('endDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('endDate')))) : "0000-00-00";
+
+            if ($this->record->save()) {
+                $this->record->fields = array();
+                $this->record->where['payrollPeriod']= trim($this->input->post('payrollPeriod'));
+                $this->record->where['type'] = trim($this->input->post('type'));
+                $this->record->retrieve();              
+
+                $start = strtotime($this->record->field->startDate);
+                $end   = strtotime($this->record->field->endDate);
+                $batch = array();
+                
+                for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                    $info = array();
+                    $info['payrollPeriodID']  = $this->record->field->payrollPeriodID;
+                    $info['date']       = date("Y-m-d", $current);
+                    $info['lastUpdate'] = date("Y-m-d H:i:s");
+                    // check for week days
+                    switch(date("w",$current)) {
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5: $info['eventCode'] = "WD"; break;
+                        case 0:
+                        case 6: $info['eventCode'] = "NW"; break;
+                    }
+                    $batch[] = $info;
+                }
+                
+                $this->db->insert_batch('payroll_details', $batch);
+
+                // record logs
+                $logs = "Record - ".trim($this->input->post($this->logfield));
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                
+                $logfield = $this->pfield;
+
+                // success msg
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully saved.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Unable to save
+                $data['class']  = "danger";
+                $data['msg']    = "Error in saving the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('payrollPeriod'=>'Period', 'type'=>'Type', 'startDate'=>'Start Date', 'endDate'=>'End Date', 'status'=>'Status');      
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;
+            // set fields for the current table
+            $this->record->setFields();
+            // extend fields - join tables                                                      
+            // set joins            
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array('payrollPeriod', 'type', 'remarks','status');
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                   
+            
+            $this->record->fields['startDate']  = ($this->input->post('startDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('startDate')))) : "0000-00-00";
+            $this->record->fields['endDate']    = ($this->input->post('endDate')!="") ? date('Y-m-d', strtotime(trim($this->input->post('endDate')))) : "0000-00-00";
+            
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+
+            if ($this->record->update()) {
+                if (date('Y-m-d', strtotime($this->input->post('startDate'))) != date('Y-m-d', strtotime($this->input->post('prev_startDate')))
+                    || date('Y-m-d', strtotime($this->input->post('endDate'))) != date('Y-m-d', strtotime($this->input->post('prev_endDate')))) {
+
+                    // delete previous details
+                    $this->db->where('payrollPeriodID', $this->record->pk);
+                    $this->db->delete('payroll_details');
+                    
+                    $start = strtotime($this->input->post('startDate'));
+                    $end   = strtotime($this->input->post('endDate'));
+                    $batch = array();
+                    
+                    for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                        $info = array();
+                        $info['payrollPeriodID']    = $this->record->pk;
+                        $info['date']       = date("Y-m-d", $current);
+                        $info['lastUpdate'] = date("Y-m-d H:i:s");
+                        // check for week days
+                        switch(date("w",$current)) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5: $info['eventCode'] = "WD"; break;
+                            case 0:
+                            case 6: $info['eventCode'] = "NW"; break;
+                        }                       
+                        $batch[] = $info;
+                    }
+                
+                    $this->db->insert_batch('payroll_details', $batch);
+                }
+                
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+            
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    // delete details
+                    $this->db->where('payrollPeriodID', $id);
+                    $this->db->delete('payroll_details');
+                    
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;            
+            // set fields for the current table
+            $this->record->setFields();         
+            // extend fields - join tables                                                      
+            // set joins        
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            // get details
+            $this->db->where('payrollPeriodID', $id);
+            $data['payroll_details'] = $this->db->get('payroll_details');           
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where
+        $this->record->where['payrollPeriod'] = trim($this->input->post('payrollPeriod'));
+        $this->record->where['type'] = trim($this->input->post('type'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+
+
+    //Ajax functions
+    public function getPayrolls()
+    {
+        $this->db->order_by('rank','asc');
+        $this->db->order_by('payrollPeriod','asc');
+        $records = $this->db->get('payroll_periods');
+        echo $this->frameworkhelper->get_json_data($records, 'payrollPeriodID', array('type'=>' - ','payrollPeriod'=>''));
+    }
+    
+    public function update_event()
+    {
+        $payrollDetailID = trim($this->input->post('payrollDetailID'));
+        $eventCode = trim($this->input->post('eventCode'));
+                
+        $this->db->set('eventCode', $eventCode);
+        $this->db->where('payrollDetailID', $payrollDetailID);
+                
+        if ($this->db->update('payroll_details')) {
+            $this->db->where('payrollDetailID', $payrollDetailID);
+            $payroll_detail = $this->db->get('payroll_details', 1)->row();
+            
+            // record logs
+            $logfield = $this->logfield;
+            $logs = "Record - ".$payroll_detail->date.' - '.$payroll_detail->eventCode;
+            $this->log_model->table_logs($this->module, $this->table, $this->pfield, $payroll_detail->payrollPeriodID, 'Update Date Event', $logs);
+            echo "1";                           
+        } else { 
+            echo "0";
+        }
+    }   
+    
+    // public function display_session()
+    // {               
+    //     echo var_dump($_SESSION);
+    // }
+
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array();
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+}

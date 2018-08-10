@@ -1,0 +1,205 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'Manage Salaries and Wages')) {
+    $submenu[] = array('label'=>'Salary & Wages','url'=>site_url('salary_wage/view'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Incentive')) {
+    $submenu[] = array('label'=>'Incentives','url'=>site_url('incentive/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Contribution')) {
+    $submenu[] = array('label'=>'Contributions','url'=>site_url('contribution/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Loan')) {
+    $submenu[] = array('label'=>'Loans & Deductions','url'=>site_url('loan/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Withholding Tax')) {
+    $submenu[] = array('label'=>'Witholding Tax','url'=>site_url('tax_withholding/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'Manage Premiums')) {
+    $submenu[] = array('label'=>'Classifications','url'=>site_url('premium/show'),'icon'=>'bullet','subitem'=>array(
+            array('label'=>'Incentive Types','url'=>site_url('incentive_type/show'),'icon'=>'bullet'),
+            array('label'=>'Premiums','url'=>site_url('premium/show'),'icon'=>'bullet'),
+            array('label'=>'Loan Types','url'=>site_url('loan_type/show'),'icon'=>'bullet'),
+    ));
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'Manage Tables')) {
+    $submenu[] = array('label'=>'Tables','url'=>site_url('salary_table/show'),'icon'=>'bullet','subitem'=>array(
+            array('label'=>'Salary Tables','url'=>site_url('salary_table/show'),'icon'=>'bullet'),
+            array('label'=>'Contribution Tables','url'=>site_url('contribution_table/show'),'icon'=>'bullet'),
+    ));
+}
+
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Salary and Wages';
+$module['main']['controller'] 	= 'salary_and_wages';
+$module['main']['description'] 	= 'Manage all Salary and Wages';
+$module['main']['icon'] 		= 'la-money';
+$module['main']['roles'] 		= array();
+
+
+// sub module
+$module['sub']['Salaries and Wages'] = array(
+		'title'=>'Salaries and Wages',
+        'module_label'=>'Salary and Wage',
+		'controller'=>'salary',
+		'description'=>'Manage all Salary and Wages',
+		'icon'=>'la-money',
+		'roles'=>array(
+		    'Manage Salaries and Wages',
+		)
+);
+
+
+$module['sub']['Incentive Type'] = array(
+    'title'=>'Incentive Types',
+    'module_label'=>'Incentive Type',
+    'controller'=>'incentive_type',
+    'description'=>'Manage all Incentive Types',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Incentive Type',
+        'View Incentive Type',
+        'Edit Existing Incentive Type',
+        'Delete Existing Incentive Type',
+    )
+);
+
+$module['sub']['Premium'] = array(
+    'title'=>'Premiums',
+    'module_label'=>'Premium',
+    'controller'=>'premium',
+    'description'=>'Manage all Premiums',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Manage Premiums',
+        'Add Premium',
+        'View Premium',
+        'Edit Existing Premium',
+        'Delete Existing Premium',
+    )
+);
+
+$module['sub']['Loan Type'] = array(
+    'title'=>'Loan Types',
+    'module_label'=>'Loan Type',
+    'controller'=>'loan_type',
+    'description'=>'Manage all Loan Types',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Loan Type',
+        'View Loan Type',
+        'Edit Existing Loan Type',
+        'Delete Existing Loan Type',
+    )
+);
+
+$module['sub']['Salary Table'] = array(
+    'title'=>'Salary Tables',
+    'module_label'=>'Salary Table',
+    'controller'=>'salary_table',
+    'description'=>'Manage Salary Tables',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Salary Table',
+        'View Salary Table',
+        'Edit Existing Salary Table',
+        'Delete Existing Salary Table',
+    )
+);
+
+$module['sub']['Contribution Table'] = array(
+    'title'=>'Contribution Tables',
+    'module_label'=>'Contribution Table',
+    'controller'=>'contribution_table',
+    'description'=>'Manage Contribution Tables',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Manage Tables',
+        'Add Contribution Table',
+        'View Contribution Table',
+        'Edit Existing Contribution Table',
+        'Delete Existing Contribution Table',
+    )
+);
+
+$module['sub']['Incentive'] = array(
+    'title'=>'Incentives',
+    'module_label'=>'Incentive',
+    'controller'=>'incentive',
+    'description'=>'Manage all Incentives',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Incentive',
+        'View Incentive',
+        'Edit Existing Incentive',
+        'Delete Existing Incentive',
+    )
+);
+
+$module['sub']['Contribution'] = array(
+    'title'=>'Contributions',
+    'module_label'=>'Contribution',
+    'controller'=>'contribution',
+    'description'=>'Manage all Contributions',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Contribution',
+        'View Contribution',
+        'Edit Existing Contribution',
+        'Delete Existing Contribution',
+    )
+);
+
+$module['sub']['Loan'] = array(
+    'title'=>'Loans',
+    'module_label'=>'Loan',
+    'controller'=>'loan',
+    'description'=>'Manage all Loans',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Loan',
+        'View Loan',
+        'Edit Existing Loan',
+        'Delete Existing Loan',
+    )
+);
+
+$module['sub']['Withholding Tax'] = array(
+    'title'=>'Withholding Tax',
+    'module_label'=>'Withholding Tax',
+    'controller'=>'tax_withholding',
+    'description'=>'Manage all Withholding Tax',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Withholding Tax',
+        'View Withholding Tax',
+        'Edit Existing Withholding Tax',
+        'Delete Existing Withholding Tax',
+    )
+);
+
+$module['main']['menu'] = $submenu;
+$this->modules['Salary and Wages']  = $module;
+?>

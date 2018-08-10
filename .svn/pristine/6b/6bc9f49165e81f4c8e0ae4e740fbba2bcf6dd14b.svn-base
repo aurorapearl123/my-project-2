@@ -1,0 +1,52 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">SHIFT NAME</td>
+		<td class="top left">TYPE</td>
+		<td class="top left">FIRST PERIOD</td>
+		<td class="top left">(EARLY LOG)</td>
+		<td class="top left">(TARDY LOG)</td>
+		<td class="top left">SECOND PERIOD</td>
+		<td class="top left">(EARLY LOG)</td>
+		<td class="top left">(TARDY LOG)</td>
+		<td class="top left">(WORK HOURS)</td>
+		<td class="top left">(BREAK HOURS)</td>
+		<td class="top left right" align="center">STATUS</td>
+	</tr>
+	<?php 
+		foreach ($records as $row) {
+		?>
+	<tr>
+		<td class="top left"><?php echo $row->shiftName ?></td>
+		<td class="top left">
+			<?php 
+			if ($row->shiftType=="1") {
+				echo "2 Periods";
+			} elseif ($row->shiftType=="2") {
+				echo "1 Period";
+			} ?>
+		</td>
+		<td class="top left"><?php echo date('h:i A', strtotime($row->in1)); ?> - <?php echo date('h:i A', strtotime($row->out1)); ?></td>
+		<td class="top left"><?php echo date('h:i A', strtotime($row->startLog1)); ?></td>
+		<td class="top left"><?php echo date('h:i A', strtotime($row->startTardy1)); ?></td>
+		<td class="top left"><?php echo ($row->in2!="00:00:00" && $row->out2!="00:00:00") ? date('h:i A', strtotime($row->in2)).' - '.date('h:i A', strtotime($row->out2)) : "--:--:-- - --:--:--"; ?></td>
+		<td class="top left"><?php echo ($row->startLog2!="00:00:00") ? date('h:i A', strtotime($row->startLog2)) : "--:--:--"; ?></td>
+		<td class="top left"><?php echo ($row->startTardy2!="00:00:00") ? date('h:i A', strtotime($row->startTardy2)) : "--:--:--"; ?></td>
+		<td class="top left"><?php echo $row->workHours ?></td>
+		<td class="top left"><?php echo $row->breakHours ?></td>
+		<td class="top left right" align="center">
+			<?php 
+				if ($row->status == 1) {
+					echo "<font color='green'>Active</font>";
+				} else {
+					echo "<font color='red'>Inactive</font>";
+				}
+				?>
+		</td>
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="11">&nbsp;</td>
+	</tr>
+</table>

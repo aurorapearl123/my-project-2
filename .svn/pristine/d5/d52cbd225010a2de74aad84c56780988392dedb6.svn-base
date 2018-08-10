@@ -1,0 +1,43 @@
+ <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+ <tr style="font-weight: bold;font-size: 11px;">
+    <td class="top left" align="center">BRANCH</td>
+    <td class="top left" align="center">DEPARTMENT</td>
+    <td class="top left" align="center">SECTION</td>
+    <td class="top left" align="center">ID NO.</td>
+    <td class="top left" align="center">EMPLOYEE NAME</td>
+    <td class="top left" align="center">PREMIUM</td>
+    <td class="top left" align="center">EE SHARE</td>
+    <td class="top left" align="center">ER SHARE</td>
+    <td class="top left" align="center">EFFECTIVITY</td>
+    <td class="top left right" align="center">STATUS</td>
+ </tr>
+<?php 
+        foreach($records as $row) {
+?>
+        <tr>
+            <td class="top left"><?php echo $row->branchCode ?></td>
+            <td class="top left"><?php echo $row->deptCode ?></td>
+            <td class="top left"><?php echo $row->divisionCode ?></td>
+            <td class="top left"><?php echo $row->empNo ?></td>
+            <td class="top left"><?php echo $row->lname.", ".$row->lname." ".$row->mname ?></td>
+            <td class="top left"><?php echo $row->abbr ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->employeeShare, 2) ?></td>
+            <td class="top left" align="right"><?php echo number_format($row->employerShare, 2) ?></td>
+            <td class="top left"><?php echo date('m/d/Y', strtotime($row->effectivity)) ?></td>
+            <td class="top left right" align="center">
+                <?php 
+                    if ($row->status == 1) {
+                    	echo "<font color='green'>Active</font>";
+                    } else {
+                    	echo "<font color='red'>Inactive</font>";
+                    }
+                ?>
+            </td>
+        </tr>
+<?php 
+        }
+?>
+<tr style="background-color: #ffffff;">
+    <td class="top" colspan="9">&nbsp;</td>
+</tr>
+</table>

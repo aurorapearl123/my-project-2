@@ -1,0 +1,108 @@
+<form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page ?>/approve_leave/<?php echo $this->encrypter->encode($id)?>" >
+
+	<div class="subtitle mt-20">
+		<h5 class="title mr-auto"><i class="icon left la la-calendar"></i> Approve Leave Application</h5>
+		<div class="subtitle-tools">
+		</div>
+	</div>
+
+
+
+	<div class="datatables_wrapper">
+		<div class="table-responsive-xl">
+
+
+
+
+
+
+
+
+			<!-- table start -->
+			<table class="table hover">
+				<thead class="thead-light">
+					<tr>
+						<th class="w-10" align="left">Period</th>
+						<th class="w-10" align="left">Work Covered</th>
+						<th class="w-10" align="left">Days</th>
+						<th class="w-10" align="left">Hours</th>
+						<th class="w-10" align="center">Hour Period</th>
+						<th class="w-5" align="center">Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php 
+					if ($leave_dates->num_rows()) {
+						foreach ($leave_dates->result() as $row) {?>
+							<tr>
+								<td>
+									<?php
+									echo date('M d, Y', strtotime($row->startDate)); ?> <?php echo ($row->endDate!=$row->startDate) ? " to ".date('M d, Y', strtotime($row->endDate)) : ""; ?>
+
+								</td>
+								<td>
+									<?php 
+									switch ($row->workCover) {
+										case 1: echo "Whole Working Day"; break;
+										case 2: echo "1st Half Working Day"; $days -= .5; break;
+										case 3: echo "2nd Half Working Day"; $days -= .5;break;
+										case 4: echo "Hours - Less Half Day"; $days = ($row->hours/8); break;
+									} ?>
+
+								</td>
+								<td>
+									<?php echo ($row->days > 0) ? $row->days : "--"?>
+								</td>
+								<td>
+									<?php echo ($row->hours > 0) ? $row->hours : "--"?>
+
+								</td>			    	
+								<td>
+									<?php echo ($row->startHour!="0000-00-00 00:00:00" && $row->endHour!="0000-00-00 00:00:00") ? date('h:i A', strtotime($row->startHour))." to ".date('h:i A', strtotime($row->endHour)) : "--:--:-- to --:--:--"; ?></td>
+									<td class="form-group form-input">
+										<select class="form-control" name="status_<?php echo $row->leaveDateID?>" id="status_<?php echo $row->leaveDateID?>">
+											<option value="1" <?php if ($status == "1") echo "selected" ?>>Pending</option>
+											<option value="2" <?php if ($status == "2") echo "selected" ?>>With Pay</option>
+											<option value="3" <?php if ($status == "3") echo "selected" ?>>Without Pay</option>
+											<option value="4" <?php if ($status == "4") echo "selected" ?>>Cancelled</option>
+											<option value="5" <?php if ($status == "5") echo "selected" ?>>Disapproved</option>
+										</select>
+									</td>
+								</tr>
+
+							<?php }
+						}?>	
+					</tbody>
+				</table>
+				<!-- table end -->
+
+
+
+
+
+
+
+
+
+
+
+
+			</div>
+		</div>
+
+		<!-- footer start -->
+		<div class="form-sepator solid"></div>
+		<div class="form-group mb-0">
+		<input class="btn btn-primary btn-raised pill btn-xs" name="cmdSave" type="submit" id="cmdSave" value=" Save Approval " />
+		<input class="btn btn-outline-danger btn-raised pill btn-xs" name="cmdCancel" type="button" id="cmdCancel" value=" Cancel Approval " onClick="hide();"/>
+		</div>
+		<!-- footer end -->
+
+	</form>
+
+	<script>
+		function hide()
+		{
+			$('#confirm_form').slideUp().empty();
+		}
+	</script>

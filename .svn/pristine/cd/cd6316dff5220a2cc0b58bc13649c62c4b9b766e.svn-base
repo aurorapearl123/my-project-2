@@ -1,0 +1,451 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Job_position extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Job Position';
+        $this->module_label = 'Job Positions';
+        $this->table        = 'job_positions';
+        $this->module_path  = 'modules/Recruitment/Job_Position';
+        $this->module_path_submenu  = 'modules/Master/submenu';
+        $this->pfield = 'jobPositionID';
+        $this->logfield = 'positionCode';
+        $this->data['controller_page'] = $this->controller_page = site_url('job_position');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->show();
+    }
+    
+    public function create()
+    {
+        $this->submenu();
+        $data = $this->data;
+        // check roles
+        if ($this->roles['create']) {
+            $data['required_fields'] = array('jobTitleID'=>'Job Title', 'companyID'=>'Company','officeID'=>'Office');                                                                                               
+            $data['jobTitleID']  = $this->session->userdata('current_jobTitleID');
+            $data['companyID']   = $this->session->userdata('current_companyID');
+            $data['officeID']    = $this->session->userdata('current_officeID');
+            $data['divisionID']  = $this->session->userdata('current_divisionID');
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/create');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function save()
+    {
+        //load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check role
+        if ($this->roles['create']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            for ($positionNo = intval($this->input->post('positionNo')); $positionNo > 0; $positionNo--) {
+
+                $table_fields = array('jobTitleID', 'companyID', 'officeID','divisionID','employeeTypeID','salaryGrade','salaryStep','remarks');
+                
+                foreach($table_fields as $fld) {
+                    $this->record->fields[$fld] = trim($this->input->post($fld));
+                }           
+
+                $this->record->fields['positionCode']   = $genNo = $this->_generateID();    
+                
+                if ($this->record->save()) {
+                    $this->frameworkhelper->increment_series('Job Position Series');
+                    
+                    $this->record->fields = array();
+                    $this->record->where['positionCode'] = $genNo;
+                    $this->record->retrieve();                                  
+                    
+                    $this->session->set_userdata('current_jobTitleID', $this->record->field->jobTitleID);
+                    $this->session->set_userdata('current_companyID', $this->record->field->companyID);
+                    $this->session->set_userdata('current_officeID', $this->record->field->officeID);
+                    $this->session->set_userdata('current_divisionID', $this->record->field->divisionID);
+
+                    // record logs
+                    $logs = "Record - ".$genNo;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                }
+            }
+
+            $logfield = $this->pfield;
+
+                // success msg
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully saved.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function edit($id)
+    {
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['edit']) {
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $table_fields = array('jobTitleID', 'companyID', 'officeID','divisionID','employeeTypeID','salaryGrade','salaryStep','remarks','status');
+
+        if ($this->roles['edit']) {
+            $this->record->table  = $this->table;
+            $this->record->fields = array();
+            
+            foreach($table_fields as $fld) {
+                $this->record->fields[$fld] = trim($this->input->post($fld));
+            }                                       
+
+            $this->record->pfield   = $this->pfield;
+            $this->record->pk       = trim($this->input->post($this->pfield));
+            
+            // field logs here
+            $wasChange = $this->log_model->field_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $this->record->fields);
+
+            if ($this->record->update()) {
+                // record logs
+                if ($wasChange) {
+                    $logs = "Record - ".trim($this->input->post($this->logfield));
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
+                }
+
+                // Successfully updated
+                $data['class']  = "success";
+                $data['msg']    = $this->module." successfully updated.";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            } else {
+                // Error updating
+                $data['class']  = "danger";
+                $data['msg']    = "Error in updating the ".strtolower($this->module)."!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['delete'] && !$this->_in_used($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+
+                    //Success msg
+                    $data['class']  = "success";
+                    $data['msg']    = $this->module." successfully deleted.";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            //No access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function view($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        if ($this->roles['view']) {
+            // for retrieve with joining tables -------------------------------------------------
+            // set table
+            $this->record->table = $this->table;            
+            // set fields for the current table
+            $this->record->setFields();         
+            // extend fields - join tables          
+            $this->record->fields[] = 'job_titles.jobTitle';        
+            $this->record->fields[] = 'companies.companyName';
+            $this->record->fields[] = 'offices.officeName';
+            $this->record->fields[] = 'divisions.divisionName';
+            $this->record->fields[] = 'employee_types.employeeType';
+            // set joins
+            $this->record->joins[]  = array('job_titles',$this->table.'.jobTitleID=job_titles.jobTitleID','left');
+            $this->record->joins[]  = array('companies',$this->table.'.companyID=companies.companyID','left');
+            $this->record->joins[]  = array('offices',$this->table.'.officeID=offices.officeID','left');
+            $this->record->joins[]  = array('divisions',$this->table.'.divisionID=divisions.divisionID','left');
+            $this->record->joins[]  = array('employee_types','job_positions.employeeTypeID=employee_types.employeeTypeID','left');
+            // set where
+            $this->record->where[$this->table.'.'.$this->pfield] = $id;
+            
+            // execute retrieve
+            $this->record->retrieve();
+            // ----------------------------------------------------------------------------------
+            $data['rec'] = $this->record->field;
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // check if record is used in other tables
+            $data['inUsed'] = $this->_in_used($id);
+            //load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function show()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        // Sorting Functions
+
+        //Setup list
+        $data['records'] = $this->db->get($this->table);
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/list');
+        $this->load->view('footer');
+    }
+    
+    public function printlist()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        //sorting
+
+        //load views
+        $this->load->view('header', $data);
+        $this->load->view($this->module_path.'/printlist');
+        $this->load->view('footer');
+    }
+    
+    //Conditions and fields changes
+    public function check_duplicate()
+    {
+        // set table
+        $this->record->table = $this->table;
+        // set where
+        $this->record->where['jobTitleID']  = trim($this->input->post('jobTitleID'));
+        $this->record->where['job_position'] = trim($this->input->post('job_position'));
+        // execute retrieve
+        $this->record->retrieve();
+        
+        if (!empty($this->record->field))
+            echo "1"; // duplicate
+        else 
+            echo "0";
+    }
+
+
+    // Ajax functions
+    public function getJobPositions()
+    {
+        $jobTitleID     = trim($this->input->post('jobTitleID'));
+        $companyID      = trim($this->input->post('companyID'));
+        $officeID       = trim($this->input->post('officeID'));
+        $divisionID     = trim($this->input->post('divisionID'));
+        $employeeTypeID = trim($this->input->post('employeeTypeID'));
+        
+        if ($jobTitleID) {
+            $this->db->where('job_positions.jobTitleID', $jobTitleID);
+        }
+        if ($companyID) {
+            $this->db->where('job_positions.companyID', $companyID);
+        }
+        if ($officeID) {
+            $this->db->where('job_positions.officeID', $officeID);
+        }
+        if ($divisionID) {
+            $this->db->where('job_positions.divisionID', $divisionID);
+        }
+        if ($employeeTypeID) {
+            $this->db->where('job_positions.employeeTypeID', $employeeTypeID);
+        }
+        $this->db->select('job_positions.*');
+        $this->db->select('job_titles.jobTitle');
+        $this->db->from('job_positions');
+        $this->db->join('job_titles','job_positions.jobTitleID=job_titles.jobTitleID','left');
+        $this->db->where('job_positions.status', 1);
+        $this->db->order_by('job_positions.rank','asc');
+        $records = $this->db->get();
+        echo $this->frameworkhelper->get_json_data($records, 'jobPositionID', array('positionCode'=>' - ','jobTitle'=>''));
+    }   
+    
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+
+
+
+
+
+    // Private functions
+    private function _in_used($id=0)
+    {
+        $tables = array('employments');
+        
+        if(!empty($tables)) {     
+            foreach($tables as $table) {
+                $this->db->where($this->pfield, $id);
+                $result_count = $this->db->count_all_results($table);
+                
+                if($result_count > 0) {
+                    return true;
+                }
+            }                               
+        } 
+        return false;
+    }
+}

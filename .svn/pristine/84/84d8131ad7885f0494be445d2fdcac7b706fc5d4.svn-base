@@ -1,0 +1,132 @@
+<style>
+.checkBox { width:18px;height:18px;vertical-align:middle; }
+.bright { border-right: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.bleft { border-left: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.btop { border-top: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.bbottom { border-bottom: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.ball { border: 1px solid <?php echo $this->config_model->getConfig('Report Table Border Color')?>;}
+.label { height: 2px; font-size:7pt;  }
+.field { height: 2px; font-size:7pt; }
+.table_header { background-color: <?php echo $this->config_model->getConfig('Report Table BG Color')?>; font-size:7pt; }
+.table_row { height: 20px; font-size:7pt; vertical-align:middle; }
+.signatory { background-color: #eee; height: 20px; font-size:7pt; }
+.signatory_table { position: absolute; bottom: 0;}
+</style>
+
+<table border="0" cellpadding="2" cellspacing="0" width="100%" style="font-size: 6pt;">
+<tr>
+	<td ><?php echo $rec->employmentNo?> <?php echo $rec->detailedCompanyAbbr?> <?php echo $rec->detailedOfficeAbbr?> <?php echo $rec->detailedDivisionAbbr?></td>
+	<td align="right"><?php echo $rec->employeeType?></td>
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size:6pt;">
+<tr>
+	<td align="center" class="" style="height:30px;" colspan="2" style="font-size:12pt;"><b>EMPLOYEE SHIFT SCHEDULE</b></td>
+</tr>
+<tr height="30">
+	<td>&nbsp;</td>
+</tr>
+<tr>
+	<td align="center" nowrap class=" bbottom bright" style="width:38%;valign:bottom;font-size:8pt;">&nbsp;<?php echo $empNo; ?></td>
+	<td align="center" nowrap class=" bbottom" style="valign:bottom;font-size:8pt;">&nbsp;<?php echo strtoupper($name); ?></td>
+</tr>
+<tr>
+	<td align="center" nowrap style="height:15px;">( ID Number )</td>
+	<td align="center" nowrap>&nbsp;( Employee Name )</td>
+</tr>
+<tr>
+	<td colspan="2" align="center" nowrap class=" bbottom" style="valign:bottom;font-size:8pt;">&nbsp;<?php echo strtoupper($jobTitle); ?></td>
+</tr>
+<tr>
+	<td colspan="2" align="center" nowrap style="height:15px;">( Position )</td>
+</tr>
+</table>
+
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 5px;font-size: 7pt;color:<?php if(!empty($color)) { echo $color;} else { echo "black";}?>;">
+<tr>
+	<td valign="top" width="100px"><slot>For the period of </slot></td>
+	<td valign="top" align="center" class="bbottom" width=""><slot><b><?php echo strtoupper($period)?></b></slot></td>
+</tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin-top:5px;">
+<thead>
+<tr class="table_header">
+	<td colspan="" rowspan="2" nowrap align="center" width="20px" class="table_row btop bbottom bleft bright" >
+		<span class="label" style="font-size:5pt">D<br>A<br>T<br>E</span></td>	
+	<td colspan="2" rowspan="" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">FIRST PERIOD</span></td>	
+	<td colspan="2" nowrap align="center" width="" class="table_row btop bbottom bright">
+		<span class="label">SECOND PERIOD</span></td>
+	<td colspan="" rowspan="2" nowrap align="center" width="50px" class="table_row btop bbottom bright">
+		<span class="label">HOURS</span></td>
+	<td colspan="" rowspan="2" nowrap align="center" width="80px" class="table_row btop bbottom bright">
+		<span class="label">REMARKS</span></td>	
+</tr>
+<tr class="table_header">	
+	<td colspan="" rowspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">In</span></td>	
+	<td colspan="" rowspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">Out</span></td>
+	<td colspan="" rowspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">In</span></td>	
+	<td colspan="" rowspan="" nowrap align="center" width="50px" class="table_row bbottom bright">
+		<span class="label">Out</span></td>
+</tr>
+</thead>
+
+<?php 
+$total = 0;
+for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+		$total += $dates[$current]['workHours'];?> 
+		<tr class="">
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bleft bright">
+				<span class="field" style="font-size:6pt"><?php echo date('j', $current)?></span></td>							
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field"><?php echo ($dates[$current]['in1']) ? date('h:i A', strtotime($dates[$current]['in1'])) : ""; ?></span></td>
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field"><?php echo  ($dates[$current]['out1']) ? date('h:i A', strtotime($dates[$current]['out1'])) : ""; ?></span></td>
+			<?php if ($dates[$current]['shiftType']=="1") {?>
+				<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+					<span class="field"><?php echo ($dates[$current]['in2']) ? date('h:i A', strtotime($dates[$current]['in2'])) : ""; ?></span></td>
+				<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+					<span class="field"><?php echo  ($dates[$current]['out2']) ? date('h:i A', strtotime($dates[$current]['out2'])) : ""; ?></span></td>
+			<?php } else {?>
+				<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+					<span class="field"></span></td>
+				<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+					<span class="field"></span></td>
+			<?php }?>		
+			<td colspan="" nowrap align="center" width="" class="table_row bbottom bright">
+				<span class="field"><?php echo ($dates[$current]['workHours'] > 0) ? $dates[$current]['workHours'] : '';?></span></td>			
+			<td colspan="" nowrap align="center" width="60px" class="table_row bbottom bright">
+				<span class="field" style="font-size:6pt">
+					<?php 
+					switch ($dates[$current]['shiftID']) {
+						case '0' : echo 'NO WORK'; break;
+						case '-1' : echo 'DAY OFF'; break;
+						default : echo $dates[$current]['remarks']; break;
+					}?></span></td>
+		</tr>
+<?php } ?>
+</table>
+
+<br>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 7pt;">    
+    <tr>
+        <td align="center" valign="top" colspan="4"><slot><em>Acknowledged By:</em></slot></td>
+    </tr>
+    <tr><td height="20" colspan="2"></td></tr>
+    <tr>
+    	<td align="center" valign="bottom" colspan="" class="" width="5%"><slot></slot></td>
+        <td align="center" valign="bottom" colspan="2" class=""><slot><strong></strong></slot></td>
+        <td align="center" valign="bottom" colspan="" class="" width="5%"><slot></slot></td>
+    </tr>
+    <tr>
+    	<td align="center" valign="top" colspan="" class="" width="5%"><slot></slot></td>
+        <td align="center" valign="top" colspan="2" class="btop"><slot>Supervisor</slot></td>
+        <td align="center" valign="top" colspan="" class="" width="5%"><slot></slot></td>
+    </tr>		
+</table>
+<pagebreak />

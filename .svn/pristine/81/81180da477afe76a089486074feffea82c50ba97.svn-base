@@ -1,0 +1,45 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">Company</td>
+		<td class="top left">Branch</td>
+		<td class="top left">ID Number</td>
+		<td class="top left">Employee</td>
+		<?php
+		$types = $this->db->get('leave_types');
+		
+		if ($types->num_rows()) {
+			foreach ($types->result() as $type) {
+				echo "<td class='top left'>". $type->code."</td>";
+			}
+		}
+		?>
+	</tr>
+	<?php 
+		foreach($records as $row) {
+		?>
+	<tr>
+		<td class="top left"><?php echo $row->companyAbbr ?></td>
+		<td class="top left"><?php echo $row->branchAbbr ?></td>
+		<td class="top left"><?php echo $row->empNo ?></td>
+		<td class="top left"><?php echo $row->lname ?>, <?php echo $row->fname ?> <?php echo $row->mname ?> <?php echo $row->suffix ?></td>
+       <?php 
+        if ($types->num_rows()) {
+      	 foreach ($types->result() as $type) {
+      		$this->db->where('empID', $row->empID);
+      		$this->db->where('leaveTypeID', $type->leaveTypeID);
+      		$credit = $this->db->get('leave_credits', 1)->row();
+      		
+      	?>
+      	<td class="top left"><?php echo $credit->credit?></td>
+      		
+      	<?php  }
+      	}
+      	?>
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="7">&nbsp;</td>
+	</tr>
+</table>

@@ -1,0 +1,41 @@
+ <table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+   <tr style="font-weight: bold;font-size: 11px;">
+    <td class="top left">PAYROLL NO.</td>
+    <td class="top left">PAYROLL PERIOD</td>
+    <td class="top left">COMPANY</td>
+    <td class="top left">BRANCH</td>
+    <td class="top left">SECTION</td>
+    <td class="top left">PAYROLL GROUP</td>
+    <td class="top left right" align="center">STATUS</td>
+</tr>
+<?php 
+foreach($records as $row) {
+    ?>
+    <tr>
+      <td class="top left"><?php echo $row->payrollNo ?></td>
+      <td class="top left"><?php echo $row->payrollPeriod ?></td>
+      <td class="top left"><?php echo $row->companyAbbr ?></td>
+      <td class="top left"><?php echo $row->branchName ?></td>
+      <td class="top left"><?php echo $row->divisionAbbr ?></td>
+      <td class="top left"><?php echo $row->payrollGroup ?></td>
+      <td class="top left right" align="center">
+        <?php 
+        if ($row->status == 1) {
+          echo "<span class='badge badge-pill badge-warning'>Pending</span>";
+        } else if ($row->status == 2) {
+          echo "<span class='badge badge-pill badge-success'>Confirmed</span>";
+        } else if ($row->status == 0) {
+          echo "<span class='badge badge-pill badge-danger'>Cancelled</span>";
+        }
+        ?>
+      </td>
+
+
+   </tr>
+   <?php 
+}
+?>
+<tr style="background-color: #ffffff;">
+    <td class="top" colspan="7">&nbsp;</td>
+</tr>
+</table>

@@ -1,0 +1,230 @@
+<div class="subheader">
+ <div class="d-flex align-items-center">
+  <div class="title mr-auto">
+   <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+ </div>
+ <div class="subheader-tools"></div>
+</div>
+</div>
+<div class="content">
+ <!-- Content Start -->
+ <div class="row">
+  <div class="col-12">
+   <div class="card-box">
+    <!-- Card Box Start -->
+    <!-- Card Head Start -->
+    <div class="card-head">
+     <div class="head-caption">
+      <div class="head-title">
+       <h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+     </div>
+   </div>
+   <div class="card-head-tools"></div>
+ </div>
+ <!-- Card Head End -->
+ <div class="card-body">
+   <!-- Form Start -->
+   <form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page.'/save'; ?>">
+    <div class="table-row">
+     <table class="table-form column-3">
+      <tbody>
+
+       <tr>
+        <td class="form-label">Code: <span class="asterisk">*</span></td>
+        <td class="form-group form-input">
+         <input class="form-control" type="text" name="code" id="code" maxlength="10" label="Code" required/>
+       </td>
+       <td class="d-xxl-none"></td>
+     </tr>
+
+     <tr>
+       <td class="form-label">Leave Type: <span class="asterisk">*</span></td>
+       <td class="form-group form-input">
+         <input class="form-control" type="text" name="leaveType" id="leaveType" maxlength="100" label="Leave Type" required/>
+       </td>
+       <td class="d-xxl-none"></td>
+     </tr>
+
+     <tr>
+      <td class="form-label" style="width:170px;" nowrap>Earning Frequency: <span class="asterisk">*</span></td>
+      <td class="form-group form-input" style="width:350px" nowrap>
+       <select class="form-control" name="frequency" id="frequency" label="Earning Frequency" required>
+        <option value="" >&nbsp;</option>
+        <option value="0" >None</option>
+        <option value="1" >Daily</option>
+        <option value="2" >Weekly</option>
+        <option value="3" >Monthly</option>
+        <option value="4" >Quarterly</option>
+        <option value="5" >Semi-Annual</option>
+        <option value="6" >Annual</option>
+      </select>
+    </td>
+    <td class="d-xxl-none"></td>
+  </tr>
+
+  <tr>
+    <td class="form-label" style="width:150px" nowrap>Credit Earning: <span class="asterisk">*</span></td>
+    <td class="form-group form-input" style="width:350px;height: 40px;" nowrap>
+     <div class="radio">
+      <label class="radio-inline">
+        <input type="radio" name="creditEarn" id="creditEarn1" value="1"/>
+        Incremental
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="creditEarn" id="creditEarn2" value="2" checked/>
+        Reset
+      </label>
+    </div>
+  </td>
+  <td class="d-xxl-none"></td>
+</tr>
+
+<tr>
+  <td class="form-label" style="width:150px; height: 40px;" nowrap>Cashable: <span class="asterisk">*</span></td>
+  <td class="form-group form-input" style="width:350px;height: 40px;" nowrap>
+    <div class="radio">
+      <label class="radio-inline">
+        <input tabindex="6" type="radio" name="isCashable" id="isCashable1" value="1" />
+        Yes
+      </label>
+      <label class="radio-inline">
+        <input tabindex="7" type="radio" name="isCashable" id="isCashable0" value="0" checked/>
+        No
+      </label>
+    </div>
+  </td>
+  <td class="d-xxl-none"></td>
+</tr>
+
+<tr>
+  <td class="form-label" style="width:170px" nowrap>Cover Withoutpay: <span class="asterisk">*</span></td>
+  <td class="form-group form-input" style="width:350px;height: 40px;" nowrap>
+    <div class="radio">
+      <label class="radio-inline">
+        <input tabindex="8" type="radio" name="isWithoutpayCover" id="isWithoutpayCover1" value="1" />
+        Yes
+      </label>
+      <label class="radio-inline">
+        <input tabindex="9" type="radio" name="isWithoutpayCover" id="isWithoutpayCover0" value="0" checked/>
+        No
+      </label>
+    </div>
+  </td>
+  <td class="d-xxl-none"></td>
+</tr>
+
+<tr>
+  <td valign="top" class="form-label" style="width:150px;" nowrap>Remarks:</td>
+  <td class="form-group form-input" style="width:350px" nowrap>
+   <textarea class="form-control" name="remarks" id="remarks" maxlength="50" style="width:325px"></textarea>
+ </td>
+ <td class="d-xxl-none"></td>
+</tr>
+
+</tbody>
+</table>
+</div>
+<div class="subtitle mt-20">
+ <h5 class="title mr-auto"><i class="icon left la la-calendar-check-o ?>"></i> Leave Type Earning</h5>
+ <div class="subtitle-tools">
+ </div>
+</div>
+<div class="datatables_wrapper">
+ <div class="table-responsive-xl">
+  <table id="family-members" class="table hover">
+   <tbody>
+    <?php 
+    $ctr = 10;
+    $this->db->where('status', 1);
+    $this->db->order_by('rank', 'asc');
+    $this->db->order_by('employeeType', 'asc');
+    $data = $this->db->get('employee_types');
+
+    if ($data->num_rows()) {
+      foreach ($data->result() as $row) {?>
+        <tr>
+         <td class="form-label" width="200px" valign="top" nowrap><?php echo $row->employeeType?></td>
+         <td class="form-group form-input"><input class="form-control" tabindex="<?php echo ++$ctr;?>" type="text" name="earning_<?php echo $row->employeeTypeID?>" id="earning_<?php echo $row->employeeTypeID?>" value="0" maxlength="5" style="width:200px"  onkeypress='return event.charCode >= 48 && event.charCode <= 57'/></td>
+       </tr>
+     <?php }
+   }?>  
+ </tbody>
+</table>
+</div>
+</div>
+<div class="form-sepator solid"></div>
+<div class="form-group mb-0">
+ <button class="btn btn-xs btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+   Save
+ </button>
+ <input type="button" id="cmdCancel" class="btn btn-xs btn-outline-danger btn-raised pill" value="Cancel"/>
+</div>
+</form>
+<!-- Form End -->
+</div>
+</div>
+<!-- Card Box End -->
+</div>
+</div>
+</div>
+<!-- Content End -->
+<script>
+ $('#cmdSave').click(function(){
+  if (check_fields()) {
+    $('#cmdSave').attr('disabled','disabled');
+    $('#cmdSave').addClass('loader');
+    $.post("<?php echo $controller_page ?>/check_duplicate", { code: $('#code').val() },
+     function(data){
+       if (parseInt(data)) {
+        $('#cmdSave').removeClass("loader");
+        $('#cmdSave').removeAttr('disabled');
+                  // duplicate
+                  swal("Duplicate","Record is already exist!","warning");
+                 } else {
+                // submit
+                 $('#frmEntry').submit();
+               }
+             }, "text");
+  }
+});
+
+
+ function check_fields()
+ {
+   var valid = true;
+   var req_fields = "";
+
+   $('#frmEntry [required]').each(function(){
+    if($(this).val()=='' ) {
+     req_fields += "<br/>" + $(this).attr('label');
+     valid = false;
+   } 
+ })
+
+   if (!valid) {
+    swal("Required Fields",req_fields,"warning");
+  }
+
+  return valid;
+}
+
+$('#cmdCancel').click(function(){
+  swal({
+    title: "Are you sure?",
+    text: "",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'No'
+  })
+  .then((willDelete) => {
+    if (willDelete.value) {
+     window.location = '<?php echo site_url('leave_type/show') ?>';
+   }
+ });
+
+});
+
+</script>

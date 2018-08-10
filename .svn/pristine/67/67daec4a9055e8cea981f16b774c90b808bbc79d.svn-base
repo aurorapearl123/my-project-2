@@ -1,0 +1,111 @@
+
+<table class="tabDetailView" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<td class="tabDetailViewDL" colspan="4" nowrap>
+			<table class="table table-striped table-bordered" border="0" cellpadding="0" cellspacing="0" width="100%">
+				<tr height="20">
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="left"><input class="check-all" name="items" type="checkbox" title="Check/Uncheck All" checked/></div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="left">#</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="left">ID Number</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="left">Employee</div></td>					
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="left">Employment</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(+) Basic Salary</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(+) Incentives</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(=) Gross Pay</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(-) W/out Pay</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(-) WTax</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(-) Deductions</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">(=) Net Pay</div></td>
+					<td scope="col" class="listViewThS1" colspan="" nowrap><div align="right">ER Share</div></td>
+				</tr>	
+				<?php 
+				$ctr = 0;
+				if(!empty ($records)) {
+					foreach($records as $row) { ?>
+						<tr height="20" onmouseover="setPointer(this, '0', 'over', '#ffffff', '#DEEFFF', '');" onmouseout="setPointer(this, '1', 'out', '#ffffff', '#DEEFFF', '');" onmousedown="setPointer(this, '0', 'click', '#ffffff', '#DEEFFF', '');">
+							<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="left" valign="top" width="20px">
+								<input type="checkbox" class="chkAdd" name="chkAdd[]" id="chkAdd_<?php echo $row['employmentNo']?>" value="<?php echo $row['employmentID']?>" checked/></td>
+								<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="left" valign="top" width="20px">
+									<?php echo ++$ctr;?>.</td>				    	
+									<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="left" valign="top" width="50px" nowrap>
+										<?php echo $row['employmentNo'] ?></td>
+										<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="left" valign="top" >
+											<?php echo $row['name']?></td>
+											<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="left" valign="top" nowrap>
+												<?php echo $row['employeeType']?></td>
+												<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+													<?php echo number_format($row['basicSalary'], 2)?></td>
+													<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+														<?php echo number_format($row['totalIncentive'], 2)?></td>
+														<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+															<?php echo number_format($row['grossPay'], 2)?></td>
+															<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+																<?php echo number_format($row['wop'], 2)?></td>
+																<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+																	<?php echo number_format($row['wtax'], 2)?></td>
+																	<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+																		<?php echo number_format($row['deductions'], 2)?></td>
+																		<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+																			<?php echo number_format($row['netPay'], 2)?></td>
+																			<td scope="row" class="oddListRowS1" bgcolor="#ffffff" align="right" valign="top" >
+																				<?php echo number_format($row['erShare'], 2)?></td>
+																			</tr>
+																			<tr>
+																				<td colspan="20" height="1" class="listViewHRS1"></td>
+																			</tr>			    
+																		<?php }?>
+																	<?php }?>
+																</table>
+															</td>
+														</tr>
+													</table>
+
+													
+
+													<script>
+
+														<?php 
+														echo "\n";
+														$parameters = array('branchID');
+														echo $this->htmlhelper->get_json_select('getDivisions', $parameters, site_url('division/getDivisions'), 'divisionID', 'activeID') ;
+
+														?>
+
+$('.check-all').click(function(event) { //on click
+    if(this.checked) { // check select status
+        $('.chkAdd').each(function() { //loop through each checkbox
+            this.checked = true;  //select all checkboxes with class "checkbox1"              
+        });
+    }else{
+        $('.chkAdd').each(function() { //loop through each checkbox
+            this.checked = false; //deselect all checkboxes with class "checkbox1"                      
+        });        
+    }
+});
+
+function setPayment(id)
+{
+	if ($('#chkAdd_'+id).is(':checked')) {
+		$('#amount_'+id).removeAttr('disabled');
+		$('#amount_'+id).val(parseFloat($('#amount_hidden_'+id).val()).toFixed(2));		
+		$('#amount_'+id).focus();
+	} else {
+		$('#amount_'+id).attr('disabled','disabled'); 
+		$('#amount_'+id).val('');
+	}
+	calculate_total();
+}
+
+function calculate_total()
+{ 
+	var amount = 0;
+	$('input[type=checkbox]').each(function () {
+		if (this.checked) {
+			amount += parseFloat($('#amount_'+$(this).val()).val());
+			
+		}
+	});
+
+	$('#total').val(amount.toFixed(2));
+}
+</script>

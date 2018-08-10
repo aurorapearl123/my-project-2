@@ -1,0 +1,206 @@
+
+<!-- Sub Header End -->
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools">
+			<a href="<?php echo $controller_page.'/show' ?>" class="btn btn-primary btn-raised btn-xs pill"><i class="icon ti-angle-left"></i> Back to List</a>
+		</div>
+	</div>
+</div>
+<!-- Sub Header Start -->
+
+
+
+<!-- Content Start -->
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+
+
+
+			<!-- Card Box Start -->
+			<div class="card-box">
+
+
+				<!-- Card Header Start -->
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools">
+						<ul class="tools-list">
+							<?php if ($roles['edit']) {?>
+								<li>
+									<a href="<?php echo $controller_page.'/edit/'.$this->encrypter->encode($rec->leaveTypeID) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+								</li>
+							<?php } ?>
+							<?php if ($roles['delete'] && !$in_used) {?>
+								<li>
+									<button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->leaveTypeID); ?>');"><i class="la la-trash-o"></i></button>
+								</li>
+							<?php } ?>
+							<?php if ($this->session->userdata('current_user')->isAdmin) {?>
+								<li>
+									<button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/leave_types/leaveTypeID/'.$this->encrypter->encode($rec->leaveTypeID).'/Leave&Type') ?>', 1000, 500)"><i class="la la-server"></i></button>
+								</li>
+							<?php } ?>
+						</ul>
+					</div>
+				</div>
+				<!-- Card Header End -->
+				
+				
+				
+				
+				
+				<!-- Card Body Start -->
+				<div class="card-body">
+					<div class="data-view">
+						<table class="view-table">
+
+								<tbody>
+
+									<!-- Table Rows Start -->
+									<tr>
+										<td class="data-title" style="width:120px" nowrap>Code:</td>
+										<td class="data-input" style="width:420px" nowrap><?php echo $rec->code; ?></td>
+										
+										<td colspan="3"></td>
+									</tr>
+									<tr>
+										<td class="data-title" style="width:120px" nowrap>Leave Type:</td>
+										<td class="data-input" style="width:320px" nowrap><?php echo $rec->leaveType; ?></td>
+
+										<td colspan="3"></td>
+									</tr>
+
+									<tr>
+										<td class="data-title" nowrap>Frequency:</td>
+										<td class="data-input" nowrap>
+											<?php
+											switch ($rec->frequency) {
+												case 0: echo "None"; break;
+												case 1: echo "Daily"; break;
+												case 2: echo "Weekly"; break;
+												case 3: echo "Monthly"; break;
+												case 4: echo "Quarterly"; break;
+												case 5: echo "Semi-Annual"; break;
+												case 6: echo "Annual"; break;
+											} ?>
+										</td>
+
+										<td colspan="3"></td>
+									</tr>
+
+									<tr>
+										<td class="data-title" nowrap>Credit Earning:</td>
+										<td class="data-input" nowrap>
+											<?php
+											switch ($rec->creditEarn) {
+												case 1: echo "Incremental"; break;
+												case 2: echo "Reset"; break;							
+											}  ?>
+										</td>
+
+										<td colspan="3"></td>
+									</tr>
+
+									<tr>
+										<td class="data-title" nowrap>Cashable:</td>
+										<td class="data-input" nowrap>
+											<?php
+											switch ($rec->isCashable) {
+												case 1: echo "Yes"; break;
+												case 0: echo "No"; break;							
+											} ?>
+										</td>
+
+										<td colspan="3"></td>
+									</tr>
+
+									<tr>
+
+										<td class="data-title" nowrap>Cover w/out Pay:</td>
+										<td class="data-input" nowrap>
+											<?php
+											switch ($rec->isWithoutpayCover) {
+												case 1: echo "Yes"; break;
+												case 0: echo "No"; break;							
+											} ?>
+										</td>
+										<td colspan="3"></td>
+									</tr>
+									<tr>
+										<td class="data-title" nowrap>Remarks:</td>
+										<td class="data-input" nowrap><?php echo $rec->remarks; ?></td>
+										<td colspan="3"></td>
+									</tr>
+									<tr>
+										<td class="data-title" nowrap>Status:</td>
+										<td class="data-input" nowrap>
+											<?php 
+											if ($rec->status == 1) {
+												echo "<span class='badge badge-pill badge-success'>Active</span>";
+											} else {
+												echo "<span class='badge badge-pill badge-danger'>Inactive</span>";
+											}
+											?>
+										</td>
+										<td colspan="3"></td>
+									</tr>
+									<!-- Table Rows End -->
+
+
+								</tbody>
+							</table>
+						</div>
+
+
+
+						<div class="subtitle mt-20">
+							<h5 class="title mr-auto"><i class="icon left la la-calendar-check-o ?>"></i> Leave Type Earning</h5>
+							<div class="subtitle-tools">
+							</div>
+						</div>
+						<div class="datatables_wrapper">
+							<div class="table-responsive-xl">
+								<table id="family-members" class="table hover">
+									<tbody>
+										<?php 
+										$this->db->select('leave_type_earnings.*');
+										$this->db->select('employee_types.employeeType');
+										$this->db->from('leave_type_earnings');
+										$this->db->join('employee_types','leave_type_earnings.employeeTypeID=employee_types.employeeTypeID','left');
+										$this->db->where('leave_type_earnings.leaveTypeID', $rec->leaveTypeID);
+										$this->db->order_by('employee_types.rank', 'asc');
+										$this->db->order_by('employee_types.employeeType', 'asc');
+										$query = $this->db->get();
+										?>
+
+										<?php 
+										if ($query->num_rows()) {
+											foreach ($query->result() as $row) {?>
+												<tr>
+													<td class="data-title" width="250px;" nowrap><?php echo $row->employeeType  ?> :</td>
+													<td class="data-input" nowrap><?php echo number_format($row->earning, 3); ?> </td>  
+													<td class="data-title"></td>  
+													<td class="data-input"></td>  
+
+
+												</tr>
+											<?php }
+										}?>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div><!-- Card Body End -->
+				</div>
+			</div>
+		</div>
+	</div><!-- Content End -->

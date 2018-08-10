@@ -1,0 +1,94 @@
+
+<div class="subheader">
+  <div class="d-flex align-items-center">
+    <div class="title mr-auto">
+      <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+    </div>
+    <div class="subheader-tools">
+      <a href="<?php echo $controller_page ?>/view/<?php echo $this->encrypter->encode($rec->employeeTypeID)?>" class="btn btn-primary btn-raised btn-sm pill"><i class="icon ti-angle-left"></i> Back to View</a>
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div class="row">
+    <div class="col-12">
+      <div class="card-box">
+        <div class="card-head">
+          <div class="head-caption">
+            <div class="head-title">
+              <h4 class="head-text">Edit <?php echo $current_module['module_label'] ?></h4>
+            </div>
+          </div>
+          <div class="card-head-tools"></div>
+        </div>
+        <div class="card-body">
+          <form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page ?>/update">
+            <div class="table-row">
+              <table class="view-table">
+              <tbody>
+                <tr>
+                  <td class="data-title" width="150px">Employee Type:</td>
+                  <td class="data-input"><?php echo $rec->employeeType; ?></td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <br>
+            
+            <table class="table table-striped hover table-bordered">
+                <tr height="20">
+                	<td scope="col" class="listViewThS1" colspan="" width="80px"  nowrap><div align="right"></div></td>
+                	<?php for ($step = 1; $step <= $stepLimit; $step++) {?>
+                		<td scope="col" class="listViewThS1" colspan=""  nowrap><div align="center">Step <?php echo $step?></div></td>
+                	<?php }?>		
+                </tr>	
+                <?php 
+                for ($grade = 1; $grade <= $gradeLimit; $grade++) { ?>
+                	<tr >
+                		<td width="80px" nowrap>
+                			<div align="center">Grade <?php echo $grade?></div></td>
+                		<?php for ($step = 1; $step <= $stepLimit; $step++) {?>
+                			<td align="right" valign="top" width="100px">
+                				<input type="number" class="form-control salary-input" data-grade="<?php echo $grade?>" data-step="<?php echo $step?>" data-value="<?php echo $schedule[$grade][$step]?>" name="salary_<?php echo $grade?>_<?php echo $step?>" id="salary_<?php echo $grade?>_<?php echo $step?>" value="<?php echo $schedule[$grade][$step]?>" style="width:100px; text-align: right"/></td>
+                		<?php }?>							
+                	</tr>
+                <?php }?>
+                </table>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $(".salary-input").on('blur', function() {
+        var grade 	= $(this).attr('data-grade');
+        var step  	= $(this).attr('data-step');
+        var value   = $(this).attr('data-value');
+        var amount  = $(this).val();
+
+        if (value != amount) {
+            $.ajax({
+                url: '<?php echo $controller_page ?>/update',
+                data: { employeeTypeID: <?php echo $rec->employeeTypeID?>, grade: grade, step: step, amount: amount },
+                type: 'POST',
+                dataType:'json',
+                success:function(response) {
+                    if (response.status == '1') {
+                        
+                    } else {
+                        if (response.message) {
+                            notify(response.message);
+                        }
+                    }
+                }, error:function(xhr) {
+                    alert('Network Connection Error!');
+                }
+            });
+        }
+    });
+});
+</script>

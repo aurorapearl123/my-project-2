@@ -1,0 +1,166 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Branch')) {
+    $submenu[] = array('label'=>'Branches','url'=>site_url('branch/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Department')) {
+    $submenu[] = array('label'=>'Supplier','url'=>site_url('department/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Division')) {
+    $submenu[] = array('label'=>'Cloth Categories','url'=>site_url('section/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Position')) {
+    $submenu[] = array('label'=>'Service','url'=>site_url('jobtitle/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Master Files';
+$module['main']['controller'] 	= 'master_files';
+$module['main']['description'] 	= 'Manage all Master Files';
+$module['main']['icon'] 		= 'la-folder';
+$module['main']['roles'] 		= array();
+
+
+// sub module
+$module['sub']['Company'] = array(
+    'title'=>'Companies',
+    'module_label'=>'Company', // this will display on create/view/edit form
+    'controller'=>'company',
+    'description'=>'Manage all Company',
+    'icon'=>'la-institution',
+    'roles'=>array(   'Add Company',
+        'View Company',
+        'Edit Existing Company',
+        'Delete Existing Company',
+    )
+);
+
+
+$module['sub']['Branch'] = array(
+    'title'=>'Branches',
+    'module_label'=>'Branch', // this will display on create/view/edit form
+    'controller'=>'branch',
+    'description'=>'Manage all Branches',
+    'icon'=>'la-building',
+    'roles'=>array(   'Add Branch',
+            'View Branch',
+            'Edit Existing Branch',
+            'Delete Existing Branch',
+    )
+);
+
+$module['sub']['Department'] = array(
+		'title'=>'Departments',
+		'module_label'=>'Department', // this will display on create/view/edit form
+		'controller'=>'department',
+		'description'=>'Manage all Departments',
+		'icon'=>'la-building',
+		'roles'=>array(   'Add Department',
+		                  'View Department',
+		                  'Edit Existing Department',
+		                  'Delete Existing Department',
+						)
+);
+
+//$module['sub']['Division'] = array(
+//    'title'=>'Divisions',
+//    'module_label'=>'Division', // this will display on create/view/edit form
+//    'controller'=>'division',
+//    'description'=>'Manage all Divisions',
+//    'icon'=>'la-map',
+//    'roles'=>array(   'Add Division',
+//        'View Division',
+//        'Edit Existing Division',
+//        'Delete Existing Division',
+//    )
+//);
+
+$module['sub']['Section'] = array(
+    'title'=>'Sections',
+    'module_label'=>'Section', // this will display on create/view/edit form
+    'controller'=>'section',
+    'description'=>'Manage all Sections',
+    'icon'=>'la-map',
+    'roles'=>array(   'Add Section',
+        'View Section',
+        'Edit Existing Section',
+        'Delete Existing Section',
+    )
+);
+
+$module['sub']['Position'] = array(
+    'title'=>'Positions',
+    'module_label'=>'Positions', // this will display on create/view/edit form
+    'controller'=>'position',
+    'description'=>'Manage all Positions',
+    'icon'=>'la-bookmark',
+    'roles'=>array(   'Add Position',
+            'View Position',
+            'Edit Existing Position',
+            'Delete Existing Position',
+    )
+);
+$module['sub']['Jobtitle'] = array(
+    'title'=>'Job Titles',
+    'module_label'=>'Job Title', // this will display on create/view/edit form
+    'controller'=>'Jobtitle',
+    'description'=>'Manage all Positions',
+    'icon'=>'la-bookmark',
+    'roles'=>array(   'Add Position',
+            'View Position',
+            'Edit Existing Position',
+            'Delete Existing Position',
+    )
+);
+
+$module['sub']['Plantilla'] = array(
+    'title'=>'Job Positions',
+    'module_label'=>'Job Position', // this will display on create/view/edit form
+    'controller'=>'position',
+    'description'=>'Manage all Plantilla',
+    'icon'=>'la-folder',
+    'roles'=>array(   'Add Plantilla',
+        'View Plantilla',
+        'Edit Existing Plantilla',
+        'Delete Existing Plantilla',
+    )
+);
+
+$module['sub']['Employment Type'] = array(
+    'title'=>'Employment Types',
+    'module_label'=>'Employment Type', // this will display on create/view/edit form
+    'controller'=>'employment_type',
+    'description'=>'Manage all Employment Type',
+    'icon'=>'la-folder',
+    'roles'=>array(   'Add Employment Type',
+        'View Employment Type',
+        'Edit Existing Employment Type',
+        'Delete Existing Employment Type',
+    )
+);
+
+
+
+$module['main']['menu'] = $submenu;
+$this->modules['Master Files']  = $module;
+?>

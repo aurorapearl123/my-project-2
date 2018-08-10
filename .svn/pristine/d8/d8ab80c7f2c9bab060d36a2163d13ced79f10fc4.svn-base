@@ -1,0 +1,180 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+		'title'=>'Item Category',
+		'description'=>'Manage all order categories in the commissary',
+		'icon'=>'category.png',
+		'roles'=>array('Add','View','Edit','Delete')
+	);
+ */
+
+$submenu = array();
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Daily Time Record')) {
+    $submenu[] = array('label'=>'Daily Time Records','url'=>site_url('attendance/create'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Shift Schedule')) {
+    $submenu[] = array('label'=>'Shift Schedules','url'=>site_url('shift_schedule/create'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Overtime')) {
+    $submenu[] = array('label'=>'Overtime Schedule','url'=>site_url('overtime_schedule/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Shift')) {
+    $submenu[] = array('label'=>'Shifts','url'=>site_url('shift/show'),'icon'=>'bullet','subitem'=>array());
+}
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Biometric Logs')) {
+    $submenu[] = array('label'=>'Biometric Logs','url'=>site_url('biometric_logs/show'),'icon'=>'bullet','subitem'=>array(
+            array('label'=>'Raw Logs','url'=>site_url('biometric_logs/show'),'icon'=>'bullet'),
+            array('label'=>'Import Logs','url'=>site_url('biometric_logs/show'),'icon'=>'bullet'),
+            array('label'=>'Organize Logs','url'=>site_url('biometric_logs/show'),'icon'=>'bullet'),
+    ));
+}
+
+// main module
+$module = array();
+$module['main']['title'] 		= 'Attendance and Shift';
+$module['main']['controller'] 	= 'attendance';
+$module['main']['description'] 	= 'Manage all Attendance and Shifts';
+$module['main']['icon'] 		= 'la-clock-o';
+$module['main']['roles'] 		= array();
+
+
+// sub module
+$module['sub']['Leave'] = array(
+		'title'=>'Leaves',
+        'module_label'=>'Leave',
+		'controller'=>'leave',
+		'description'=>'Manage all Leaves',
+		'icon'=>'la-money',
+		'roles'=>array(
+		    'Add Leave',
+            'View Leave',
+            'Edit Existing Leave',
+            'Delete Existing Leave',
+		)
+);
+
+
+$module['sub']['Travel Order'] = array(
+    'title'=>'Travel Orders',
+    'module_label'=>'Travel Order',
+    'controller'=>'travel_order',
+    'description'=>'Manage all Travel Orders',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Travel Order',
+        'View Travel Order',
+        'Edit Existing Travel Order',
+        'Delete Existing Travel Order',
+    )
+);
+
+$module['sub']['Suspensions'] = array(
+    'title'=>'Suspensions',
+    'module_label'=>'Suspension',
+    'controller'=>'suspension',
+    'description'=>'Manage all Suspensions',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Suspension',
+        'View Suspension',
+        'Edit Existing Suspension',
+        'Delete Existing Suspension',
+    )
+);
+
+$module['sub']['Leave Credit'] = array(
+    'title'=>'Leave Credits',
+    'module_label'=>'Leave Credit',
+    'controller'=>'leave_credit',
+    'description'=>'Manage all Leave Credits',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Leave Credit',
+        'View Leave Credit',
+        'Edit Existing Leave Credit',
+        'Delete Existing Leave Credit',
+    )
+);
+
+$module['sub']['Leave Type'] = array(
+    'title'=>'Leave Types',
+    'module_label'=>'Leave Type',
+    'controller'=>'leave_type',
+    'description'=>'Manage Leave Types',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Leave Type',
+        'View Leave Type',
+        'Edit Existing Leave Type',
+        'Delete Existing Leave Type',
+    )
+);
+
+$module['sub']['Shift'] = array(
+    'title'=>'Shifts',
+    'module_label'=>'Shift',
+    'controller'=>'shift',
+    'description'=>'Manage Shifts',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Shift',
+        'View Shift',
+        'Edit Existing Shift',
+        'Delete Existing Shift',
+    )
+);
+
+$module['sub']['Shift Schedule'] = array(
+    'title'=>'Shift Schedules',
+    'module_label'=>'Shift Schedule',
+    'controller'=>'shift_schedule',
+    'description'=>'Manage Shift Schedule',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Shift Schedule',
+        'View Shift Schedule',
+        'Edit Existing Shift Schedule',
+        'Delete Existing Shift Schedule',
+    )
+);
+
+$module['sub']['Attendance'] = array(
+    'title'=>'Attendance',
+    'module_label'=>'Attendance',
+    'controller'=>'attendance',
+    'description'=>'Manage Attendance',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Attendance',
+        'View Attendance',
+        'Edit Existing Attendance',
+        'Delete Existing Attendance',
+    )
+);
+
+$module['sub']['Overtime Schedule'] = array(
+    'title'=>'Overtime Schedule',
+    'module_label'=>'Overtime Schedule',
+    'controller'=>'overtime_schedule',
+    'description'=>'Manage Overtime Schedule',
+    'icon'=>'la-money',
+    'roles'=>array(
+        'Add Overtime Schedule',
+        'View Overtime Schedule',
+        'Edit Existing Overtime Schedule',
+        'Delete Existing Overtime Schedule',
+    )
+);
+
+$module['main']['menu'] = $submenu;
+$this->modules['Attendance and Shift']  = $module;
+?>

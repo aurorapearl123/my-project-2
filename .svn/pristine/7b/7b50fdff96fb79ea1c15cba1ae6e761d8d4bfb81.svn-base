@@ -1,0 +1,287 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools"></div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools"></div>
+				</div>
+				<div class="card-body">
+					<form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url('reports/attendance_summary"') ?>">
+						<div class="table-row">
+							<table class="table-form column-3" width="100%">
+								<tbody>
+									<tr>
+										<td class="form-label" style="width:120px" valign="top" nowrap>Employment <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="4">
+											<select class="multipleSelect" name="employeeTypeID[]" id="employeeTypeID" multiple size="10" title="Employee" required>
+												<option value=""></option>
+												<?php
+												$this->db->where('status', 1);
+												$this->db->order_by('rank','asc');
+												$this->db->order_by('employeeType','asc');
+												$query = $this->db->get('employee_types');
+												
+												if ($query->num_rows()) {
+													foreach ($query->result() as $row) {
+														if (!empty($employeeTypeID)) {
+															if (in_array($row->employeeTypeID, $employeeTypeID)) {
+																echo '<option value="'.$row->employeeTypeID.'" selected>'.$row->employeeType.'</option>';
+															} else {
+																echo '<option value="'.$row->employeeTypeID.'">'.$row->employeeType.'</option>';
+															}
+														} else {
+															echo '<option value="'.$row->employeeTypeID.'" selected>'.$row->employeeType.'</option>';
+														}
+													}
+												}			
+												?>
+											</select>
+										</td>
+										<td width="10%"></td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Branch <span class="asterisk">*</span></td>
+										<td class="form-group form-input" style="width:400px" nowrap>
+											<select class="form-control" tabindex="5" name="branchID" id="branchID" style="width:166px" title="Branch" required onchange="getDepartment()">
+												<option value="" selected>&nbsp;</option>
+													<?php 
+											        $this->db->where('status',1); 
+													$this->db->order_by('branchName','asc');
+													$data = $this->db->get('branches')->result();
+													foreach($data as $rec){ ?>
+														<option value="<?php echo $rec->branchID?>" <?php if($rec->branchID == $branchID) { echo "selected"; }?>><?php echo $rec->branchName?></option>
+													<?php }	?>
+											</select>
+										</td>
+										<td class="form-label" style="width:170px" nowrap>Attendance Period <span class="asterisk">*</span></td>
+										<td class="form-group form-input" colspan="2" nowrap>
+											<select class="form-control" tabindex="5" name="payrollPeriodID" id="payrollPeriodID" style="width:166px" title="Attendance Period">
+												<option value="" selected>&nbsp;</option>
+												<?php 
+										        $this->db->where('status',1); 
+												$this->db->order_by('startDate','desc');
+												$result = $this->db->get('payroll_periods')->result();
+												foreach($result as $res) {	
+												?>
+												<option value="<?php echo $res->payrollPeriodID?>" <?php if($res->payrollPeriodID == $payrollPeriodID) { echo "selected"; }?>><?php echo $res->type.' - '.$res->payrollPeriod?></option>
+												<?php } ?>
+											</select>
+										</td>
+										<td class="form-group form-input">&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Department <span class="asterisk">*</span></td>
+										<td class="form-group form-input" nowrap>
+											<select class="form-control" tabindex="5" name="deptID" id="deptID" title="Department" required style="width:166px" onchange="getDivision()">
+												<option value="" selected>&nbsp;</option>
+													<?php 
+											        $this->db->where('status',1); 
+													$this->db->order_by('deptName','asc');
+													$data = $this->db->get('departments')->result();
+													foreach($data as $rec){ ?>
+														<option value="<?php echo $rec->deptID?>" <?php if($rec->deptID == $deptID) { echo "selected"; }?>><?php echo $rec->deptName?></option>
+													<?php }	?>
+											</select>
+										</td>
+										<td class="form-label" nowrap>Attendance Group</td>
+										<td class="form-group form-input" colspan="2" nowrap>
+											<select class="form-control" tabindex="5" name="payrollGroupID" id="payrollGroupID" style="width:166px">
+												<option value="" selected>&nbsp;</option>
+													<?php 
+											        $this->db->where('status',1); 
+													$this->db->order_by('rank','asc');
+													$this->db->order_by('payrollGroup','asc');
+													$data = $this->db->get('payroll_groups')->result();
+													foreach($data as $rec){ ?>
+														<option value="<?php echo $rec->payrollGroupID?>" <?php if($rec->payrollGroupID == $payrollGroupID) { echo "selected"; }?>><?php echo $rec->payrollGroup?></option>
+													<?php }	?>
+											</select>
+										</td>
+										<td>&nbsp;</td>
+									</tr>
+									<tr>
+										<td class="form-label" valign="top" nowrap>Division</td>
+										<td class="form-group form-input">
+											<select class="form-control" tabindex="5" name="divisionID" id="divisionID" style="width:166px">
+												<option value="" selected>&nbsp;</option>
+													<?php 
+											        $this->db->where('status',1); 
+													$this->db->order_by('divisionName','asc');
+													$data = $this->db->get('divisions')->result();
+													foreach($data as $rec){ ?>
+														<option value="<?php echo $rec->divisionID?>" <?php if($rec->divisionID == $divisionID) { echo "selected"; }?>><?php echo $rec->divisionName?></option>
+													<?php }	?>
+											</select>
+										</td>
+										<td class="form-label">&nbsp;</td>
+										<td class="form-group form-input" width="300px">
+											<select name="limit" id="limit" class="form-control" style="width:120px">
+									        	<option value="0" <?php if ($limit==0) echo "selected"; ?>>Show All</option>
+										        <option value="10" <?php if ($limit==10) echo "selected"; ?>>10 Per Page</option>
+										        <option value="20" <?php if ($limit==20) echo "selected"; ?>>20 Per Page</option>
+										        <option value="25" <?php if ($limit==25) echo "selected"; ?>>25 Per Page</option>
+										        <option value="50" <?php if ($limit==50) echo "selected"; ?>>50 Per Page</option>
+										        <option value="75" <?php if ($limit==75) echo "selected"; ?>>75 Per Page</option>
+										        <option value="100" <?php if ($limit==100) echo "selected"; ?>>100 Per Page</option>
+										        <option value="125" <?php if ($limit==125) echo "selected"; ?>>125 Per Page</option>
+										        <option value="150" <?php if ($limit==150) echo "selected"; ?>>150 Per Page</option>
+										        <option value="200" <?php if ($limit==200) echo "selected"; ?>>200 Per Page</option>		        
+									        </select>
+										</td>
+										<td><input class="btn btn-primary btn-raised pill" type="button" name="cmdSubmit" id="cmdSubmit" value=" Submit Filter " /></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</form>
+					<?php if ($records->num_rows()) {?>
+					<table width="100%">
+					<tr>
+						<td><div align="center">No.</div></td>
+						<td><div align="center">Employee</div></td>
+						<td><div align="center">Basic<br>Salary</div></td>
+						<td><div align="center">Tardiness</div></td>
+						<td><div align="center">Undertime</div></td>
+						<td><div align="center">Absences</div></td>
+						<td colspan="<?php echo ($leave_types->num_rows() + 3)?>"><div align="center">Leaves / Orders / Suspension</div></td>	
+					</tr>
+					<tr height="20">
+						<td><div align="center">ID No.</div></td>
+						<td><div align="center">Name</div></td>
+						<td><div align="center">Number<br>of Tardy</div></td>
+						<td><div align="center">Minutes</div></td>
+						<td><div align="center">Dates</div></td>	
+						<td><div align="center">Number<br>of UT</div></td>
+						<td><div align="center">Minutes</div></td>
+						<td><div align="center">Dates</div></td>
+						<td><div align="center">Number<br>of Abs.</div></td>
+						<td><div align="center">Dates</div></td>
+						<?php 
+						if ($leave_types->num_rows()) {
+							foreach ($leave_types->result() as $leave_type) {?>
+								<td><div align="center"><?php echo $leave_type->code?></div></td>
+						<?php }
+						}?>
+						<td title="Travel Order, Office Order, Memorandum Order"><div align="center">ORDR</div></td>
+						<td title="Suspension"><div align="center">SUSPN</div></td>
+					</tr>
+					<?php 
+					$ctr = $offset;
+					foreach($records->result() as $row) { 
+						$id = $this->encrypter->encode($row->employmentID);?> 
+						<tr onmouseover="setPointer(this, '0', 'over', '#ffffff', '#DEEFFF', '');" onmouseout="setPointer(this, '1', 'out', '#ffffff', '#DEEFFF', '');" onmousedown="setPointer(this, '0', 'click', '#ffffff', '#DEEFFF', '');" height="20">
+							<td><?php echo ++$ctr;?>.</td>
+					    	<td>
+					    		<a href="javascript: openRecord('<?php echo site_url('employment/view/'.$id); ?>',1, 900, 500)">
+					    			<?php echo $row->empNo;?>
+					    		</a>
+					    	</td>
+					    	<td>
+					    		<a href="javascript: openRecord('<?php echo site_url('employment/view/'.$id); ?>',1, 900, 500)">
+					    			<?php echo $row->lname;?>, <?php echo $row->fname;?> <?php echo substr($row->mname, 0, 1);?> <?php echo $row->suffix;?>
+					    		</a>
+					    	</td>    	
+					    	<td>
+					    		<?php echo number_format($row->basicSalary, 2);?> 
+					    		<?php 
+									 switch ($row->salaryType) {
+										case "1" : echo "(M)"; break;
+										case "2" : echo "(D)"; break;
+										case "3" : echo "(H)"; break;
+									 }
+								?>
+							</td>
+					    	<td><?php echo ($log[$row->employmentID]['tardy_count'] > 0) ? number_format($log[$row->employmentID]['tardy_count']) : '';?></td>
+					    	<td><?php echo ($log[$row->employmentID]['tardy_min'] > 0) ? number_format($log[$row->employmentID]['tardy_min']) : '';?></td>
+					    	<td><?php echo $log[$row->employmentID]['tardy_date'];?></td>
+					    	<td><?php echo ($log[$row->employmentID]['ut_count'] > 0) ? number_format($log[$row->employmentID]['ut_count']) : '';?></td>
+					    	<td><?php echo ($log[$row->employmentID]['ut_min'] > 0) ? number_format($log[$row->employmentID]['ut_min']) : '';?></td>
+					    	<td><?php echo $log[$row->employmentID]['ut_date'];?></td>
+					    	<td><?php echo ($log[$row->employmentID]['absent_count'] > 0) ? number_format($log[$row->employmentID]['absent_count']) : '';?></td>
+					    	<td><?php echo $log[$row->employmentID]['absent_date'];?></td>
+					    	<?php 
+							if ($leave_types->num_rows()) {
+								foreach ($leave_types->result() as $leave_type) {?>
+									<td title="<?php echo $leave_type->leaveType?>"><?php echo ($log[$row->employmentID][$leave_type->code] > 0) ? number_format($log[$row->employmentID][$leave_type->code]) : '';?></td>
+							<?php }
+							}?>
+					    	<td title="Travel Order, Office Order, Memorandum Order"><?php echo ($log[$row->employmentID]['ORDR'] > 0) ? number_format($log[$row->employmentID]['ORDR']) : '';?></td>
+					    	<td title="Suspension"><?php echo ($log[$row->employmentID]['SUSPN'] > 0) ? number_format($log[$row->employmentID]['SUSPN']) : '';?></td>
+					    </tr>
+					    <tr>
+					    	<td></td>
+					    </tr>  
+					    <?php }?>	    				   
+					</table>
+					<br>
+					
+					<h4>
+					<?php 
+					$pagination = $this->pagination->create_links(); 
+					
+					if ($pagination) {
+						echo "Page: ".$pagination."&nbsp;&nbsp;| &nbsp; ";			
+					}
+					
+					echo "Total Records: ".number_format($ttl_rows,0);
+					?>
+					</h4>
+					<input type="button" class="button" name="cmdPrint" id="cmdPrint" value="Print"  onclick="printSummary();" />
+					<br>
+					<?php } ?>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$('#cmdSubmit').click(function(){
+		if (check_fields()) {
+			$('#frmEntry').submit();
+		}
+	});
+	
+	
+	function check_fields()
+	{
+		 var valid = true;
+		 var req_fields = "";
+		 
+		 $('#frmEntry [required]').each(function(){
+		    if($(this).val()=='' ) {
+		    	req_fields += "<br/>" + $(this).attr('title');
+			    valid = false;
+		    } 
+		 })
+		 
+		 if (!valid) {
+		 	swal("Required Fields",req_fields,"warning");
+		 }
+		 
+		 return valid;
+	}
+	
+	<?php 
+	echo "\n";
+	$parameters = array('branchID');
+	echo $this->htmlhelper->get_json_select('getDepartment', $parameters, site_url('generic_ajax/get_departments'), 'deptID', '');
+	
+	echo "\n";
+	$parameters = array('deptID');
+	echo $this->htmlhelper->get_json_select('getDivision', $parameters, site_url('generic_ajax/get_divisions'), 'divisionID', '');
+	?>
+</script>
+

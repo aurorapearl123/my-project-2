@@ -1,0 +1,103 @@
+
+<div class="subheader">
+  <div class="d-flex align-items-center">
+    <div class="title mr-auto">
+      <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+    </div>
+    <div class="subheader-tools">
+      <a href="<?php echo $controller_page ?>/show" class="btn btn-primary btn-raised btn-sm pill"><i class="icon ti-angle-left"></i> Back to List</a>
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div class="row">
+    <div class="col-12">
+      <div class="card-box">
+        <div class="card-head">
+          <div class="head-caption">
+            <div class="head-title">
+              <h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
+            </div>
+          </div>
+          <div class="card-head-tools">
+            <ul class="tools-list">
+              <?php if ($roles['edit']) {?>
+              <li>
+                <a href="<?php echo $controller_page ?>/edit/<?php echo $this->encrypter->encode($rec->premiumID)?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+              </li>
+              <?php } ?>
+               <?php if ($roles['delete'] && !$in_used) {?>
+              <li>
+                <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->premiumID); ?>');"><i class="la la-trash-o"></i></button>
+              </li>
+              <?php } ?>
+            </ul>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="data-view">
+            <table class="view-table">
+              <tbody>
+                <tr>
+                  <td class="data-title" width="150px">Premium Type:</td>
+                  <td class="data-input"><?php echo $rec->name; ?></td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <br>
+            <table class="table table-striped hover table-bordered">
+            <tr>
+            	<td><div align="left">#</div></td>
+            	<td><div align="right">Start Salary</div></td>
+            	<td><div align="right">End Salary</div></td>
+            	<td><div align="right">Base Salary</div></td>
+            	<td><div align="center">Share Type</div></td>
+            	<td><div align="right">Employee Share</div></td>
+            	<td><div align="right">Employer Share</div></td>
+            	<td><div align="right">Total Contribution</div></td>
+            </tr>	
+            <?php 
+            if ($schedules->num_rows()) {
+            	$ctr = 1;
+            	foreach ($schedules->result() as $row) {?>
+            		<tr>
+            			<td align="left" valign="top" width="20px">
+            				<?php echo $ctr++;?>.</td>				    	
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->startSalary, 2)?></td>
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->endSalary, 2)?></td>
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->baseSalary, 2)?></td>
+            			<td align="center" valign="top" width="100px">
+            				<?php echo ($row->shareType=="1") ? "Amount" : "Percentage"?></td>
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->employeeShare, 2)?></td>
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->employerShare, 2)?></td>
+            			<td align="right" valign="top" width="100px">
+            				<?php echo number_format($row->totalContribution, 2)?></td>
+            		</tr>
+            <?php }
+            }?>
+            
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script type="text/javascript">
+  function deleteRecord(id)
+  {
+    reply=confirm("Confirm delete?");
+
+    if (reply==true)
+        window.location='<?php echo $controller_page ?>/delete/'+id;
+  }
+</script>

@@ -1,0 +1,857 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Shift_schedule extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Shift Schedule';
+        $this->module_label = 'Shift Schedules';
+        $this->table        = 'shift_schedules';
+        $this->module_path  = 'modules/Attendance/Shift_Schedule';
+        $this->module_path_submenu  = 'modules/Attendance/submenu';
+        $this->pfield = 'shiftScheduleID';
+        $this->logfield = 'date';
+        $this->data['controller_page'] = $this->controller_page = site_url('shift_schedule');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->set_employee();
+    }
+
+    public function set_employee($empID=0,$employmentID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        if ($empID && $startDate && $endDate) {
+            $data['empID']          = $this->encrypter->decode($empID);
+            $data['employmentID']   = $this->encrypter->decode($employmentID);
+            $data['startDate']      = date('Y-m-d', $startDate);
+            $data['endDate']        = date('Y-m-d', $endDate);
+            
+            // set sessions
+            $this->session->set_userdata('current_empID', $data['empID']);
+            $this->session->set_userdata('current_employmentID', $data['employmentID']);
+            $this->session->set_userdata('current_startDate', $data['startDate']);
+            $this->session->set_userdata('current_endDate', $data['endDate']);
+        } else {
+            $data['empID']          = ($this->session->userdata('current_empID')) ? $this->session->userdata('current_empID') : 0;
+            $data['empNo']          = ($this->session->userdata('current_empNo')) ? $this->session->userdata('current_empNo') : "";
+            $data['employmentID']   = ($this->session->userdata('current_employmentID')) ? $this->session->userdata('current_employmentID') : 0;
+            $data['startDate']      = ($this->session->userdata('current_startDate')) ? $this->session->userdata('current_startDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-01'));
+            $data['endDate']        = ($this->session->userdata('current_endDate')) ? $this->session->userdata('current_endDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-'.date('t')));
+        }
+        // check roles
+        if ($this->roles['view']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'employmentID'=>'Employment', 'startDate'=>'Start Date','endDate'=>'End Date'); 
+            if ($data['empID']) {               
+                $this->db->where('empID', $data['empID']);
+                $query = $this->db->get('employees', 1)->row();
+                
+                $data['empNo']         = $query->empNo;
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+                
+                $this->session->set_userdata('current_empNo', $data['empNo']);
+            } elseif ($data['employmentID']) {
+                $this->db->select('employments.*');
+                $this->db->select('employees.lname');
+                $this->db->select('employees.fname');
+                $this->db->select('employees.mname');
+                $this->db->select('employees.suffix');
+                $this->db->from('employments');
+                $this->db->join('employees','employments.empID=employees.empID','left');
+                $this->db->where('employments.employmentID', $data['employmentID']);
+                $this->db->limit(1);
+                $query = $this->db->get()->row();
+                
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+
+            $this->db->select('shift_schedules.shiftScheduleID');
+            $this->db->select('shift_schedules.shiftID as schedShiftID');
+            $this->db->select('shift_schedules.date');
+            $this->db->select('shift_schedules.remarks as schedule_remarks');
+            $this->db->select('shifts.*');
+            $this->db->from('shift_schedules');
+            $this->db->join('shifts','shift_schedules.shiftID=shifts.shiftID','left');
+            $this->db->where('shift_schedules.employmentID', $data['employmentID']);
+            $this->db->where('shift_schedules.date >= ', $data['startDate']);
+            $this->db->where('shift_schedules.date <= ', $data['endDate']);
+            $this->db->order_by('shift_schedules.date', 'asc');
+            $data['records'] = $this->db->get();
+            
+            $data['dates'] = array();           
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                $info = array('shiftID'=>'0','shiftType'=>'1','in1'=>'','out1'=>'','in2'=>'','out2'=>'','remarks'=>'');
+                $data['dates'][$current] = $info;
+            }
+            
+            if ($data['records']->num_rows()) {
+                foreach ($data['records']->result() as $row) {
+                    $info = array('shiftID'=>$row->schedShiftID,'shiftType'=>$row->shiftType,'in1'=>$row->in1,'out1'=>$row->out1,'in2'=>$row->in2,'out2'=>$row->out2,'remarks'=>$row->schedule_remarks);
+                    $data['dates'][strtotime($row->date)] = $info;
+                }
+            }   
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/set_employee');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+
+    }
+
+    public function set_group($detailedCompanyID=0,$detailedOfficeID=0,$detailedDivisionID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;  
+
+        // check roles
+        if ($this->roles['view']) {
+            $data['required_fields'] = array('detailedCompanyID'=>'Company', 'detailedOfficeID'=>'OfficeID', 'startDate'=>'Start Date','endDate'=>'End Date');
+            
+            if ($startDate && $endDate) {
+                $data['detailedCompanyID']  = $this->encrypter->decode($detailedCompanyID);
+                $data['detailedOfficeID']   = $this->encrypter->decode($detailedOfficeID);
+                $data['detailedDivisionID'] = $this->encrypter->decode($detailedDivisionID);
+                $data['startDate']          = date('Y-m-d', $startDate);
+                $data['endDate']            = date('Y-m-d', $endDate);
+                
+                // set sessions
+                $this->session->set_userdata('current_detailedCompanyID', $data['detailedCompanyID']);
+                $this->session->set_userdata('current_detailedOfficeID', $data['detailedOfficeID']);
+                $this->session->set_userdata('current_detailedDivisionID', $data['detailedDivisionID']);
+                $this->session->set_userdata('current_startDate', $data['startDate']);
+                $this->session->set_userdata('current_endDate', $data['endDate']);
+            } else {
+                $data['detailedCompanyID']  = ($this->session->userdata('current_detailedCompanyID')) ? $this->session->userdata('current_detailedCompanyID') : 0;
+                $data['detailedOfficeID']   = ($this->session->userdata('current_detailedOfficeID')) ? $this->session->userdata('current_detailedOfficeID') : 0;
+                $data['detailedDivisionID'] = ($this->session->userdata('current_detailedDivisionID')) ? $this->session->userdata('current_detailedDivisionID') : 0;
+                $data['startDate']          = date('m/d/Y');
+                $data['endDate']            = date('m/d/Y');
+            }                       
+
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            $this->db->select('employments.*');
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.lname');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.mname');
+            $this->db->select('employees.suffix');
+            $this->db->from('employments');
+            $this->db->join('employees','employments.empID=employees.empID','left');
+            $this->db->where('employments.detailedCompanyID', $data['detailedCompanyID']);
+            if ($data['detailedOfficeID']) {
+                $this->db->where('employments.detailedOfficeID', $data['detailedOfficeID']);                
+            }
+            if ($data['detailedDivisionID']) {
+                $this->db->where('employments.detailedDivisionID', $data['detailedDivisionID']);
+            }
+            $this->db->where('employments.status', 1);
+            $this->db->order_by('employees.lname', 'asc');
+            $this->db->order_by('employees.fname', 'asc');
+            $this->db->order_by('employees.mname', 'asc');
+            $this->db->order_by('employments.employmentNo', 'asc');
+            $data['records'] = $this->db->get();    
+
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/set_group');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function update_employee()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+
+        // check roles
+        if ($this->roles['edit']) {
+            $data['empID']          = $this->encrypter->decode($this->input->post('empID'));
+            $data['employmentID']   = $this->encrypter->decode($this->input->post('employmentID'));
+            $data['startDate']      = date('Y-m-d', strtotime($this->input->post('startDate')));
+            $data['endDate']        = date('Y-m-d', strtotime($this->input->post('endDate')));                      
+            
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            $batch = array();
+            $att  = array();
+            for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                if ($this->input->post('chkAdd_'.$current)) { 
+                    // delete current shift schedules
+                    $this->db->where('employmentID', $data['employmentID']);
+                    $this->db->where('date', date('Y-m-d', $current));
+                    $this->db->delete($this->table);
+                    
+                    $info = array();
+                    $info['empID']          = $data['empID'];
+                    $info['employmentID']   = $data['employmentID'];
+                    $info['date']           = date('Y-m-d', $current);
+                    $info['shiftID']        = $this->input->post('shiftID_'.$current);
+                    $info['dateUpdated']    = date('Y-m-d H:i:s');
+                    $info['updatedBy']      = $this->session->userdata('current_userID');
+                    $this->db->insert('shift_schedules', $info);
+                    
+                    $this->db->where('employmentID', $data['employmentID']);
+                    $this->db->where('date', date('Y-m-d', $current));
+                    $this->db->where('attendanceType', 1);
+                    $this->db->where('isEdited', 0);
+                    $this->db->delete('attendance');
+                    
+                    $log = $this->dtrlog->organize_log($data['empID'], $data['employmentID'], $current);
+                    
+                    if (!empty($log)) {
+                        $att[] = $log[0];
+                    } 
+                    
+                    if ($info['shiftID']=='0') {
+                        $shift = 'NO WORK';
+                    } elseif ($info['shiftID']=='-1') {
+                        $shift = 'DAY OFF';
+                    } else {
+                        $this->db->where('shiftID', $info['shiftID']);
+                        $shift = $this->db->get('shifts', 1)->row()->shiftName;
+                    }
+                    
+                    // record logs
+                    $logs = "Record - ".trim($this->input->post('empNo')).' - '.$info['date'].' - '.$shift;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, 0, 'Update', $logs);
+                }
+            }           
+
+            if (!empty($att)) {
+                $this->db->insert_batch('attendance', $att);
+            }                                               
+            // Successfully updated
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully updated.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+    
+    public function update_group()
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;  
+
+        // check roles
+        if ($this->roles['edit']) {
+            $data['detailedCompanyID']  = $this->encrypter->decode($this->input->post('detailedCompanyID'));
+            $data['detailedOfficeID']   = $this->encrypter->decode($this->input->post('detailedOfficeID'));
+            $data['detailedDivisionID'] = $this->encrypter->decode($this->input->post('detailedDivisionID'));
+            $data['startDate']          = date('Y-m-d', strtotime($this->input->post('startDate')));
+            $data['endDate']            = date('Y-m-d', strtotime($this->input->post('endDate')));
+            
+            if ($this->input->post('chkAdd')) {
+                $data['start'] = strtotime($data['startDate']);
+                $data['end']   = strtotime($data['endDate']);
+                
+                $batch = array();
+                $att   = array();
+                foreach($this->input->post('chkAdd') as $employmentID) {                                        
+                    for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                        if ($this->input->post('shiftID_'.$employmentID.'_'.$current) != $this->input->post('old_shiftID_'.$employmentID.'_'.$current)) {
+                            // delete current shift schedules
+                            $this->db->where('employmentID', $employmentID);
+                            $this->db->where('date', date('Y-m-d', $current));
+                            $this->db->delete($this->table);
+                            
+                            $info = array();
+                            $info['empID']          = $this->input->post('empID_'.$employmentID);
+                            $info['employmentID']   = $employmentID;
+                            $info['date']           = date('Y-m-d', $current);
+                            $info['shiftID']        = $this->input->post('shiftID_'.$employmentID.'_'.$current);
+                            $info['dateUpdated']    = date('Y-m-d H:i:s');
+                            $info['updatedBy']      = $this->session->userdata('current_userID');
+                            $this->db->insert('shift_schedules', $info);
+                            
+                            $this->db->where('employmentID', $employmentID);
+                            $this->db->where('date', date('Y-m-d', $current));
+                            $this->db->where('attendanceType', 1);
+                            $this->db->where('isEdited', 0);
+                            $this->db->delete('attendance');
+                            
+                            $log = $this->dtrlog->organize_log($info['empID'], $info['employmentID'], $current);
+                            
+                            if (!empty($log)) {
+                                $att[] = $log[0];
+                            }
+                            
+                            if ($info['shiftID']=='0') {
+                                $shift = 'NO WORK';
+                            } elseif ($info['shiftID']=='-1') {
+                                $shift = 'DAY OFF';
+                            } else {
+                                $this->db->where('shiftID', $info['shiftID']);
+                                $shift = $this->db->get('shifts', 1)->row()->shiftName;
+                            }
+                            
+                            // record logs
+                            $logs = "Record - ".$this->input->post('empNo_'.$employmentID).' - '.$info['date'].' - '.$shift;
+                            $this->log_model->table_logs($this->module, $this->table, $this->pfield, 0, 'Update', $logs);
+                        }
+                    }   
+                    
+                    if (!empty($att)) {
+                        $this->db->insert_batch('attendance', $att);
+                    }                                   
+                }               
+            }                           
+            
+            // Successfully updated
+            $data['class']  = "success";
+            $data['msg']    = $this->module." successfully updated.";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function edit_employee($empID=0,$employmentID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data; 
+        $data['empID']        = $this->encrypter->decode($empID);
+        $data['employmentID'] = $this->encrypter->decode($employmentID);
+        $data['startDate']    = date('Y-m-d', $startDate);
+        $data['endDate']      = date('Y-m-d', $endDate);
+
+        // check roles
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('empID'=>'Employee', 'employmentID'=>'Employment', 'startDate'=>'Start Date','endDate'=>'End Date');   
+            if ($data['empID']) {
+                $this->db->where('empID', $data['empID']);
+                $query = $this->db->get('employees', 1)->row();
+                
+                $data['empNo']         = $query->empNo;
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+                
+                $this->session->set_userdata('current_empNo', $data['empNo']);
+            }
+            
+            $this->db->select('shift_schedules.*');
+            $this->db->from('shift_schedules');
+            $this->db->where('shift_schedules.employmentID', $data['employmentID']);
+            $this->db->where('shift_schedules.date >= ', $data['startDate']);
+            $this->db->where('shift_schedules.date <= ', $data['endDate']);
+            $this->db->order_by('shift_schedules.date', 'asc');
+            $data['records'] = $this->db->get();
+            
+            $data['dates'] = array();
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                $info = array('shiftID'=>'','remarks'=>'');
+                $data['dates'][$current] = $info;
+            }
+            
+            if ($data['records']->num_rows()) {
+                foreach ($data['records']->result() as $row) {
+                    $info = array('shiftID'=>$row->shiftID,'remarks'=>$row->remarks);
+                    $data['dates'][strtotime($row->date)] = $info;
+                }
+            }
+            
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit_employee');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function edit_group($detailedCompanyID=0,$detailedOfficeID=0,$detailedDivisionID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $data['detailedCompanyID']  = $this->encrypter->decode($detailedCompanyID);
+        $data['detailedOfficeID']   = $this->encrypter->decode($detailedOfficeID);
+        $data['detailedDivisionID'] = $this->encrypter->decode($detailedDivisionID);
+        $data['startDate']          = date('Y-m-d', $startDate);
+        $data['endDate']            = date('Y-m-d', $endDate);
+
+        // check roles
+        if ($this->roles['edit']) {
+            $data['required_fields'] = array('detailedCompanyID'=>'Company', 'detailedOfficeID'=>'OfficeID', 'startDate'=>'Start Date','endDate'=>'End Date');
+            
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            $this->db->select('employments.*');
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.lname');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.mname');
+            $this->db->select('employees.suffix');
+            $this->db->from('employments');
+            $this->db->join('employees','employments.empID=employees.empID','left');
+            $this->db->where('employments.detailedCompanyID', $data['detailedCompanyID']);
+            if ($data['detailedOfficeID']) {
+                $this->db->where('employments.detailedOfficeID', $data['detailedOfficeID']);                
+            }
+            if ($data['detailedDivisionID']) {
+                $this->db->where('employments.detailedDivisionID', $data['detailedDivisionID']);
+            }
+            $this->db->where('employments.status', 1);
+            $this->db->order_by('employees.lname', 'asc');
+            $this->db->order_by('employees.fname', 'asc');
+            $this->db->order_by('employees.mname', 'asc');
+            $this->db->order_by('employments.employmentNo', 'asc');
+            $data['records'] = $this->db->get();        
+            
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/edit_group');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function delete($id)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $id = $this->encrypter->decode($id);
+
+        // check roles
+        if ($this->roles['delete'] && !$this->_inUsed($id)) {
+            // set fields
+            $this->record->fields = array();
+            // set table
+            $this->record->table  = $this->table;
+            // set where
+            $this->record->where[$this->pfield] = $id;
+            // execute retrieve
+            $this->record->retrieve();
+
+            if (!empty($this->record->field)) {
+                $this->record->pfield   = $this->pfield;
+                $this->record->pk       = $id;
+                
+                // record logs
+                $logfield = $this->logfield;
+
+                if ($this->record->delete()) {                          
+                    // record logs
+                    $logs = "Record - ".$this->record->field->$logfield;
+                    $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
+                    
+                    //Successfully deleted
+                    $data['class']  = "success";
+                    $data['msg']    = "Successfully deleted!";
+                    $data['urlredicrect']    = $this->controller_page."/show";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                } else {
+                    //Error Deleting
+                    $data['class']  = "danger";
+                    $data['msg']    = "Error in deleting the ".strtolower($this->module)."!";
+                    $data['urlredicrect']    = "";
+                    $this->load->view('header', $data);
+                    $this->load->view('message');
+                    $this->load->view('footer');
+                }
+            } else {
+                //Record not found
+                $data['class']  = "danger";
+                $data['msg']    = $this->module." record not found!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_employee($empID=0,$employmentID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data; 
+        if ($empID && $startDate && $endDate) {
+            $data['empID']          = $this->encrypter->decode($empID);
+            $data['employmentID']   = $this->encrypter->decode($employmentID);
+            $data['startDate']      = date('Y-m-d', $startDate);
+            $data['endDate']        = date('Y-m-d', $endDate);
+            
+            // set sessions
+            $this->session->set_userdata('current_empID', $data['empID']);
+            $this->session->set_userdata('current_employmentID', $data['employmentID']);
+            $this->session->set_userdata('current_startDate', $data['startDate']);
+            $this->session->set_userdata('current_endDate', $data['endDate']);
+        } else {
+            $data['empID']          = ($this->session->userdata('current_empID')) ? $this->session->userdata('current_empID') : 0;
+            $data['empNo']          = ($this->session->userdata('current_empNo')) ? $this->session->userdata('current_empNo') : "";
+            $data['employmentID']   = ($this->session->userdata('current_employmentID')) ? $this->session->userdata('current_employmentID') : 0;
+            $data['startDate']      = ($this->session->userdata('current_startDate')) ? $this->session->userdata('current_startDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-01'));
+            $data['endDate']        = ($this->session->userdata('current_endDate')) ? $this->session->userdata('current_endDate') : date('m/d/Y', strtotime(date('Y').'-'.date('m').'-'.date('t')));
+        }
+
+        // check roles
+        if ($this->roles['view']) {
+            
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.suffix');
+            $this->db->select('employments.employmentNo');
+            $this->db->select('employments.lname');             
+            $this->db->select('employments.mname');             
+            $this->db->select('employments.title');
+            $this->db->select('detailedCompany.companyAbbr as detailedCompanyAbbr');                
+            $this->db->select('detailedOffice.officeAbbr as detailedOfficeAbbr');
+            $this->db->select('detailedOffice.officeHeadID');
+            $this->db->select('detailedOffice.officeHeadTitle');
+            $this->db->select('detailedDivision.divisionAbbr as detailedDivisionAbbr');
+            $this->db->select('detailedDivision.divisionHeadID');
+            $this->db->select('detailedDivision.divisionHeadTitle');
+            $this->db->select('employee_types.employeeType');
+            $this->db->select('job_titles.jobTitle');
+            $this->db->from('employments');             
+            $this->db->join('employees','employments.empID=employees.empID', 'left');
+            $this->db->join('companies detailedCompany','employments.detailedCompanyID=detailedCompany.companyID', 'left');
+            $this->db->join('offices detailedOffice','employments.detailedOfficeID=detailedOffice.officeID', 'left');
+            $this->db->join('divisions detailedDivision','employments.detailedDivisionID=detailedDivision.divisionID', 'left');         
+            $this->db->join('employee_types','employments.employeeTypeID=employee_types.employeeTypeID', 'left');
+            $this->db->join('job_titles','employments.jobTitleID=job_titles.jobTitleID', 'left');
+            $this->db->where('employments.employmentID', $data['employmentID']);
+            $this->db->order_by('employments.lname', 'asc');
+            $this->db->order_by('employees.fname', 'asc');
+            $this->db->limit(1);
+            $data['rec'] = $this->db->get()->row();
+            
+            $data['empNo']   = $data['rec']->empNo;
+            $data['name']    = $data['rec']->lname.', '.$data['rec']->fname.' '.substr($data['rec']->mname, 0, 1).' '.$data['rec']->suffix;
+            $data['jobTitle']= $data['rec']->jobTitle;
+            
+            $this->db->select('shift_schedules.shiftScheduleID');
+            $this->db->select('shift_schedules.shiftID as schedShiftID');
+            $this->db->select('shift_schedules.date');
+            $this->db->select('shift_schedules.remarks as schedule_remarks');
+            $this->db->select('shifts.*');
+            $this->db->from('shift_schedules');
+            $this->db->join('shifts','shift_schedules.shiftID=shifts.shiftID','left');
+            $this->db->where('shift_schedules.employmentID', $data['employmentID']);
+            $this->db->where('shift_schedules.date >= ', $data['startDate']);
+            $this->db->where('shift_schedules.date <= ', $data['endDate']);
+            $this->db->order_by('shift_schedules.date', 'asc');
+            $data['records'] = $this->db->get();
+            
+            $data['dates'] = array();
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            for ($current = $data['start']; $current <= $data['end']; $current = strtotime('+1 day', $current)) {
+                $info = array('shiftID'=>'0','shiftType'=>'1','in1'=>'','out1'=>'','in2'=>'','out2'=>'','workHours'=>'0','remarks'=>'');
+                $data['dates'][$current] = $info;
+            }
+            
+            $twoPeriod = false;
+            if ($data['records']->num_rows()) {
+                foreach ($data['records']->result() as $row) {
+                    $info = array('shiftID'=>$row->schedShiftID,'shiftType'=>$row->shiftType,'in1'=>$row->in1,'out1'=>$row->out1,'in2'=>$row->in2,'out2'=>$row->out2,'workHours'=>$row->workHours,'remarks'=>$row->schedule_remarks);
+                    $data['dates'][strtotime($row->date)] = $info;
+                    
+                    if ($row->shiftType==1) {
+                        $twoPeriod = true;
+                    }
+                }
+            }
+            
+            if (date('M', strtotime($data['startDate'])) == date('M', strtotime($data['endDate']))) {
+                $data['period'] = date('M', strtotime($data['startDate']));
+                $data['period'] .= ' '.date('j', strtotime($data['startDate']));
+                $data['period'] .= ' - '.date('j, Y', strtotime($data['endDate']));
+            } else {                                        
+                if (date('Y', strtotime($data['startDate'])) == date('Y', strtotime($data['endDate']))) {
+                    $data['period'] = date('M j', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('M j', strtotime($data['endDate']));
+                    $data['period'] .= ', '.date('Y', strtotime($data['startDate']));
+                } else {
+                    $data['period'] = date('M j, Y', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('M j, Y', strtotime($data['endDate']));
+                }
+            }           
+            
+            $data['pdf_paging'] = false;
+            $data['title']      = "SHIFT SCHEDULE";
+            $data['modulename'] = "SHIFT SCHEDULE";             
+            
+            // load pdf class
+            $this->load->library('mpdf');                                       
+            
+            // load pdf class
+            if (count($data['dates']) > 15) {
+                $this->mpdf->mpdf('en-GB',array(100,285),10,'Garamond',3,3,3,10,0,0,'P');
+            } else {
+                $this->mpdf->mpdf('en-GB',array(100,190),10,'Garamond',3,3,3,10,0,0,'P');
+            }
+            $this->mpdf->setTitle($data['title']);
+            $this->mpdf->SetDisplayMode('fullpage');
+            $this->mpdf->shrink_tables_to_fit = 1;
+            $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+            $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+            $this->mpdf->watermarkImageAlpha = 0.1;
+            $this->mpdf->watermarkImgBehind = TRUE;
+            $this->mpdf->showWatermarkImage = TRUE;
+            
+            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+            $this->mpdf->SetHTMLFooter($footer);
+            $html   = ($twoPeriod) ? $this->load->view($this->module_path.'/print_emp_schedule_2_period', $data, TRUE) : $this->load->view($this->module_path.'/print_emp_schedule_1_period', $data, TRUE);
+            $this->mpdf->WriteHTML($html);
+            
+            $this->mpdf->Output("SHIFT_SCHEDULE.pdf","I");              
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_group($detailedCompanyID=0,$detailedOfficeID=0,$detailedDivisionID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data; 
+
+        // check roles
+        if ($this->roles['edit']) {             
+            if ($startDate && $endDate) {
+                $data['detailedCompanyID']  = $this->encrypter->decode($detailedCompanyID);
+                $data['detailedOfficeID']   = $this->encrypter->decode($detailedOfficeID);
+                $data['detailedDivisionID'] = $this->encrypter->decode($detailedDivisionID);
+                $data['startDate']          = date('Y-m-d', $startDate);
+                $data['endDate']            = date('Y-m-d', $endDate);
+                
+                // set sessions
+                $this->session->set_userdata('current_detailedCompanyID', $data['detailedCompanyID']);
+                $this->session->set_userdata('current_detailedOfficeID', $data['detailedOfficeID']);
+                $this->session->set_userdata('current_detailedDivisionID', $data['detailedDivisionID']);
+                $this->session->set_userdata('current_startDate', $data['startDate']);
+                $this->session->set_userdata('current_endDate', $data['endDate']);
+            } else {
+                $data['detailedCompanyID']  = ($this->session->userdata('current_detailedCompanyID')) ? $this->session->userdata('current_detailedCompanyID') : 0;
+                $data['detailedOfficeID']   = ($this->session->userdata('current_detailedOfficeID')) ? $this->session->userdata('current_detailedOfficeID') : 0;
+                $data['detailedDivisionID'] = ($this->session->userdata('current_detailedDivisionID')) ? $this->session->userdata('current_detailedDivisionID') : 0;
+                $data['startDate']          = date('m/d/Y');
+                $data['endDate']            = date('m/d/Y');
+            }
+            
+            $data['start'] = strtotime($data['startDate']);
+            $data['end'] = strtotime($data['endDate']);
+            
+            $this->db->select('employments.*');
+            $this->db->select('employees.empNo');
+            $this->db->select('employees.lname');
+            $this->db->select('employees.fname');
+            $this->db->select('employees.mname');
+            $this->db->select('employees.suffix');
+            $this->db->from('employments');
+            $this->db->join('employees','employments.empID=employees.empID','left');
+            $this->db->where('employments.detailedCompanyID', $data['detailedCompanyID']);
+            if ($data['detailedOfficeID']) {
+                $this->db->where('employments.detailedOfficeID', $data['detailedOfficeID']);
+            }
+            if ($data['detailedDivisionID']) {
+                $this->db->where('employments.detailedDivisionID', $data['detailedDivisionID']);
+            }
+            $this->db->where('employments.status', 1);
+            $this->db->order_by('employees.lname', 'asc');
+            $this->db->order_by('employees.fname', 'asc');
+            $this->db->order_by('employees.mname', 'asc');
+            $this->db->order_by('employments.employmentNo', 'asc');
+            $data['records'] = $this->db->get();
+            
+            if (date('M', strtotime($data['startDate'])) == date('M', strtotime($data['endDate']))) {
+                $data['period'] = date('M', strtotime($data['startDate']));
+                $data['period'] .= ' '.date('j', strtotime($data['startDate']));
+                $data['period'] .= ' - '.date('j, Y', strtotime($data['endDate']));
+            } else {
+                if (date('Y', strtotime($data['startDate'])) == date('Y', strtotime($data['endDate']))) {
+                    $data['period'] = date('M j', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('M j', strtotime($data['endDate']));
+                    $data['period'] .= ', '.date('Y', strtotime($data['startDate']));
+                } else {
+                    $data['period'] = date('M j, Y', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('M j, Y', strtotime($data['endDate']));
+                }
+            }
+            
+            $this->db->where('officeID', $data['detailedOfficeID']);
+            $office = $this->db->get('offices', 1)->row();
+            
+            $this->db->where('divisionID', $data['detailedDivisionID']);
+            $division = $this->db->get('divisions', 1)->row();
+            
+            $data['pdf_paging'] = false;
+            $data['title']      = "SHIFT SCHEDULE";
+            $data['modulename'] = "SHIFT SCHEDULE";
+            $data['subnote']    = $office->officeName;
+            if (!empty($division)) {
+                $data['subnote2']   = $division->divisionName;
+                $data['subnote3']   = $payroll->payrollPeriod;
+            } else {
+                $data['subnote2']   = $payroll->payrollPeriod;
+            }
+            
+            // load pdf class
+            $this->load->library('mpdf');
+            // load pdf class
+            $this->mpdf->mpdf('en-GB',array(215.9,330.2),10,'Garamond',10,10,25,10,0,0,'L');
+            $this->mpdf->setTitle($data['title']);
+            $this->mpdf->SetDisplayMode('fullpage');
+            $this->mpdf->shrink_tables_to_fit = 1;
+            $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+            $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+            $this->mpdf->watermarkImageAlpha = 0.1;
+            $this->mpdf->watermarkImgBehind = TRUE;
+            $this->mpdf->showWatermarkImage = TRUE;
+            
+            // content
+            $header = $this->load->view('print_pdf_header', $data, TRUE);
+            $this->mpdf->SetHTMLHeader($header);
+            
+            $footer = $this->load->view('print_pdf_footer', $data, TRUE);
+            $this->mpdf->SetHTMLFooter($footer);
+            
+            $html   = $this->load->view($this->module_path.'/print_group_schedule', $data, TRUE);
+            $this->mpdf->WriteHTML($html);
+            
+            $this->mpdf->Output("SHIFT_SCHEDULE.pdf","I");  
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    //Ajax functions
+    public function getSkills()
+    {
+        $this->db->order_by('skill','asc');
+        $records = $this->db->get('skills');
+        echo $this->frameworkhelper->get_json_data($records, 'shiftScheduleID', 'skill');
+    }
+
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+
+}

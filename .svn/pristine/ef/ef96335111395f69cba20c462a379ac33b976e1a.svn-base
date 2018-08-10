@@ -1,0 +1,235 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Biometric_raw_log extends CI_Controller
+{
+    //Default Variables
+    var $common_menu;
+    var $roles;
+    var $data;
+    var $table;
+    var $pfield;
+    var $logfield;
+    var $module;
+    var $module_label;
+    var $module_path;
+    var $controller_page;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('generic_model','record');
+        // set variables
+        $this->data['current_module'] = $this->module = 'Biometric Raw Log';
+        $this->module_label = 'Biometric Raw Logs';
+        $this->table        = 'kiosk_logs';
+        $this->module_path  = 'modules/Attendance/Biometric_Raw_Log';
+        $this->module_path_submenu  = 'modules/Attendance/submenu';
+        $this->pfield = 'logID';
+        $this->logfield = 'logTime';
+        $this->data['controller_page'] = $this->controller_page = site_url('biometric_raw_log');
+        // check if under maintenance
+        if ($this->config_model->getConfig('Maintenance Mode')=='1') {
+            header('location: '.site_url('maintenance_mode'));
+        }
+        // check if loggedin
+    }
+
+    private function submenu()
+    {
+        //submenu setup
+    }
+    
+    private function check_roles()
+    {
+        $this->roles['create']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Add '.$this->module);
+        $this->roles['view']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'View '.$this->module);
+        $this->roles['edit']    = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Edit Existing '.$this->module);
+        $this->roles['delete']  = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Delete Existing '.$this->module);
+        $this->roles['approve'] = $this->userrole_model->has_access($this->session->userdata('current_userID'),'Approve '.$this->module);
+    }
+    
+    public function index()
+    {
+        $this->view();
+    }
+    
+    public function view($empID=0, $startDate="", $endDate="")
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        $data['empID']      = $this->encrypter->decode($empID);
+        $data['startDate']  = ($startDate) ? date('Y-m-d 00:00:00', $startDate) : date('Y-m-d 00:00:00');
+        $data['endDate']    = ($endDate) ? date('Y-m-d 23:59:59', $endDate) : date('Y-m-d 23:59:59');
+        
+        // check roles
+        if ($this->roles['view']) {
+            $this->db->where('empID', $data['empID']);
+            $query = $this->db->get('employees', 1)->row();
+        
+            if (!empty($query)) {
+                $data['empNo']         = $query->empNo;
+                $data['employee_name'] = $query->lname.', '.$query->fname.' '.$query->mname.' '.$query->suffix;
+            }
+            
+            $this->session->set_userdata('current_empID', $data['empID']);
+            $this->session->set_userdata('current_empNo', $data['empNo']);
+            $this->session->set_userdata('current_startDate', $data['startDate']);
+            $this->session->set_userdata('current_endDate', $data['endDate']);
+            
+            $this->db->from($this->table);
+            $this->db->join('employees',$this->table.'.empID=employees.empID','left');
+            $this->db->where('employees.empID', $data['empID']);
+            $this->db->where('logTime >=', $data['startDate']);
+            $this->db->where('logTime <=', $data['endDate']);
+            $this->db->order_by('logTime','asc');
+            $data['logs'] = $this->db->get();       
+            
+            // record logs
+            if ($this->config_model->getConfig('Log all record views') == '1') {
+                $logfield = $this->logfield;
+                $logs = "Record - ".$this->record->field->$logfield;
+                $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->record->field->$data['pfield'], 'View', $logs);
+            }
+            
+            // load views
+            $this->load->view('header', $data);
+            $this->load->view($this->module_path.'/view');
+            $this->load->view('footer');
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    public function print_record($empID=0,$employmentID=0,$startDate=0,$endDate=0)
+    {
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+    
+        // check roles
+        if ($this->roles['view'] || ($this->session->userdata('current_userType')=='ess' && $this->session->userdata('current_empID')==$this->encrypter->decode($empID))) {
+            if ($employmentID && $startDate && $endDate) {
+                $data['empID']          = $this->encrypter->decode($empID);
+                $data['employmentID']   = $this->encrypter->decode($employmentID);
+                $data['startDate']      = date('Y-m-d', $startDate);
+                $data['endDate']        = date('Y-m-d', $endDate);
+    
+                // set sessions
+                $this->session->set_userdata('current_empID', $data['empID']);
+                $this->session->set_userdata('current_employmentID', $data['employmentID']);
+                $this->session->set_userdata('current_startDate', $data['startDate']);
+                $this->session->set_userdata('current_endDate', $data['endDate']);
+    
+                $this->db->from('employees');
+                $this->db->where('empID', $data['empID']);
+                $this->db->limit(1);
+                $data['rec'] = $this->db->get()->row();
+                    
+                $data['empNo']   = $data['rec']->empNo;
+                $data['name']    = $data['rec']->lname.', '.$data['rec']->fname.' '.substr($data['rec']->mname, 0, 1).' '.$data['rec']->suffix;
+                $data['start']   = strtotime($data['startDate']);
+                $data['end']     = strtotime($data['endDate']);
+                    
+                $this->db->from($this->table);
+                $this->db->join('employees',$this->table.'.empID=employees.empID','left');
+                $this->db->where('employees.empID', $data['empID']);
+                $this->db->where('logTime >=', $data['startDate']);
+                $this->db->where('logTime <=', $data['endDate']);
+                $this->db->order_by('logTime','asc');
+                $data['logs'] = $this->db->get();       
+    
+                if (date('M', strtotime($data['startDate'])) == date('M', strtotime($data['endDate']))) {
+                    $data['period'] = date('M', strtotime($data['startDate']));
+                    $data['period'] .= ' '.date('j', strtotime($data['startDate']));
+                    $data['period'] .= ' - '.date('j, Y', strtotime($data['endDate']));
+                } else {
+                    if (date('Y', strtotime($data['startDate'])) == date('Y', strtotime($data['endDate']))) {
+                        $data['period'] = date('M j', strtotime($data['startDate']));
+                        $data['period'] .= ' - '.date('M j', strtotime($data['endDate']));
+                        $data['period'] .= ', '.date('Y', strtotime($data['startDate']));
+                    } else {
+                        $data['period'] = date('M j, Y', strtotime($data['startDate']));
+                        $data['period'] .= ' - '.date('M j, Y', strtotime($data['endDate']));
+                    }
+                }
+    
+                $data['pdf_paging'] = true;
+                $data['title']      = "BIOMETRIC RAW LOG";
+                $data['modulename'] = "BIOMETRIC RAW LOG";
+    
+                // load pdf class
+                $this->load->library('mpdf');
+    
+                // load pdf class
+                $this->mpdf->mpdf('en-GB',array(100,285),10,'Garamond',3,3,32,10,0,0,'P');
+                $this->mpdf->setTitle($data['title']);
+                $this->mpdf->SetDisplayMode('fullpage');
+                $this->mpdf->shrink_tables_to_fit = 1;
+                $this->mpdf->SetWatermarkImage(base_url().'images/logo/watermark.png');
+                $this->mpdf->watermark_font = 'DejaVuSansCondensed';
+                $this->mpdf->watermarkImageAlpha = 0.1;
+                $this->mpdf->watermarkImgBehind = TRUE;
+                $this->mpdf->showWatermarkImage = TRUE;
+
+                $header = $this->load->view($this->module_path.'/print_form_header', $data, TRUE);
+                $this->mpdf->SetHTMLHeader($header);
+                $footer = $this->load->view('print_pdf_footer_nologo', $data, TRUE);
+                $this->mpdf->SetHTMLFooter($footer);
+                $html   = $this->load->view($this->module_path.'/print_form', $data, TRUE);
+                $this->mpdf->WriteHTML($html);
+    
+                $this->mpdf->Output("RAW_LOG.pdf","I");
+            } else {
+                // no records to print
+                $data['class']  = "danger";
+                $data['msg']    = "Sorry, you don't have records to print!";
+                $data['urlredicrect']    = "";
+                $this->load->view('header', $data);
+                $this->load->view('message');
+                $this->load->view('footer');
+            }
+        } else {
+            // no access this page
+            $data['class']  = "danger";
+            $data['msg']    = "Sorry, you don't have access to this page!";
+            $data['urlredicrect']    = "";
+            $this->load->view('header', $data);
+            $this->load->view('message');
+            $this->load->view('footer');
+        }
+    }
+
+    function display_img_log($logID)
+    {               
+        //************** general settings *******************
+        // load submenu
+        $this->submenu();
+        $data = $this->data;
+        
+        // **************************************************       
+        
+        // check roles
+        if ($this->roles['view']) {
+            $logID = $this->encrypter->decode($logID);  
+
+            $this->dbimg->where('logID', $logID);
+            $image = $this->dbimg->get('log_images', 1)->row()->image;
+            
+            Header( "Content-type: image/jpeg");
+            echo $image;
+        }
+    }
+    
+    public function display_session()
+    {               
+        echo var_dump($_SESSION);
+    }
+}

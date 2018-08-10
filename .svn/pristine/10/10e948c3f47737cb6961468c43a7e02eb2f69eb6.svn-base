@@ -1,0 +1,81 @@
+<table width="100%" cellspacing="0" cellpadding="5" style="font-size: 12px;">
+	<tr style="font-weight: bold;font-size: 11px;">
+		<td class="top left">CODE</td>
+		<td class="top left">LEAVE TYPE</td>
+		<td class="top left">FREQUENCY</td>
+		<td class="top left">CREDIT EARNING</td>
+		<td class="top left">CASHABLE</td>
+		<td class="top left">COVER W/OUT PAY</td>
+		<td class="top left right" align="center">STATUS</td>
+		<td class="top left right" align="center">RANK</td>
+	</tr>
+	<?php 
+		foreach($records as $row) {
+		?>
+	<tr>
+		<td class="top left"><?php echo $row->code ?></td>
+		<td class="top left"><?php echo $row->leaveType ?></td>
+		<td class="top left">
+			<?php 
+			if ($row->frequency == 0) {
+    			echo "None";
+			} else if ($row->frequency == 1) {
+    			echo "Daily";
+			} else if ($row->frequency == 2) {
+			    echo "Weekly";
+			} else if ($row->frequency == 3) {
+			    echo "Monthly";
+			} else if ($row->frequency == 4) {
+			    echo "Quarterly";
+			} else if ($row->frequency == 5) {
+			    echo "Semi-Annual";
+			} else if ($row->frequency == 6) {
+			    echo "Annual";
+			}
+    		?>
+		</td>
+		<td class="top left">
+			<?php 
+			if ($row->creditEarn == 1) {
+    			echo "Incremental";
+    		} else {
+    			echo "Reset";
+    		}
+    		?>
+		</td>
+		<td class="top left" align="center">
+			<?php 
+    		if ($row->isCashable == 1) {
+    			echo "Yes";
+    		} else {
+    			echo "No";
+    		}
+    		?>
+		</td>
+		<td class="top left">
+			<?php 
+			if ($row->isWithoutpayCover == 1) {
+    			echo "Yes";
+    		} else {
+    			echo "No";
+    		}
+    		?>
+		</td>
+		<td class="top left right" align="center">
+			<?php 
+				if ($row->status == 1) {
+					echo "Active";
+				} else {
+					echo "Inactive";
+				}
+				?>
+		</td>
+		<td class="top left"><?php echo $row->rank ?></td>
+	</tr>
+	<?php 
+		}
+		?>
+	<tr style="background-color: #ffffff;">
+		<td class="top" colspan="7">&nbsp;</td>
+	</tr>
+</table>

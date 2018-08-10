@@ -1,0 +1,205 @@
+<form name="frmFilter" id="frmFilter" method="POST" action="<?php echo $controller_page ?>/show">
+	<input type="hidden" id="sortby" name="sortby" value="<?php echo $sortby ?>" />
+	<input type="hidden" id="sortorder" name="sortorder" value="<?php echo $sortorder ?>" />
+	<div class="subheader">
+		<div class="d-flex align-items-center">
+			<div class="title mr-auto">
+				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+			</div>
+			<?php if ($roles['create']) {?>
+			<div class="subheader-tools">
+				<a href="<?php echo $controller_page?>/create" class="btn btn-primary btn-raised btn-xs pill"><i class="icon left la la-plus lg"></i>Add New</a>
+			</div>
+			<?php } ?>
+		</div>
+	</div>
+	<div class="content">
+		<div class="row">
+			<div class="col-12">
+				<div class="card-box full-body">
+					<div class="card-head">
+						<div class="head-caption">
+							<div class="head-title">
+								<h4 class="head-text"><?php echo $current_module['module_label'] ?> List</h4>
+							</div>
+						</div>
+						<div class="card-head-tools">
+							<ul class="tools-list">
+								<li>
+									<button id="btn-apply" type="submit" class="btn btn-primary btn-xs pill collapse multi-collapse show">Apply Filter</button>
+								</li>
+								<li>
+									<button type="button" id="btn-filter" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Filters" onclick="#"><i class="la la-sort-amount-asc"></i></button>
+								</li>
+								<li>
+									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print" onclick="popUp('<?php echo site_url('employment_type/printlist') ?>', 800, 500)"><i class="la la-print"></i></button>
+								</li>
+								<li>
+									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Export to Excel File" onclick="window.location='<?php echo site_url('employment_type/exportlist') ?>';"><i class="la la-file-excel-o"></i></button>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<!--  sorting_asc -->
+					<div class="card-body">
+						<div class="datatables_wrapper">
+							<div class="table-responsive">
+								<table class="table table-striped has-img hover">
+									<thead>
+										<tr>
+		<?php 
+		$headers = array(
+			array('column_header'=>'Type','column_field'=>'employeeType','width'=>'w-15','align'=>''),
+			array('column_header'=>'Salary Type','column_field'=>'salaryType','width'=>'w-10','align'=>''),
+			array('column_header'=>'Default Salary','column_field'=>'defaultSalary','width'=>'w-15','align'=>''),
+			array('column_header'=>'Working Days','column_field'=>'workingDays','width'=>'w-15','align'=>''),
+			array('column_header'=>'Status','column_field'=>'status','width'=>'w-5','align'=>'center'),
+			array('column_header'=>'Rank','column_field'=>'rank','width'=>'w-5','align'=>'center'),
+			array('column_header'=>'','column_field'=>'','width'=>'w-5','align'=>'center'),
+		    
+		);
+		
+		echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
+		?>
+										</tr>
+										<tr id="filter-group" class="collapse multi-collapse table-filter show">
+											<th class="form-group form-input">
+												<input class="form-control" type="text" name="employeeType" id="employeeType" value="<?php echo $employeeType ?>" style="width: 250px;"/>
+											</th>
+											<th class="form-group form-input">
+												<select class="form-control" id="salaryType" name="salaryType" >
+                                					<option value="">&nbsp;</option>
+                                					<option value="1" <?php echo ($salaryType == "1") ? "selected" : ""; ?>>Monthly</option>
+                                					<option value="2" <?php echo ($salaryType == "2") ? "selected" : ""; ?>>Daily</option>
+                                					<option value="3" <?php echo ($salaryType == "3") ? "selected" : ""; ?>>Hourly</option>
+                                				</select>
+											</th>
+											<th></th>
+											<th></th>
+											<th class="form-group form-input">
+												<select class="form-control" id="status" name="status">
+                                					<option value="">&nbsp;</option>
+                                					<option value="1" <?php echo ($status == "1") ? "selected" : ""; ?>>Active</option>
+                                					<option value="0" <?php echo ($status == "0") ? "selected" : ""; ?>>Inactive</option>
+                                				</select>
+											</th>
+											<th class="form-group form-input">
+											<select class="form-control" id="rank" name="rank">
+                            					<option value="">&nbsp;</option>
+                            					<?php for ($i = 1; $i <= $ttl_rows; $i++) {?>
+                            					<option value="<?php echo $i?>" <?php if ($i == $rank) echo "selected" ?>><?php echo $i?></option>
+                            					<?php }?>
+                            				</select>
+											</th>
+											<th></th>
+										</tr>
+									</thead>
+									<tbody>
+	<?php
+	if ($records->num_rows()) {
+		foreach($records->result() as $row) {
+			$id = $this->encrypter->encode($row->$pfield);
+	?>
+										<tr>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'"><?php echo $row->employeeType ?></td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'">
+											<?php 
+                    						if ($row->salaryType=="1") {
+                    							echo "Monthly";
+                    						} elseif ($row->salaryType=="2") {
+                    							echo "Daily";
+                    						} elseif ($row->salaryType=="3") {
+                    							echo "Hourly";
+                    						}?>
+											</td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'"><?php echo ($row->defaultSalary > 0) ? number_format($row->defaultSalary, 2) : "--"; ?></td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'"><?php echo ($row->workingDays > 0) ? $row->workingDays : "--" ?></td>
+											<td onclick="location.href='<?php echo $controller_page."/view/".$id; ?>'" align="center">
+											<?php
+                        					if ($row->status=="1") {
+                        						echo "<span class='badge badge-pill badge-success'>Active</span>"; 
+                        					} else if ($row->status=="0") {
+                        						echo "<span class='badge badge-pill badge-danger'>Inactive</span>"; 
+                    						}?>
+											</td>
+											<td align="center">
+												<?php if ($roles['edit']) { ?>
+                    	    					<select class="form-control" id="ranking_<?php echo $row->$pfield ?>" name="ranking_<?php echo $row->$pfield ?>" style="width:50px;" onchange="updateRank('<?php echo $controller_page ?>','<?php echo $row->$pfield ?>')">
+                    								<?php for ($i = 1; $i <= $ttl_rows; $i++) {?>
+                    								<option value="<?php echo $i?>" <?php if ($i == $row->rank) echo "selected" ?>><?php echo $i?></option>
+                    								<?php }?>
+                    							</select>
+                    							
+                    							<?php }?>
+											</td>
+											<td><h4><i id="updated_<?php echo $row->$pfield ?>" style="display:none; color: green;" class="icon left la la-check"></i></h4></td>
+										</tr>
+										<?php }
+											} else {	?>
+										<tr>
+											<td colspan="7" align="center"> <i>No records found!</i></td>
+										</tr>
+										<?php } ?>
+									</tbody>
+								</table>
+							</div>
+							<div class="datatable-footer d-flex">
+								<div class="datatable-pagination">
+									Pages: &nbsp;&nbsp; 
+								</div>
+								<div class="datatable-pagination">
+									<?php 
+										$pagination = $this->pagination->create_links(); 
+										
+										if ($pagination) {
+										     echo $pagination;      
+										} else {
+										    echo "1";
+										}
+										?>
+								</div>
+								<div class="datatable-pager-info float-right ml-auto">
+									<div class="d-flex">
+										<div class="datatable-pager-size">
+											<div class="dataTables_length">
+												<select aria-controls="table1" class="form-control select-sm pill" tabindex="-98" id="limit" name="limit" onchange="$('#frmFilter').submit();">
+													<option value="25" <?php if ($limit==25) echo "selected"; ?>>25</option>
+													<option value="50" <?php if ($limit==50) echo "selected"; ?>>50</option>
+													<option value="75" <?php if ($limit==75) echo "selected"; ?>>75</option>
+													<option value="100" <?php if ($limit==100) echo "selected"; ?>>100</option>
+													<option value="125" <?php if ($limit==125) echo "selected"; ?>>125</option>
+													<option value="150" <?php if ($limit==150) echo "selected"; ?>>150</option>
+													<option value="175" <?php if ($limit==175) echo "selected"; ?>>175</option>
+													<option value="200" <?php if ($limit==200) echo "selected"; ?>>200</option>
+													<option value="all" <?php if ($limit=='All') echo "selected"; ?>>All</option>
+												</select>
+											</div>
+										</div>
+										<div class="datatable-pager-detail">
+											<div class="dataTables_info">Displaying <?php echo ($offset+1) ?> - <?php if ($offset+$limit < $ttl_rows) { echo ($offset+$limit); } else  { echo $ttl_rows; } ?> of <?php echo number_format($ttl_rows,0)?> records</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+
+<script>
+function updateRank(url, id)
+{	
+
+	console.log('update rank');
+	$.post(url+'/update_rank', { id: id, rank: $('#ranking_'+id).val() },
+	  function(data){
+		  if(data==1) {
+		  	$('#updated_'+id).show();
+		  }
+	  }, "text");
+}
+</script>

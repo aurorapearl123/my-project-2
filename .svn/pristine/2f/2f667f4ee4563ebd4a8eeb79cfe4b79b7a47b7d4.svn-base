@@ -1,0 +1,174 @@
+<style>
+.checkBox { width:18px;height:18px;vertical-align:middle; }
+.bright { border-right: 0.5px solid #cccccc;}
+.bleft { border-left: 0.5px solid #cccccc;}
+.btop { border-top: 0.5px solid #cccccc;}
+.bbottom { border-bottom: 0.5px solid #cccccc;}
+.bbottom-black { border-bottom: 0.5px solid #000000;}
+.ball { border: 1px solid black;}
+.label { height: 2px; font-size:8pt;  }
+.field { height: 2px; font-size:8pt; }
+.table_header {  font-size:8pt; }
+.table_row { height: 20px; font-size:8pt; vertical-align:middle; }
+.signatory { background-color: #eee; height: 20px; font-size:8pt; }
+.signatory_table { position: absolute; bottom: 0;}
+.table-box {border: 0.5px solid #000000;}
+
+</style>
+
+<!-- Header Start -->
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;">
+<tbody>
+	<tr>
+		<td width="33%"><img src="<?php echo base_url('assets/img/main/logo.png') ?>" style="width: 200px;"/></td>
+		<td width="33%" valign="bottom"></td>
+		<td width="33%" valign="bottom" align="right">
+			<table class="table-box" style="padding-bottom: 5px;">
+				<tbody>
+					<tr>
+						<td valign="center" align="left">
+							<span style="font-size: 7px;">LHPMC-HRD-TT</span>
+						</td>
+					</tr>
+					<tr>
+						<td valign="center" align="left">
+							<span style="font-size: 7px">REV. 0</span>
+						</td>
+					</tr>
+					<tr>
+						<td valign="center" align="left">
+							<span style="font-size: 7px">15 FEB 2016</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3" width="100%" height="50px" valign="middle" align="center"><strong style="font-size: 16px">TRIP TICKET</strong></td>
+	</tr>
+</tbody>
+</table>
+<!-- Header End -->
+
+<!-- Date Filed Start -->
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%; margin-top: 10px;">
+	<tbody>
+		<tr class="">
+			<td valign="middle" align="left" width="10%">
+				<span style="font-size: 12px">Destination: </span> 
+			</td>
+
+			<td class="bbottom-black" valign="middle" align="left" width="30%">
+				<strong style="font-size: 12px">&nbsp;<?php echo $rec->destination ?></strong> 
+			</td>
+
+			<td width="30%">&nbsp;</td>
+
+			<td valign="middle" align="left" width="10%">
+				<span style="font-size: 12px">Date Filed: </span> 
+			</td>
+
+			<td class="bbottom-black" valign="middle" align="left" width="20%">
+				<strong style="font-size: 12px">&nbsp;<?php echo strtoupper(date('F d, Y', strtotime($rec->dateFiled)))?></strong> 
+			</td>
+		</tr>
+</tbody>
+</table>
+<!-- Date Filed End -->
+
+
+<table class="bright bleft btop bbottom" border="0" cellpadding="0" cellspacing="0" style="width:100%; margin-top: 20px;">
+	<tbody>
+		<tr>
+			<td valign="middle" align="center" height="32">
+				<span style="font-size: 10px;">Period</span> 
+			</td>
+			<td valign="middle" align="center">
+				<span style="font-size: 10px;">Work Covered</span> 
+			</td>
+			<td valign="middle" align="center">
+				<span style="font-size: 10px;">Days</span>
+			</td>
+			<td valign="middle" align="center">
+				<span style="font-size: 10px;">Hours</span>
+			</td>
+			<td valign="middle" align="center">
+				<span style="font-size: 10px;">Hour Period</span>
+			</td>
+			<td valign="middle" align="center">
+				<span style="font-size: 10px;">Signed by SG</span>
+			</td>
+		</tr>
+		<?php 
+		if ($order_details->num_rows()) {
+			foreach ($order_details->result() as $row) {?>
+				<tr>
+					<td valign="middle" align="center" style="height: 25px;">
+						<span style="font-size: 12px"><?php echo date('M d, Y', strtotime($row->startDate)); ?> <?php echo ($row->endDate!=$row->startDate) ? " to ".date('M d, Y', strtotime($row->endDate)) : ""; ?></span>
+					</td>
+					<td valign="middle" align="center">
+						<span style="font-size: 12px"><?php 
+						switch ($row->workCover) {
+							case 1: echo "Whole Working Day"; break;
+							case 2: echo "1st Half Working Day"; $days -= .5; break;
+							case 3: echo "2nd Half Working Day"; $days -= .5;break;
+							case 4: echo "Hours - Less Half Day"; $days = ($row->hours/8); break;
+						} ?></span>
+					</td>
+					<td valign="middle" align="center">
+						<span style="font-size: 12px"><?php echo ($row->days > 0) ? $row->days : "--"?></span>
+					</td>
+					<td valign="middle" align="center">
+						<span style="font-size: 12px"><?php echo ($row->hours > 0) ? $row->hours : "--"?></span>
+					</td>
+					<td valign="middle" align="center">
+						<span style="font-size: 12px"><?php echo ($row->startHour!="0000-00-00 00:00:00" && $row->endHour!="0000-00-00 00:00:00") ? date('h:i A', strtotime($row->startHour))." to ".date('h:i A', strtotime($row->endHour)) : "--:--:-- to --:--:--"; ?></span> 
+					</td>
+					<td></td>
+				</tr>
+
+			<?php } ?>
+
+			<?php if ($order_details->num_rows() < 3) { ?>
+				<?php $default = 3 - $order_details->num_rows(); ?>
+				<?php $i = 0; ?>
+				<?php while ($i < $default) { ?>
+					<?php $i++; ?>
+					<tr><td style="height: 25px;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+				<?php } ?>
+			<?php } ?>
+
+		<?php } else { ?>
+				<tr><td style="height: 25px;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+				<tr><td style="height: 25px;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+				<tr><td style="height: 25px;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+		<?php } ?>
+</tbody>
+</table>
+
+
+<!-- Purpose Start -->
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%; margin-top: 20px;">
+<tr class="">
+	<td height="80px" colspan="1" nowrap valign="top" align="left" width="">
+		<span style="font-size: 12px">Purpose:</span> 
+		<strong style="font-size: 12px">&nbsp;<?php echo $rec->purpose; ?></strong> 
+	</td>
+</tr>
+</table>
+<!-- Purpose End -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+

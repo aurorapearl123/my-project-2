@@ -1,0 +1,680 @@
+          <div class="subheader">
+            <div class="d-flex align-items-center">
+              <div class="title mr-auto">
+                <h3><i class="icon left la la-group"></i> Employees</h3>
+              </div>
+              <div class="subheader-tools"></div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="row">
+              <div class="col-12">
+                <div class="card-box">
+                  <div class="card-head">
+                    <div class="head-caption">
+                      <div class="head-title">
+                        <h4 class="head-text">Add Employee</h4>
+                      </div>
+                    </div>
+                    <div class="card-head-tools"></div>
+                  </div>
+                  <div class="card-body">
+                    <form method="post" name="frmEntry" id="frmEntry" action="<?php echo $controller_page ?>/save" enctype="multipart/form-data"> 
+                      <div class="subtitle">
+                        <h5 class="title"><i class="icon left la la-user-secret"></i> Personal Information</h5>
+                      </div>
+                      <div class="table-row">
+                        <table class="table-form column-3">
+                          <tbody>
+                            <tr>
+                              <td class="form-label">
+                                ID Number<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="empNo" name="empNo" title="ID Number" required>
+                              </td>
+                              <td colspan="4"></td>
+                            </tr>
+                            <tr>
+                              <td class="form-label" width="12%">
+                                Last Name<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="text" class="form-control" id="lname" name="lname" title="Last name" required>
+                              </td>
+                              <td class="form-label" width="12%">
+                                First Name<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="email" class="form-control" id="fname" name="fname" title="First Name" required>
+                                <div class="validation-text d-none">
+                                  <span class="text-danger">Please choose correct email.</span>
+                                </div>
+                              </td>
+                              <td class="form-label" width="12%">
+                                Middle Name
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="text" class="form-control" id="mname" name="mname">
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Nickname
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="nickname" name="nickname">
+                              </td>
+                              <td class="form-label">
+                                Suffix
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="suffix" name="suffix">
+                              </td>
+                              <td class="form-label">
+                                Title
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="title" name="title">
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Sex<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select class="form-control" id="sex" name="sex" title="Sex" required>
+                                  <option value="">&nbsp;</option>
+                                  <option value="M">Male</option>
+                                  <option value="F">Female</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Birth Date<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control datepicker" id="birthDate" name="birthDate" data-toggle="datetimepicker" data-target="#birthDate" title="Birth Date" required>
+                              </td>
+                              <td class="form-label">
+                                Birth Place
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="birthPlace" name="birthPlace">
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Civil Status<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="civilStatus" name="civilStatus" class="form-control" title="Civil Status" required>
+                                  <option value="">&nbsp;</option>
+                                  <option value="Single">Single</option>
+                                  <option value="Married">Married</option>
+                                  <option value="Widowed">Widowed</option>
+                                  <option value="Divorced">Divorced</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Nationality<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="nationality" name="nationality" class="form-control" data-live-search="true" liveSearchNormalize="true" title="nationality" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                  	$countries = $this->db->get('countries')->result();
+                                  	foreach($countries as $country){
+                                  ?>
+                                  	<option value="<?php echo $country->nationality?>" <?php if($country->nationality == 'Filipino'){echo "selected";}?>><?php echo $country->nationality?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Languages
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="languages" name="languages" value="Visayan, Tagalog, English">
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Telephone No.
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="telephone" name="telephone">
+                              </td>
+                              <td class="form-label">
+                                Mobile No.
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="mobile" name="mobile">
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Work Email
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="email" class="form-control" id="workEmail" name="workEmail">
+                              </td>
+                              <td class="form-label">
+                                Personal Email
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="email" class="form-control" id="personalEmail" name="personalEmail">
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                            <tr>
+                              <th class="form-subtle" colspan="4">
+                                <i class="icon left la la-street-view"></i> Current Address
+                              </th>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Country<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="currentCountryID" name="currentCountryID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Current Country" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                  	$countries = $this->db->get('countries')->result();
+                                  	foreach($countries as $country){
+                                  ?>
+                                  	<option value="<?php echo $country->countryID?>" <?php if($country->countryID == $countryID){echo "selected";}?>><?php echo $country->country?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Province<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="currentProvinceID" name="currentProvinceID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Current Province" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('countryID', $countryID);
+                                  	$provinces = $this->db->get('provinces')->result();
+                                  	foreach($provinces as $province){
+                                  ?>
+                                  	<option value="<?php echo $province->provinceID?>" <?php if($province->provinceID == $provinceID){echo "selected";}?>><?php echo $province->province?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                City/Town<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                 <select id="currentCityID" name="currentCityID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Current City" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('provinceID', $provinceID);
+                                  	$cities = $this->db->get('cities')->result();
+                                  	foreach($cities as $city){
+                                  ?>
+                                  	<option value="<?php echo $city->cityID?>"><?php echo $city->city?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Barangay<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="currentBarangayID" name="currentBarangayID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Current Barangay" required>
+                                  <option value="">&nbsp;</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Street
+                              </td>
+                              <td class="form-group form-input" colspan="3">
+                                <input type="text" class="form-control" id="currentStreet" name="currentStreet">
+                              </td>
+                            </tr>
+                            <tr>
+                              <th class="form-subtle" colspan="4">
+                                <i class="icon left la la-street-view"></i> Permanent Address
+                              </th>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Country
+                              </td>
+                              <td class="form-group form-input">
+                              	<select id="provinceCountryID" name="provinceCountryID" class="form-control" data-live-search="true" liveSearchNormalize="true">
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                  	$countries = $this->db->get('countries')->result();
+                                  	foreach($countries as $country){
+                                  ?>
+                                  	<option value="<?php echo $country->countryID?>" <?php if($country->countryID == 58){echo "selected";}?>><?php echo $country->country?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Province
+                              </td>
+                              <td class="form-group form-input">
+                              	<select id="provinceProvinceID" name="provinceProvinceID" class="form-control" data-live-search="true" liveSearchNormalize="true">
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('countryID', $countryID);
+                                  	$provinces = $this->db->get('provinces')->result();
+                                  	foreach($provinces as $province){
+                                  ?>
+                                  	<option value="<?php echo $province->provinceID?>"><?php echo $province->province?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                City/Town
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="provinceCityID" name="provinceCityID" class="form-control" data-live-search="true" liveSearchNormalize="true">
+                                  <option value="">&nbsp;</option>
+                                </select>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Barangay
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="provinceBarangayID" name="provinceBarangayID" class="form-control" data-live-search="true" liveSearchNormalize="true">
+                                  <option value="">&nbsp;</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Street
+                              </td>
+                              <td class="form-group form-input" colspan="3">
+                                <input type="text" class="form-control" id="provinceStreet" name="provinceStreet">
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-sepator solid"></div>
+                       <div class="subtitle">
+                        <h5 class="title"><i class="icon left ti-id-badge"></i> Identification Numbers</h5>
+                      </div>
+                      <div class="table-row">
+                        <table class="table-form">
+                          <tbody>
+                            <tr>
+                              <td class="form-label" width="12%">
+                                <label for="tinno">TIN</label>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="text" class="form-control" id="tin" name="tin">
+                              </td>
+                              <td class="form-label" width="12%">
+                                <label for="sssno">SSS No.</label>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="text" class="form-control" id="sssNo" name="sssNo">
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                <label for="philno">PhilHealth No.</label>
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="philhealthNo" name="philhealthNo">
+                              </td>
+                              <td class="form-label">
+                                <label for="pagibigno">Pagibig No.</label>
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="text" class="form-control" id="pagibigNo" name="pagibigNo">
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-sepator solid"></div>
+                      <div class="subtitle">
+                        <h5 class="title"><i class="icon left la la-heartbeat"></i> Medical Information</h5>
+                      </div>
+                      <div class="table-row">
+                        <table class="table-form">
+                          <tbody>
+                            <tr>
+                              <td class="form-label" width="12%">
+                                <label for="bloodtype">Blood Type</label>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <select id="bloodType" name="bloodType" class="form-control">
+                                  <option value="A+" selected>A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                                </select>
+                              </td>
+                              <td class="form-label" width="12%">
+                                <label for="weight">Weight</label>
+                              </td>
+                              <td class="form-group form-input" width="">
+                                <input type="text" class="form-control" id="weight" name="weight">
+                              </td>
+                              <td class="form-label" width="12%">
+                                <label for="height">Height</label>
+                              </td>
+                              <td class="form-group form-input" width="">
+                                <input type="text" class="form-control" id="height" name="height">
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label align-text-top pt-5">
+                                <label for="condition">Condition</label>
+                              </td>
+                              <td class="form-group form-input" colspan="5">
+                                <textarea class="form-control" id="medicalCondition" name="medicalCondition"></textarea>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label align-text-top pt-5">
+                                <label for="condition">History</label>
+                              </td>
+                              <td class="form-group form-input" colspan="5">
+                                <textarea class="form-control" id="medicalHistory" name="medicalHistory"></textarea>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-sepator solid"></div>
+                       <div class="subtitle">
+                        <h5 class="title"><i class="icon left la la-suitcase"></i> Employment Information</h5>
+                      </div>
+                      <div class="table-row">
+                        <table class="table-form">
+                          <tbody>
+                            <tr>
+                              <td class="form-label" width="12%">
+                                Date Employed<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                                <input type="text" class="form-control datepicker" id="dateEmployed" name="dateEmployed" data-toggle="datetimepicker" data-target="#dateEmployed" title="Date Employed" required>
+                              </td>
+                              <td class="form-label" width="12%">
+                              </td>
+                              <td class="form-group form-input" width="21.33%">
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Branch<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="branchID" name="branchID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Branch" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('status', 1);
+                                    $this->db->order_by('branchName', 'asc');
+                                  	$result = $this->db->get('branches')->result();
+                                  	foreach($result as $res){
+                                  ?>
+                                  	<option value="<?php echo $res->branchID?>"><?php echo $res->branchName?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                 Department<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="deptID" name="deptID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Department" required>
+                                  <option value="">&nbsp;</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                 Section<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="divisionID" name="divisionID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Section" required>
+                                  <option value="">&nbsp;</option>
+                                </select>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                Employment<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="employeeTypeID" name="employeeTypeID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Employment" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('status', 1);
+                                  	$result = $this->db->get('employee_types')->result();
+                                  	foreach($result as $res){
+                                  ?>
+                                  	<option value="<?php echo $res->employeeTypeID?>"><?php echo $res->employeeType?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                 Position<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="jobPositionID" name="jobPositionID" class="form-control" data-live-search="true" liveSearchNormalize="true" title="Position" required>
+                                  <option value="">&nbsp;</option>
+                                  <?php 
+                                    $this->db->where('status', 1);
+                                  	$result = $this->db->get('job_positions')->result();
+                                  	foreach($result as $res){
+                                  ?>
+                                  	<option value="<?php echo $res->jobPositionID?>"><?php echo $res->positionCode?></option>
+                                  <?php }?>
+                                </select>
+                              </td>
+                              <td class="d-xxl-none"></td>
+                            </tr>
+                            <tr>
+                              <td class="form-label">
+                                 Basic Salary<span class="asterisk">*</span>
+                              </td>
+                              <td class="form-group form-input">
+                                <input type="number" class="form-control" id="basicSalary" name="basicSalary" title="Basic Salary" required>
+                              </td>
+                              <td class="form-label">
+                                Salary Type
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="salaryType" name="salaryType" class="form-control" data-live-search="false" liveSearchNormalize="false">
+                                	<option value="1">Monthly</option>
+                                	<option value="2">Daily</option>
+                                	<option value="3">Hourly</option>
+                                </select>
+                              </td>
+                              <td class="form-label">
+                                Basic Benefits
+                              </td>
+                              <td class="form-group form-input">
+                                <select id="withBasicContribution" name="withBasicContribution" class="form-control" data-live-search="false" liveSearchNormalize="false">
+                                	<option value="1">Yes</option>
+                                	<option value="0">No</option>
+                                </select>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-sepator solid"></div>
+                      <div class="subtitle">
+                        <h5 class="title"><i class="icon left la la-group"></i> Recommended By</h5>
+                      </div>
+                      <div class="table-row">
+                        <table class="table-form">
+                          <tbody>
+                            <tr>
+                              <td class="form-label align-text-top pt-5" width="12%">
+                              </td>
+                              <td class="form-group form-input" width="">
+                                <textarea class="form-control" id="recommendedBy" name="recommendedBy"></textarea>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-sepator solid"></div>
+                      <div class="form-group mb-0">
+                        <button type="button" class="btn btn-primary btn-raised pill" name="cmdSave" id="cmdSave">Save</button>
+                        <button type="button" class="btn btn-outline-danger btn-raised pill"  onclick="window.location='<?php echo $controller_page ?>/show/'">Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+<script>
+
+$('#cmdSave').click(function(){
+	if (check_fields()) {
+    	$('#cmdSave').attr('disabled','disabled');
+    	$('#cmdSave').addClass('loader');
+        $.post("<?php echo $controller_page ?>/check_duplicate", { empNo: $('#empNo').val() },
+          function(data){
+            if (parseInt(data)) {
+            	$('#cmdSave').removeClass("loader");
+            	$('#cmdSave').removeAttr('disabled');
+              	// duplicate
+              	swal("Duplicate","Record is already exist!","warning");
+            } else {
+            	// submit
+               	$('#frmEntry').submit();
+            }
+          }, "text");
+	}
+});
+
+
+function check_fields()
+{
+	 var valid = true;
+	 var req_fields = "";
+	 
+	 $('#frmEntry [required]').each(function(){
+	    if($(this).val()=='' ) {
+	    	req_fields += "<br/>" + $(this).attr('title');
+		    valid = false;
+	    } 
+	 })
+	 
+	 if (!valid) {
+	 	swal("Required Fields",req_fields,"warning");
+	 }
+	 
+	 return valid;
+}
+
+$('#cmdCancel').click(function(){
+	swal({
+	      title: "Are you sure?",
+	      text: "",
+	      icon: "warning",
+	      showCancelButton: true,
+	      confirmButtonColor: '#3085d6',
+	      cancelButtonColor: '#d33',
+	      confirmButtonText: 'Yes',
+	      cancelButtonText: 'No'
+	    })
+	    .then((willDelete) => {
+	      if (willDelete.value) {
+	    	  window.location = '<?php echo site_url('employment/show') ?>';
+	      }
+	    });
+    
+});
+
+$('#currentCountryID').change(function() {
+	get_current_provinces();
+});
+
+$('#currentProvinceID').change(function() {
+	get_current_cities();
+});
+
+$('#currentCityID').change(function() {
+	get_current_barangays();
+});
+
+$('#provinceCountryID').change(function() {
+	get_permanent_provinces();
+});
+
+$('#provinceProvinceID').change(function() {
+	get_permanent_cities();
+});
+
+$('#provinceCityID').change(function() {
+	get_permanent_barangays();
+});
+
+$('#branchID').change(function() {
+	get_departments();
+	get_plantilla();
+});
+
+$('#deptID').change(function() {
+	get_sections();
+	get_plantilla();
+});
+
+$('#divisionID').change(function() {
+	get_plantilla();
+});
+
+<?php 
+    echo "\n";
+    $parameters = array('currentCountryID');
+    echo $this->htmlhelper->get_json_select('get_current_provinces', $parameters, site_url('generic_ajax/get_provinces'), 'currentProvinceID', '');
+    
+    echo "\n";
+    $parameters = array('currentProvinceID');
+    echo $this->htmlhelper->get_json_select('get_current_cities', $parameters, site_url('generic_ajax/get_cities'), 'currentCityID', '');
+    
+    echo "\n";
+    $parameters = array('currentCityID');
+    echo $this->htmlhelper->get_json_select('get_current_barangays', $parameters, site_url('generic_ajax/get_barangays'), 'currentBarangayID', '');
+    
+    echo "\n";
+    $parameters = array('provinceCountryID');
+    echo $this->htmlhelper->get_json_select('get_permanent_provinces', $parameters, site_url('generic_ajax/get_provinces'), 'provinceProvinceID', '');
+    
+    echo "\n";
+    $parameters = array('provinceProvinceID');
+    echo $this->htmlhelper->get_json_select('get_permanent_cities', $parameters, site_url('generic_ajax/get_cities'), 'provinceCityID', '');
+    
+    echo "\n";
+    $parameters = array('provinceCityID');
+    echo $this->htmlhelper->get_json_select('get_permanent_barangays', $parameters, site_url('generic_ajax/get_barangays'), 'provinceBarangayID', '');
+    
+    echo "\n";
+    $parameters = array('companyID');
+    echo $this->htmlhelper->get_json_select('get_branches', $parameters, site_url('generic_ajax/get_code_branches'), 'branchID', '');
+    
+    echo "\n";
+    $parameters = array('branchID');
+    echo $this->htmlhelper->get_json_select('get_departments', $parameters, site_url('generic_ajax/get_departments'), 'deptID', '');
+    
+    echo "\n";
+    $parameters = array('deptID');
+    echo $this->htmlhelper->get_json_select('get_sections', $parameters, site_url('generic_ajax/get_sections'), 'divisionID', '');
+    
+    echo "\n";
+    $parameters = array('branchID','deptID','divisionID');
+    echo $this->htmlhelper->get_json_select('get_plantilla', $parameters, site_url('generic_ajax/get_plantilla'), 'jobPositionID', '');
+?>
+
+</script>          
