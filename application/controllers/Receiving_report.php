@@ -939,7 +939,7 @@ class Receiving_report extends CI_Controller {
         require_once(APPPATH.'controllers/Generic_ajax.php');
         //update approved by
         //updateApproveBy($table, $compareId, $id, $approvedBy)
-        //$approvedBy = Generic_ajax::updateApproveBy($this->table, "rrID", $rrID, $this->session->userdata('current_user')->userID);
+        $approvedBy = Generic_ajax::updateApproveBy($this->table, "rrID", $rrID, $this->session->userdata('current_user')->userID);
 
         $branchId = $this->session->userdata('current_user')->branchID;
         $added = Generic_ajax::addStockCard($reference_no, $itemID, $debit, $credit, $endbal, $begbal, $branchId);
@@ -948,7 +948,7 @@ class Receiving_report extends CI_Controller {
             'data' => [
                 'status' => 200,
                 'added' => $added,
-                //'approvedBy' => $approvedBy
+                'approvedBy' => $approvedBy
             ]
         ];
 

@@ -11,20 +11,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="create.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/views/modules/customer/customer/create.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3893">
-              <caret line="229" column="122" selection-start-line="229" selection-start-column="84" selection-end-line="229" selection-end-column="122" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="view.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/view.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1785">
-              <caret line="309" lean-forward="true" selection-start-line="309" selection-end-line="309" />
+            <state relative-caret-position="-415">
+              <caret line="259" column="34" selection-start-line="259" selection-start-column="34" selection-end-line="259" selection-end-column="34" />
               <folding>
                 <element signature="n#style#0;n#td#0;n#!!top" expanded="true" />
               </folding>
@@ -32,56 +23,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Physical_count.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/controllers/Physical_count.php">
+      <file leaf-file-name="create.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/create.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17850">
-              <caret line="1050" column="42" selection-start-line="1050" selection-start-column="20" selection-end-line="1050" selection-end-column="42" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Generic_ajax.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/controllers/Generic_ajax.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8551">
-              <caret line="503" lean-forward="true" selection-start-line="503" selection-end-line="503" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="view.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/receiving_report/view.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4930">
-              <caret line="290" column="26" lean-forward="true" selection-start-line="290" selection-start-column="26" selection-end-line="290" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="view.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/withdrawal_slip/view.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4760">
-              <caret line="280" column="63" selection-start-line="280" selection-start-column="47" selection-end-line="280" selection-end-column="63" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Withdrawal_slip.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/controllers/Withdrawal_slip.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="16184">
-              <caret line="952" column="50" lean-forward="true" selection-start-line="952" selection-start-column="50" selection-end-line="952" selection-end-column="50" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Receiving_report.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/application/controllers/Receiving_report.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2992">
-              <caret line="176" column="92" lean-forward="true" selection-start-line="176" selection-start-column="16" selection-end-line="176" selection-end-column="92" />
+            <state relative-caret-position="-2438">
+              <caret line="39" column="142" selection-start-line="39" selection-start-column="142" selection-end-line="39" selection-end-column="155" />
             </state>
           </provider>
         </entry>
@@ -98,7 +44,6 @@
       <find>updateStockCardAndItemInventory</find>
       <find>insert_</find>
       <find>cancelled</find>
-      <find>addStockCard</find>
       <find>show(</find>
       <find>save</find>
       <find>libraries</find>
@@ -108,12 +53,16 @@
       <find>approved</find>
       <find>reffNo</find>
       <find>id_approvedBy</find>
-      <find>getDetails</find>
       <find>getDetail</find>
       <find>updateCanceledBy</find>
-      <find>view(</find>
       <find>insert</find>
       <find>addSeriesNo</find>
+      <find>qty</find>
+      <find>defined</find>
+      <find>login</find>
+      <find>addStockCard</find>
+      <find>view(</find>
+      <find>getDetails</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -123,12 +72,19 @@
         <option value="$PROJECT_DIR$/application/config/autoload.php" />
         <option value="$PROJECT_DIR$/index.php" />
         <option value="$PROJECT_DIR$/application/views/modules/inventory/stockcard/list.php" />
-        <option value="$PROJECT_DIR$/application/controllers/Receiving_report.php" />
         <option value="$PROJECT_DIR$/application/views/modules/inventory/receiving_report/view.php" />
         <option value="$PROJECT_DIR$/application/controllers/Physical_count.php" />
         <option value="$PROJECT_DIR$/application/views/modules/inventory/withdrawal_slip/view.php" />
         <option value="$PROJECT_DIR$/application/controllers/Withdrawal_slip.php" />
         <option value="$PROJECT_DIR$/application/controllers/Generic_ajax.php" />
+        <option value="$PROJECT_DIR$/application/controllers/Receiving_report.php" />
+        <option value="$PROJECT_DIR$/application/controllers/Item_Inventory.php" />
+        <option value="$PROJECT_DIR$/application/views/modules/inventory/inventory_adjustment/view.php" />
+        <option value="$PROJECT_DIR$/application/controllers/Inventory_adjustment.php" />
+        <option value="$PROJECT_DIR$/application/controllers/api/ApiLogin.php" />
+        <option value="$PROJECT_DIR$/application/controllers/api/ApiCustomer.php" />
+        <option value="$PROJECT_DIR$/application/config/routes.php" />
+        <option value="$PROJECT_DIR$/application/controllers/api/ApiOrder.php" />
         <option value="$PROJECT_DIR$/application/views/modules/inventory/physical_count/view.php" />
       </list>
     </option>
@@ -145,7 +101,7 @@
   <component name="PhpServers">
     <servers />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="85" />
     <option name="y" value="25" />
     <option name="width" value="1750" />
@@ -172,18 +128,6 @@
               <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
               <item name="iwash" type="462c0819:PsiDirectoryNode" />
               <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="config" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="controllers" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
               <item name="views" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -192,23 +136,6 @@
               <item name="application" type="462c0819:PsiDirectoryNode" />
               <item name="views" type="462c0819:PsiDirectoryNode" />
               <item name="modules" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="customer" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="customer" type="462c0819:PsiDirectoryNode" />
-              <item name="customer" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
@@ -226,32 +153,6 @@
               <item name="modules" type="462c0819:PsiDirectoryNode" />
               <item name="inventory" type="462c0819:PsiDirectoryNode" />
               <item name="physical_count" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="inventory" type="462c0819:PsiDirectoryNode" />
-              <item name="withdrawal_slip" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="order" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="iwash" type="b2602c69:ProjectViewProjectNode" />
-              <item name="iwash" type="462c0819:PsiDirectoryNode" />
-              <item name="application" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="modules" type="462c0819:PsiDirectoryNode" />
-              <item name="order" type="462c0819:PsiDirectoryNode" />
-              <item name="order" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -296,17 +197,19 @@
       <workItem from="1533707675222" duration="14676000" />
       <workItem from="1533780601774" duration="26015000" />
       <workItem from="1533868101221" duration="995000" />
+      <workItem from="1533987966853" duration="1059000" />
+      <workItem from="1534037402265" duration="11648000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="46755000" />
+    <option name="totallyTimeSpent" value="65871000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="848" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.19661458" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19661458" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" weight="0.3292517" />
@@ -329,20 +232,20 @@
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19661458" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="10" />
-      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="bottom" id="Terminal" order="9" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" weight="0.3292517" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -355,103 +258,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/application/views/modules/customer/customer/create.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3893">
-          <caret line="229" column="122" selection-start-line="229" selection-start-column="84" selection-end-line="229" selection-end-column="122" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Physical_count.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17850">
-          <caret line="1050" column="42" selection-start-line="1050" selection-start-column="20" selection-end-line="1050" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Generic_ajax.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8551">
-          <caret line="503" lean-forward="true" selection-start-line="503" selection-end-line="503" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/receiving_report/view.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4930">
-          <caret line="290" column="26" lean-forward="true" selection-start-line="290" selection-start-column="26" selection-end-line="290" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/withdrawal_slip/view.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4760">
-          <caret line="280" column="63" selection-start-line="280" selection-start-column="47" selection-end-line="280" selection-end-column="63" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Withdrawal_slip.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="16184">
-          <caret line="952" column="50" lean-forward="true" selection-start-line="952" selection-start-column="50" selection-end-line="952" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Receiving_report.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2992">
-          <caret line="176" column="92" lean-forward="true" selection-start-line="176" selection-start-column="16" selection-end-line="176" selection-end-column="92" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/view.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5321">
-          <caret line="313" column="30" selection-start-line="313" selection-start-column="30" selection-end-line="313" selection-end-column="30" />
-          <folding>
-            <element signature="n#style#0;n#td#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Order.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="14739">
-          <caret line="867" column="19" selection-start-line="867" selection-start-column="12" selection-end-line="867" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/view.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4828">
-          <caret line="284" column="15" lean-forward="true" selection-start-line="277" selection-start-column="8" selection-end-line="284" selection-end-column="15" />
-          <folding>
-            <element signature="n#style#0;n#td#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Physical_count.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18275">
-          <caret line="1075" column="5" lean-forward="true" selection-start-line="1075" selection-start-column="5" selection-end-line="1075" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Stockcard.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11322">
-          <caret line="666" column="33" selection-start-line="666" selection-start-column="33" selection-end-line="666" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/customer/customer/create.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3893">
-          <caret line="229" column="122" lean-forward="true" selection-start-line="229" selection-start-column="84" selection-end-line="229" selection-end-column="122" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/receiving_report/edit.php">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -529,9 +335,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3451">
           <caret line="203" column="20" lean-forward="true" selection-start-line="203" selection-start-column="20" selection-end-line="203" selection-end-column="20" />
-          <folding>
-            <element signature="n#style#0;n#td#0;n#!!top" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -592,13 +395,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/create.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="663">
-          <caret line="39" column="142" selection-start-line="39" selection-start-column="142" selection-end-line="39" selection-end-column="155" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/application/controllers/Order.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="14739">
@@ -609,13 +405,6 @@
     <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/stockcard/view.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1071" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/customer/customer/create.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3893">
-          <caret line="229" column="122" selection-start-line="229" selection-start-column="84" selection-end-line="229" selection-end-column="122" />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/application/config/config.php">
@@ -653,20 +442,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/withdrawal_slip/view.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4760">
-          <caret line="280" column="63" selection-start-line="280" selection-start-column="47" selection-end-line="280" selection-end-column="63" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/application/controllers/Receiving_report.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2992">
-          <caret line="176" column="92" lean-forward="true" selection-start-line="176" selection-start-column="16" selection-end-line="176" selection-end-column="92" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/application/controllers/Withdrawal_slip.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="16184">
@@ -674,31 +449,147 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/receiving_report/view.php">
+    <entry file="file://$PROJECT_DIR$/application/views/modules/customer/customer/create.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4930">
-          <caret line="290" column="26" lean-forward="true" selection-start-line="290" selection-start-column="26" selection-end-line="290" selection-end-column="26" />
+        <state relative-caret-position="316">
+          <caret line="229" column="122" selection-start-line="229" selection-start-column="84" selection-end-line="229" selection-end-column="122" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/application/controllers/Physical_count.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17850">
+        <state relative-caret-position="17">
           <caret line="1050" column="42" selection-start-line="1050" selection-start-column="20" selection-end-line="1050" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/withdrawal_slip/view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="653">
+          <caret line="294" selection-start-line="206" selection-end-line="294" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/system/core/CodeIgniter.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="629">
+          <caret line="37" column="7" selection-start-line="37" selection-end-line="37" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/Complaint.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="816">
+          <caret line="48" column="30" selection-start-line="48" selection-start-column="25" selection-end-line="48" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/User.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/api/Example.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="18" column="3" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/application/controllers/Generic_ajax.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8551">
-          <caret line="503" lean-forward="true" selection-start-line="503" selection-end-line="503" />
+        <state relative-caret-position="245">
+          <caret line="480" column="8" selection-start-line="480" selection-start-column="8" selection-end-line="480" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/Item_Inventory.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="955" selection-start-line="955" selection-end-line="955" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/Inventory_adjustment.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="296">
+          <caret line="1086" column="5" lean-forward="true" selection-start-line="1086" selection-start-column="5" selection-end-line="1086" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/inventory_adjustment/view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="146">
+          <caret line="196" column="12" lean-forward="true" selection-start-line="196" selection-start-column="12" selection-end-line="196" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/receiving_report/view.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="228">
+          <caret line="273" column="191" lean-forward="true" selection-start-line="273" selection-start-column="8" selection-end-line="273" selection-end-column="191" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/config/routes.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="619">
+          <caret line="60" column="17" selection-start-line="60" selection-start-column="17" selection-end-line="60" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/api/ApiLogin.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="71" column="39" lean-forward="true" selection-start-line="71" selection-start-column="39" selection-end-line="71" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/Receiving_report.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="913" column="5" lean-forward="true" selection-start-line="899" selection-start-column="3" selection-end-line="913" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/api/ApiOrder.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="228">
+          <caret line="32" column="19" selection-start-line="32" selection-start-column="19" selection-end-line="32" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/api/ApiCustomer.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="41">
+          <caret line="10" column="5" selection-start-line="1" selection-end-line="10" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/libraries/Authorization_Token.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="108" column="76" selection-start-line="108" selection-start-column="73" selection-end-line="108" selection-end-column="76" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/config/jwt.php">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/controllers/Customer.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-9853" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/create.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2438">
+          <caret line="39" column="142" selection-start-line="39" selection-start-column="142" selection-end-line="39" selection-end-column="155" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/application/views/modules/inventory/physical_count/view.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1785">
-          <caret line="309" lean-forward="true" selection-start-line="309" selection-end-line="309" />
+        <state relative-caret-position="-415">
+          <caret line="259" column="34" selection-start-line="259" selection-start-column="34" selection-end-line="259" selection-end-column="34" />
           <folding>
             <element signature="n#style#0;n#td#0;n#!!top" expanded="true" />
           </folding>

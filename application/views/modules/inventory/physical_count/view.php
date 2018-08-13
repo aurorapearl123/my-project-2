@@ -246,75 +246,25 @@
 
                 //alert(item_id);
                 if(item_id != "") {
-                    //console.log("result");
-                    //console.log("expected qty :"+expected_qty);
-                    //console.log(item_id);
-                    //console.log(variance);
                     //check variance if positive update item inventory and update stock card
                     if(variance > 0) {
-                        //positive
-                        //console.log("positive : "+variance);
+                        //positivE
 
-                        //console.log("physical id :"+pcID);
-                        debit = variance;
-                        begBal = expected_qty;
-                        //set endbal value
-                        endBal = +begBal + +variance;
-                        //check if expected qty is > physical qty
-                        //then item inventory table column qty will be deducted accdg sa difference sa variance.
-                        //
-                        //if physical qty is > expected qty
-                        //then item inventory table column qty will be added accdg sa difference sa variance.
-
-                        var updated_inventory_qty = 0;
-                        if(expected_qty > physical_qty) {
-                            updated_inventory_qty = +expected_qty - +variance;
-                        }
-                        else {
-                            //console.log("expected qty : " + expected_qty);
-                            //console.log("physical count : " + physical_qty);
-                            updated_inventory_qty = +expected_qty + +variance;
-                            //console.log("add new");
-                            //console.log(updated_inventory_qty);
-
-
-                        }
+                        var updated_inventory_qty = +expected_qty + +variance;
+                        //console.log("updated inventory", updated_inventory_qty);
                         addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
 
-
-
-                        //addStockCardAndItemInventory(reffNo, item_id, variance, debit, credit, begBal, endBal, pcID);
 
                     }
                     else {
                         //negative
-                        //console.log("negative : "+variance);
-                        credit = variance;
-                        begBal = expected_qty;
-                        //set endbal value
-                        endBal = +begBal + +variance;
-                        //addStockCardAndItemInventory(reffNo, item_id, variance, debit, credit, begBal, endBal, pcID);
-                        //console.log("url"+url);
-                        //addStockCard(reffNo);
+                        //cast to positive
+                        var cast_variance = Math.abs(variance);
+                        //console.log("negative", cast_variance)
+                       var updated_inventory_qty = +expected_qty - +cast_variance;
+                        //console.log("result for negative", updated_inventory_qty);
+                        addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
 
-                        var updated_inventory_qty = 0;
-                        if(expected_qty > physical_qty) {
-                            updated_inventory_qty = +expected_qty - +variance;
-                        }
-                        else {
-                            //console.log("expected qty : " + expected_qty);
-                            //console.log("physical count : " + physical_qty);
-                            updated_inventory_qty = +expected_qty + +variance;
-                            //console.log("add new");
-                            //console.log(updated_inventory_qty);
-
-
-                        }
-                       // console.log("expected qty : " + expected_qty);
-                            //console.log("physical count : " + physical_qty);
-                            //var updated_inventory_qty = +expected_qty + +variance;
-                            console.log("add new");
-                            console.log(updated_inventory_qty);
 
                     }
 

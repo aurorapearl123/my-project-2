@@ -1053,4 +1053,52 @@ class Inventory_adjustment extends CI_Controller
             echo "0";
     }
 
+    public function addStockCard()
+    {
+
+        $itemID = trim($this->input->post('item_id'));
+        $debit = trim($this->input->post('debit'));
+        $credit = trim($this->input->post('credit'));
+        $begbal = trim($this->input->post('begBal'));
+        $endbal = trim($this->input->post('endBal'));
+        $adjID = trim($this->input->post('adjID'));
+        $reference_no = $this->router->fetch_class().'-'.$adjID;
+
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        //update approved by
+        $approvedBy = Generic_ajax::updateApproveBy($this->table, "adjID", $adjID, $this->session->userdata('current_user')->userID);
+
+        $branchId = $this->session->userdata('current_user')->branchID;
+        $added = Generic_ajax::addStockCard($reference_no, $itemID, $debit, $credit, $endbal, $begbal, $branchId);
+
+        $response = [
+            'data' => [
+                'status' => 200,
+                'added' => $added,
+                'approvedBy' => $approvedBy
+            ]
+        ];
+
+        echo json_encode($response);
+
+    }
+
+    public function updateCanceledBy()
+    {
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        //update cancel by
+        $adjID = trim($this->input->post('adjID'));
+
+        $cancelledBy = Generic_ajax::updateCancelBy($this->table, "adjID", $adjID, $this->session->userdata('current_user')->userID);
+        $response = [
+            'data' => [
+                'status' => 200,
+                'cancelledBy' => $cancelledBy
+            ]
+        ];
+
+        echo json_encode($response);
+    }
+
+
 }

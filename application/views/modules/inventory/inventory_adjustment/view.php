@@ -20,7 +20,10 @@
                     </div>
                     <div class="card-head-tools">
                         <ul class="tools-list">
-
+                            <?php if($rec->dateApproved == '0000-00-00 00:00:00' && $rec->dateCancelled == '0000-00-00 00:00:00' ) : ?>
+                                <button type="button" class="btn btn-primary btn-xs" id="confirm">Confirm</button>
+                                <button type="button" class="btn btn-warning btn-xs" id="cancel">Cancel</button>
+                            <?php endif;?>
                             <li>
                                 <a href="<?php echo site_url('inventory_adjustment/approve/'.$this->encrypter->encode($rec->adjID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Approve"><i class="la la-thumbs-up"></i></a>
                             </li>
@@ -127,3 +130,105 @@
         </div>
     </div>
 </div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="cancelModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title">Are you sure you want to cancel this item?</h4>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel_proceed">Proceed</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title">Are you sure you want to confirm this item?</h4>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="confirm_proceed">Proceed</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        $('#confirm').on('click', function(){
+            $("#confirmModal").modal();
+        });
+        $('#cancel').on('click', function(){
+            $("#cancelModal").modal();
+        });
+
+        $("#confirm_proceed").on('click', function(){
+            var adjID = "<?php echo $rec->adjID; ?>";
+            var itemID = "<?php echo $rec->itemID; ?>";
+            var qty = "<?php echo $rec->qty; ?>";
+            var debit = qty;
+            var credit = 0;
+            var begBal = qty;
+            var endBal = qty;
+            addStockCard(itemID, debit, credit, begBal, endBal, adjID);
+
+        });
+
+        $('#cancel_proceed').on('click', function(){
+            updateCancel();
+        });
+    });
+
+    function addStockCard(item_id, debit, credit, begBal, endBal, adjID)
+    {
+
+        $.post("<?php echo $controller_page ?>/addStockCard", { item_id: item_id, debit: debit, credit: credit, begBal: begBal, endBal: endBal, adjID: adjID },
+            function(data, status){
+                console.log(data);
+                if(status == "success") {
+                    $('#confirm').hide();
+                    $('#cancel').hide();
+                    var approved_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                    $("#id_approvedBy").text(approved_by);
+                    $("#id_approved_date").text("<?php echo date('Y-m-d h:is')?>");
+                }
+            });
+    }
+
+    function updateCancel()
+    {
+        var adjID = "<?php echo $rec->adjID; ?>";
+
+        $.post("<?php echo $controller_page ?>/updateCanceledBy", { adjID: adjID },
+            function(data, status){
+                console.log(data);
+                if(status == "success") {
+                    $('#confirm').hide();
+                    $('#cancel').hide();
+                    var approved_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                    $("#id_cancel_by").text(approved_by);
+                    $("#id_date_cancelled").text("<?php echo date('Y-m-d h:is')?>");
+                }
+            });
+    }
+
+</script>
