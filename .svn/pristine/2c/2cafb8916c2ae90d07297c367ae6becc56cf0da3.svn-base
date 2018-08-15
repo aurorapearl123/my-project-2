@@ -1,22 +1,20 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.2
--- https://www.phpmyadmin.net/
+-- version 4.3.11
+-- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 30, 2018 at 05:02 AM
--- Server version: 10.1.34-MariaDB
--- PHP Version: 7.2.7
+-- Generation Time: Aug 13, 2018 at 12:00 PM
+-- Server version: 5.6.24
+-- PHP Version: 5.5.24
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
 SET time_zone = "+00:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
 
 --
 -- Database: `iwash`
@@ -29,7 +27,7 @@ SET time_zone = "+00:00";
 --
 
 DROP TABLE IF EXISTS `agencies`;
-CREATE TABLE `agencies` (
+CREATE TABLE IF NOT EXISTS `agencies` (
   `agencyID` int(11) NOT NULL,
   `agencyCode` varchar(10) NOT NULL,
   `agencyName` varchar(100) NOT NULL,
@@ -50,14 +48,14 @@ CREATE TABLE `agencies` (
 --
 
 DROP TABLE IF EXISTS `age_groups`;
-CREATE TABLE `age_groups` (
+CREATE TABLE IF NOT EXISTS `age_groups` (
   `ageGroupID` int(11) NOT NULL,
   `ageGroup` varchar(20) NOT NULL,
   `startAge` float NOT NULL,
   `endAge` float NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1: Active 0: Inactive'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `age_groups`
@@ -79,7 +77,7 @@ INSERT INTO `age_groups` (`ageGroupID`, `ageGroup`, `startAge`, `endAge`, `remar
 --
 
 DROP TABLE IF EXISTS `attendance`;
-CREATE TABLE `attendance` (
+CREATE TABLE IF NOT EXISTS `attendance` (
   `attendanceID` int(11) NOT NULL,
   `empID` int(11) NOT NULL,
   `employmentID` int(11) NOT NULL,
@@ -106,7 +104,7 @@ CREATE TABLE `attendance` (
 --
 
 DROP TABLE IF EXISTS `barangays`;
-CREATE TABLE `barangays` (
+CREATE TABLE IF NOT EXISTS `barangays` (
   `barangayID` int(11) NOT NULL,
   `countryID` int(11) NOT NULL,
   `provinceID` int(11) NOT NULL,
@@ -114,7 +112,7 @@ CREATE TABLE `barangays` (
   `barangay` varchar(50) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=42029 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `barangays`
@@ -6049,7 +6047,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (5922, 58, 36, 284, 'Gatbuca', '', 1),
 (5923, 58, 36, 284, 'Gugo', '', 1),
 (5924, 58, 36, 284, 'Iba Este', '', 1),
-(5925, 58, 36, 284, 'Iba O\'Este', '', 1),
+(5925, 58, 36, 284, 'Iba O''Este', '', 1),
 (5926, 58, 36, 284, 'Longos', '', 1),
 (5927, 58, 36, 284, 'Meysulao', '', 1),
 (5928, 58, 36, 284, 'Meyto', '', 1),
@@ -8000,7 +7998,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (7871, 58, 94, 1504, 'Lawy', '', 1),
 (7872, 58, 94, 1504, 'Manga', '', 1),
 (7873, 58, 94, 1504, 'Manlapig', '', 1),
-(7874, 58, 94, 1504, 'O\'Donnell', '', 1),
+(7874, 58, 94, 1504, 'O''Donnell', '', 1),
 (7875, 58, 94, 1504, 'Santa Lucia', '', 1),
 (7876, 58, 94, 1504, 'Santa Rita', '', 1),
 (7877, 58, 94, 1504, 'Santo Domingo 1st', '', 1),
@@ -14510,7 +14508,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (14376, 58, 24, 78, 'Bgy. 64 - Bagacay (Bgy. 41 Bagacay)', '', 1),
 (14377, 58, 24, 78, 'Bgy. 48 - Bagong Abre (Bgy. 42)', '', 1),
 (14378, 58, 24, 78, 'Bgy. 66 - Banquerohan (Bgy. 43)', '', 1),
-(14379, 58, 24, 78, 'Bgy. 1 - Em\'s Barrio (Pob.)', '', 1),
+(14379, 58, 24, 78, 'Bgy. 1 - Em''s Barrio (Pob.)', '', 1),
 (14380, 58, 24, 78, 'Bgy. 11 - Maoyod Pob. (Bgy. 10 & 11)', '', 1),
 (14381, 58, 24, 78, 'Bgy. 12 - Tula-tula (Pob.)', '', 1),
 (14382, 58, 24, 78, 'Bgy. 13 - Ilawod West Pob. (Ilawod 1)', '', 1),
@@ -14519,7 +14517,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (14385, 58, 24, 78, 'Bgy. 16 - Kawit-East Washington Drive (Pob.)', '', 1),
 (14386, 58, 24, 78, 'Bgy. 17 - Rizal Sreet., Ilawod (Pob.)', '', 1),
 (14387, 58, 24, 78, 'Bgy. 19 - Cabag?an', '', 1),
-(14388, 58, 24, 78, 'Bgy. 2 - Em\'s Barrio South (Pob.)', '', 1),
+(14388, 58, 24, 78, 'Bgy. 2 - Em''s Barrio South (Pob.)', '', 1),
 (14389, 58, 24, 78, 'Bgy. 18 - Cabag?an West (Pob.)', '', 1),
 (14390, 58, 24, 78, 'Bgy. 21 - Binanuahan West (Pob.)', '', 1),
 (14391, 58, 24, 78, 'Bgy. 22 - Binanuahan East (Pob.)', '', 1),
@@ -14530,7 +14528,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (14396, 58, 24, 78, 'Bgy. 27 - Victory Village South (Pob.)', '', 1),
 (14397, 58, 24, 78, 'Bgy. 28 - Victory Village North (Pob.)', '', 1),
 (14398, 58, 24, 78, 'Bgy. 29 - Sabang (Pob.)', '', 1),
-(14399, 58, 24, 78, 'Bgy. 3 - Em\'s Barrio East (Pob.)', '', 1),
+(14399, 58, 24, 78, 'Bgy. 3 - Em''s Barrio East (Pob.)', '', 1),
 (14400, 58, 24, 78, 'Bgy. 36 - Kapantawan (Pob.)', '', 1),
 (14401, 58, 24, 78, 'Bgy. 30 - Pigcale (Pob.)', '', 1),
 (14402, 58, 24, 78, 'Bgy. 31 - Centro-Baybay (Pob.)', '', 1),
@@ -30793,7 +30791,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (30645, 58, 99, 1604, 'Timalang', '', 1),
 (30646, 58, 99, 1604, 'Tomitom', '', 1),
 (30647, 58, 99, 1604, 'Upper Pangi', '', 1),
-(30648, 58, 99, 1604, 'Veteran\'s Village (Ruiz)', '', 1),
+(30648, 58, 99, 1604, 'Veteran''s Village (Ruiz)', '', 1),
 (30649, 58, 99, 1604, 'Makilas', '', 1),
 (30650, 58, 99, 1604, 'Caparan', '', 1),
 (30651, 58, 99, 1604, 'Domandan', '', 1),
@@ -33713,7 +33711,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (33563, 58, 48, 538, 'Datu Danwata', '', 1),
 (33564, 58, 48, 538, 'Demoloc', '', 1),
 (33565, 58, 48, 538, 'Felis', '', 1),
-(33566, 58, 48, 538, 'Fishing Village (Fisherman\'s Village)', '', 1),
+(33566, 58, 48, 538, 'Fishing Village (Fisherman''s Village)', '', 1),
 (33567, 58, 48, 538, 'Kibalatong', '', 1),
 (33568, 58, 48, 538, 'Kidalapong', '', 1),
 (33569, 58, 48, 538, 'Kilalag', '', 1),
@@ -35022,7 +35020,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (34871, 58, 88, 1409, 'Malugong', '', 1),
 (34872, 58, 88, 1409, 'Mongocayo', '', 1),
 (34873, 58, 88, 1409, 'Salacafe', '', 1),
-(34874, 58, 88, 1409, 'T\'bolok', '', 1),
+(34874, 58, 88, 1409, 'T''bolok', '', 1),
 (34875, 58, 88, 1410, 'Acmonan', '', 1),
 (34876, 58, 88, 1410, 'Bololmala', '', 1),
 (34877, 58, 88, 1410, 'Bunao', '', 1),
@@ -35123,7 +35121,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (34972, 58, 90, 1433, 'Salumping', '', 1),
 (34973, 58, 90, 1434, 'Bambad', '', 1),
 (34974, 58, 90, 1434, 'Bual', '', 1),
-(34975, 58, 90, 1434, 'D\'Lotilla', '', 1),
+(34975, 58, 90, 1434, 'D''Lotilla', '', 1),
 (34976, 58, 90, 1434, 'Dansuli', '', 1),
 (34977, 58, 90, 1434, 'Impao', '', 1),
 (34978, 58, 90, 1434, 'Kalawag I (Pob.)', '', 1),
@@ -35280,7 +35278,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (35129, 58, 90, 1431, 'Buenaflor', '', 1),
 (35130, 58, 90, 1431, 'Calean', '', 1),
 (35131, 58, 90, 1431, 'Carmen', '', 1),
-(35132, 58, 90, 1431, 'D\'Ledesma', '', 1),
+(35132, 58, 90, 1431, 'D''Ledesma', '', 1),
 (35133, 58, 90, 1431, 'Gansing', '', 1),
 (35134, 58, 90, 1431, 'Kalandagan', '', 1),
 (35135, 58, 90, 1431, 'Lower Katungal', '', 1),
@@ -35430,7 +35428,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (35279, 58, 85, 1377, 'Atlae', '', 1),
 (35280, 58, 85, 1377, 'Banahaw', '', 1),
 (35281, 58, 85, 1377, 'Banate', '', 1),
-(35282, 58, 85, 1377, 'B\'Laan', '', 1),
+(35282, 58, 85, 1377, 'B''Laan', '', 1),
 (35283, 58, 85, 1377, 'Datal Batong', '', 1),
 (35284, 58, 85, 1377, 'Datal Bila', '', 1),
 (35285, 58, 85, 1377, 'Datal Tampal', '', 1),
@@ -37523,7 +37521,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (37370, 58, 32, 187, 'Bayan Park East', '', 1),
 (37371, 58, 32, 187, 'Brookspoint', '', 1),
 (37372, 58, 32, 187, 'Brookside', '', 1),
-(37373, 58, 32, 187, 'Cabinet Hill-Teacher\'s Camp', '', 1),
+(37373, 58, 32, 187, 'Cabinet Hill-Teacher''s Camp', '', 1),
 (37374, 58, 32, 187, 'Camp Allen', '', 1),
 (37375, 58, 32, 187, 'Camp 7', '', 1),
 (37376, 58, 32, 187, 'Camp 8', '', 1),
@@ -37536,7 +37534,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 (37383, 58, 32, 187, 'DPS Area', '', 1),
 (37384, 58, 32, 187, 'Dizon Subdivision', '', 1),
 (37385, 58, 32, 187, 'Quirino Hill, East', '', 1),
-(37386, 58, 32, 187, 'Engineers\' Hill', '', 1),
+(37386, 58, 32, 187, 'Engineers'' Hill', '', 1),
 (37387, 58, 32, 187, 'Fairview Village', '', 1),
 (37388, 58, 32, 187, 'Fort del Pilar', '', 1),
 (37389, 58, 32, 187, 'General Luna, Upper', '', 1),
@@ -42191,7 +42189,7 @@ INSERT INTO `barangays` (`barangayID`, `countryID`, `provinceID`, `cityID`, `bar
 --
 
 DROP TABLE IF EXISTS `biometric_logs`;
-CREATE TABLE `biometric_logs` (
+CREATE TABLE IF NOT EXISTS `biometric_logs` (
   `logID` int(11) NOT NULL,
   `empID` int(11) NOT NULL,
   `logType` varchar(5) NOT NULL,
@@ -42206,7 +42204,7 @@ CREATE TABLE `biometric_logs` (
 --
 
 DROP TABLE IF EXISTS `branches`;
-CREATE TABLE `branches` (
+CREATE TABLE IF NOT EXISTS `branches` (
   `branchID` int(11) NOT NULL,
   `companyID` int(11) NOT NULL,
   `branchCode` varchar(10) NOT NULL,
@@ -42221,14 +42219,19 @@ CREATE TABLE `branches` (
   `timekeeper` varchar(50) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0: Inactive 1: Active'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `branches`
 --
 
 INSERT INTO `branches` (`branchID`, `companyID`, `branchCode`, `branchName`, `branchAbbr`, `branchContact`, `branchEmail`, `branchAddress`, `branchHeadID`, `branchHeadTitle`, `adminOfficer`, `timekeeper`, `remarks`, `status`) VALUES
-(1, 1, 'MANDAUE', 'MANDAUE', 'MANDAUE', 'MANDAUE', '', 'MANDAUE', '', '', '', '', '', 1);
+(1, 1, 'MANDAUE', 'MANDAUE', 'MANDAUE', '132123', 'mandaue@gmail.com', 'MANDAUE', '1', 'MANDAUE', 'MANDAUE', 'MANDAUE', 'MANDAUE', 1),
+(2, 1, 'tal', 'talamban', 'talamban', '312313', 'talamban@gmail.com', 'talamban', '1', 'talamban', 'talamban', 'talamban', 'talamban', 1),
+(3, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(4, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(5, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(6, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1);
 
 -- --------------------------------------------------------
 
@@ -42237,13 +42240,13 @@ INSERT INTO `branches` (`branchID`, `companyID`, `branchCode`, `branchName`, `br
 --
 
 DROP TABLE IF EXISTS `chat`;
-CREATE TABLE `chat` (
-  `id` int(10) UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `chat` (
+  `id` int(10) unsigned NOT NULL,
   `from` varchar(255) NOT NULL DEFAULT '',
   `to` varchar(255) NOT NULL DEFAULT '',
   `message` text NOT NULL,
   `sent` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `recd` int(10) UNSIGNED NOT NULL DEFAULT '0'
+  `recd` int(10) unsigned NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -42253,7 +42256,7 @@ CREATE TABLE `chat` (
 --
 
 DROP TABLE IF EXISTS `cities`;
-CREATE TABLE `cities` (
+CREATE TABLE IF NOT EXISTS `cities` (
   `cityID` int(11) NOT NULL,
   `countryID` int(11) NOT NULL,
   `provinceID` int(11) NOT NULL,
@@ -42261,7 +42264,7 @@ CREATE TABLE `cities` (
   `zipcode` varchar(4) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1654 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `cities`
@@ -42780,7 +42783,7 @@ INSERT INTO `cities` (`cityID`, `countryID`, `provinceID`, `city`, `zipcode`, `r
 (510, 58, 46, 'MAKILALA', '9401', '', 1),
 (511, 58, 46, 'MATALAM', '9406', '', 1),
 (512, 58, 46, 'MIDSAYAP', '9410', '', 1),
-(513, 58, 46, 'M\'LANG', '9402', '', 1),
+(513, 58, 46, 'M''LANG', '9402', '', 1),
 (514, 58, 46, 'PIGKAWAYAN', '9412', '', 1),
 (515, 58, 46, 'PIKIT', '9409', '', 1),
 (516, 58, 46, 'PRESIDENT ROXAS', '9405', '', 1),
@@ -43445,7 +43448,7 @@ INSERT INTO `cities` (`cityID`, `countryID`, `provinceID`, `city`, `zipcode`, `r
 (1175, 58, 77, 'ARACELI', '5311', '', 1),
 (1176, 58, 77, 'BALABAC', '5307', '', 1),
 (1177, 58, 77, 'BATARAZA', '5306', '', 1),
-(1178, 58, 77, 'BROOKE\'S POINT', '5305', '', 1),
+(1178, 58, 77, 'BROOKE''S POINT', '5305', '', 1),
 (1179, 58, 77, 'BUSUANGA', '5317', '', 1),
 (1180, 58, 77, 'CAGAYANCILLO', '5321', '', 1),
 (1181, 58, 77, 'CORON', '5316', '', 1),
@@ -43677,7 +43680,7 @@ INSERT INTO `cities` (`cityID`, `countryID`, `provinceID`, `city`, `zipcode`, `r
 (1406, 58, 88, 'SURALLAH', '9512', '', 1),
 (1407, 58, 88, 'TAMPAKAN', '9507', '', 1),
 (1408, 58, 88, 'TANTANGAN', '9510', '', 1),
-(1409, 58, 88, 'T\'BOLI', '9513', '', 1),
+(1409, 58, 88, 'T''BOLI', '9513', '', 1),
 (1410, 58, 88, 'TUPI', '9505', '', 1),
 (1411, 58, 89, 'ANAHAWAN', '6610', '', 1),
 (1412, 58, 89, 'BONTOC', '6604', '', 1),
@@ -43930,11 +43933,11 @@ INSERT INTO `cities` (`cityID`, `countryID`, `provinceID`, `city`, `zipcode`, `r
 --
 
 DROP TABLE IF EXISTS `ci_sessions`;
-CREATE TABLE `ci_sessions` (
+CREATE TABLE IF NOT EXISTS `ci_sessions` (
   `session_id` varchar(40) NOT NULL DEFAULT '0',
   `ip_address` varchar(16) NOT NULL DEFAULT '0',
   `user_agent` varchar(120) NOT NULL,
-  `last_activity` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `last_activity` int(10) unsigned NOT NULL DEFAULT '0',
   `user_data` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -43945,11 +43948,25 @@ CREATE TABLE `ci_sessions` (
 --
 
 DROP TABLE IF EXISTS `clothes_categories`;
-CREATE TABLE `clothes_categories` (
+CREATE TABLE IF NOT EXISTS `clothes_categories` (
   `clothesCatID` int(11) NOT NULL,
   `category` varchar(100) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `clothes_categories`
+--
+
+INSERT INTO `clothes_categories` (`clothesCatID`, `category`, `status`) VALUES
+(1, 'dress', 1),
+(2, 'pants', 1),
+(3, 'shorts', 1),
+(4, 'shirts', 1),
+(5, 'polo shirts', 1),
+(6, 'boxers', 1),
+(7, 'underwears', 1),
+(8, 'upperwears', 1);
 
 -- --------------------------------------------------------
 
@@ -43958,7 +43975,7 @@ CREATE TABLE `clothes_categories` (
 --
 
 DROP TABLE IF EXISTS `companies`;
-CREATE TABLE `companies` (
+CREATE TABLE IF NOT EXISTS `companies` (
   `companyID` int(11) NOT NULL,
   `companyCode` varchar(10) NOT NULL,
   `companyName` varchar(100) NOT NULL,
@@ -43970,14 +43987,14 @@ CREATE TABLE `companies` (
   `companyHeadTitle` varchar(100) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1: Active 0: Inactive'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `companies`
 --
 
 INSERT INTO `companies` (`companyID`, `companyCode`, `companyName`, `companyAbbr`, `companyContact`, `companyEmail`, `companyAddress`, `companyHeadID`, `companyHeadTitle`, `remarks`, `status`) VALUES
-(1, 'LH Prime', 'LH Prime', 'LH Prime', 'LH Prime', '', 'LH Prime', 0, '', '', 1);
+(1, 'iWash', 'iWash', 'iWash', 'iWash', '', 'iWash', 0, '', '', 1);
 
 -- --------------------------------------------------------
 
@@ -43986,7 +44003,7 @@ INSERT INTO `companies` (`companyID`, `companyCode`, `companyName`, `companyAbbr
 --
 
 DROP TABLE IF EXISTS `complaints`;
-CREATE TABLE `complaints` (
+CREATE TABLE IF NOT EXISTS `complaints` (
   `comID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -44000,8 +44017,21 @@ CREATE TABLE `complaints` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0:cancelled, 1:pending, 2:confirmed'
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `complaints`
+--
+
+INSERT INTO `complaints` (`comID`, `date`, `branchID`, `custID`, `orderID`, `complaint`, `contactNo`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-07', 0, 1, 1, 'test complaint', '12345679', '', '2018-08-07 17:16:48', '1', '2018-08-10 02:31:40', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-08', 1, 1, 1, 'test complaint', '12313213313', '1', '2018-08-08 10:15:54', '1', '2018-08-10 02:35:01', '', '0000-00-00 00:00:00', 2),
+(3, '2018-08-08', 1, 1, 0, 'test complaint', '1231313', '1', '2018-08-08 10:19:09', '1', '2018-08-10 02:34:22', '', '0000-00-00 00:00:00', 2),
+(4, '2018-08-10', 2, 3, 4, 'test complaint', '1234567498', '1', '2018-08-10 11:38:08', '1', '2018-08-10 02:45:47', '', '0000-00-00 00:00:00', 2),
+(5, '2018-08-10', 1, 3, 4, 'asdaf', '2332', '1', '2018-08-10 14:18:48', '1', '2018-08-10 02:46:08', '', '0000-00-00 00:00:00', 2),
+(6, '2018-08-10', 2, 1, 0, 'aefaffaf', '2323', '1', '2018-08-10 14:50:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 02:50:07', 0),
+(7, '2018-08-13', 3, 3, 4, 'test complaint', '313211313', '1', '2018-08-13 11:17:55', '1', '2018-08-13 11:18:01', '', '0000-00-00 00:00:00', 2);
 
 -- --------------------------------------------------------
 
@@ -44010,12 +44040,12 @@ CREATE TABLE `complaints` (
 --
 
 DROP TABLE IF EXISTS `config`;
-CREATE TABLE `config` (
+CREATE TABLE IF NOT EXISTS `config` (
   `configID` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `value` text NOT NULL,
   `description` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=159 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `config`
@@ -44023,13 +44053,13 @@ CREATE TABLE `config` (
 
 INSERT INTO `config` (`configID`, `name`, `value`, `description`) VALUES
 (1, 'sec', '9620fa7e559ec1255247c5ead21b1e6c', ''),
-(2, 'Software', 'LH Prime | HRIS', 'Software Name'),
+(2, 'Software', 'iWash', 'Software Name'),
 (5, 'Reserved Software', '2018', 'Software years reserved'),
 (6, 'Software Version', 'Beta Version', 'Latest version of the software'),
 (9, 'Contact Number', 'Tel No. (032) 345-3488; (032) 345-1266', 'Contact Numbers'),
-(11, 'Company', 'LH Prime', 'Company Name'),
+(11, 'Company', 'iWash', 'Company Name'),
 (26, 'Chat Support Switch', '1', '1: Chat Support is On<br/>\n0: Chat Support is Off'),
-(31, 'Address', 'A.S. Fortuna St., Banilad, Mandaue City', 'Official Address'),
+(31, 'Address', 'Gov. Cuenca, Talamban, Cebu City', 'Official Address'),
 (32, 'Calendar of Event Switch', '1', '1: Calendar of Event is On<br/>\r\n0: Calendar of Event is Off'),
 (34, 'Log all record views', '0', '1 - If you want to log all record views <br/>\r\n0 - If not'),
 (71, 'Default Rows', '5', 'Default Rows'),
@@ -44078,14 +44108,14 @@ INSERT INTO `config` (`configID`, `name`, `value`, `description`) VALUES
 --
 
 DROP TABLE IF EXISTS `countries`;
-CREATE TABLE `countries` (
+CREATE TABLE IF NOT EXISTS `countries` (
   `countryID` int(11) NOT NULL,
   `countryCode` varchar(5) NOT NULL,
   `country` varchar(50) NOT NULL,
   `nationality` varchar(25) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=83 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `countries`
@@ -44177,7 +44207,7 @@ INSERT INTO `countries` (`countryID`, `countryCode`, `country`, `nationality`, `
 --
 
 DROP TABLE IF EXISTS `customers`;
-CREATE TABLE `customers` (
+CREATE TABLE IF NOT EXISTS `customers` (
   `custID` int(11) NOT NULL,
   `title` varchar(20) NOT NULL,
   `fname` varchar(50) NOT NULL,
@@ -44190,15 +44220,18 @@ CREATE TABLE `customers` (
   `telephone` varchar(20) NOT NULL,
   `mobile` varchar(50) NOT NULL,
   `bday` date NOT NULL,
-  `isRegular` enum('Y','N') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `isRegular` enum('Y','N') NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `customers`
 --
 
-INSERT INTO `customers` (`custID`, `title`, `fname`, `mname`, `lname`, `suffix`, `provinceID`, `cityID`, `barangayID`, `telephone`, `mobile`, `bday`, `isRegular`) VALUES
-(1, 'Highcharts Demo', 'ian', 'uayan', 'rosales', 'Mr', 20, 1, 37051, '', '098432', '0000-00-00', '');
+INSERT INTO `customers` (`custID`, `title`, `fname`, `mname`, `lname`, `suffix`, `provinceID`, `cityID`, `barangayID`, `telephone`, `mobile`, `bday`, `isRegular`, `status`) VALUES
+(1, 'Highcharts Demo', 'ian', 'uayan', 'rosales', 'Mr', 20, 1, 37051, '', '098432', '0000-00-00', '', 1),
+(2, 'jr', 'james', 'yap', 'lao', 'Mr', 20, 2, 37083, '', '098432', '0000-00-00', 'Y', 1),
+(3, 'Ms.', 'Apple Jan', 'Tabelon', 'Tacardon', '', 20, 2, 37083, '', '123700', '0000-00-00', 'Y', 1);
 
 -- --------------------------------------------------------
 
@@ -44207,7 +44240,7 @@ INSERT INTO `customers` (`custID`, `title`, `fname`, `mname`, `lname`, `suffix`,
 --
 
 DROP TABLE IF EXISTS `departments`;
-CREATE TABLE `departments` (
+CREATE TABLE IF NOT EXISTS `departments` (
   `deptID` int(11) NOT NULL,
   `companyID` int(11) NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -44216,7 +44249,7 @@ CREATE TABLE `departments` (
   `deptHead` int(11) NOT NULL,
   `deptTitle` varchar(50) NOT NULL,
   `status` int(11) NOT NULL DEFAULT '1'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `departments`
@@ -44232,7 +44265,7 @@ INSERT INTO `departments` (`deptID`, `companyID`, `branchID`, `deptCode`, `deptN
 --
 
 DROP TABLE IF EXISTS `employees`;
-CREATE TABLE `employees` (
+CREATE TABLE IF NOT EXISTS `employees` (
   `empID` int(11) NOT NULL,
   `empNo` varchar(15) NOT NULL,
   `biometricID` int(11) NOT NULL,
@@ -44284,7 +44317,7 @@ CREATE TABLE `employees` (
   `dateTermination` date NOT NULL,
   `imageExtension` varchar(5) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0: Inactive 1: Active 2: Retired 3: Terminated 4: AWOL'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `employees`
@@ -44300,7 +44333,7 @@ INSERT INTO `employees` (`empID`, `empNo`, `biometricID`, `biometricPin`, `isBio
 --
 
 DROP TABLE IF EXISTS `employments`;
-CREATE TABLE `employments` (
+CREATE TABLE IF NOT EXISTS `employments` (
   `employmentID` int(11) NOT NULL,
   `employmentNo` varchar(20) NOT NULL,
   `empID` int(11) NOT NULL,
@@ -44331,7 +44364,7 @@ CREATE TABLE `employments` (
   `isBiometric` int(11) NOT NULL COMMENT '1: Yes 0: No',
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0: Inactive 1: Active 2: Re-assigned 3: Promoted 4: Demoted 5: Terminated 6: Resigned 7: EOC'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `employments`
@@ -44347,15 +44380,22 @@ INSERT INTO `employments` (`employmentID`, `employmentNo`, `empID`, `companyID`,
 --
 
 DROP TABLE IF EXISTS `equipments`;
-CREATE TABLE `equipments` (
+CREATE TABLE IF NOT EXISTS `equipments` (
   `equipmentID` int(11) NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `serialNo` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `equipments`
+--
+
+INSERT INTO `equipments` (`equipmentID`, `brand`, `model`, `serialNo`, `name`, `description`, `status`) VALUES
+(1, 'test Brand', 'test Model', 'test Serial Number', 'test Name', 'test Description', 1);
 
 -- --------------------------------------------------------
 
@@ -44364,12 +44404,12 @@ CREATE TABLE `equipments` (
 --
 
 DROP TABLE IF EXISTS `equipment_inventory`;
-CREATE TABLE `equipment_inventory` (
+CREATE TABLE IF NOT EXISTS `equipment_inventory` (
   `eqID` int(11) NOT NULL,
   `branchID` int(11) NOT NULL,
   `equipmentID` int(11) NOT NULL,
   `assetNo` varchar(10) NOT NULL,
-  `status` tinyint(1) NOT NULL
+  `status` tinyint(1) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -44379,12 +44419,12 @@ CREATE TABLE `equipment_inventory` (
 --
 
 DROP TABLE IF EXISTS `equipment_monitoring`;
-CREATE TABLE `equipment_monitoring` (
+CREATE TABLE IF NOT EXISTS `equipment_monitoring` (
   `emID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
-  `eqID` int(11) NOT NULL,
-  `conductedBy` varchar(100) NOT NULL,
+  `equipmentID` int(11) NOT NULL,
+  `monitoredBy` varchar(100) NOT NULL,
   `remarks` text NOT NULL,
   `createdBy` varchar(36) NOT NULL,
   `dateCreated` datetime NOT NULL,
@@ -44392,8 +44432,16 @@ CREATE TABLE `equipment_monitoring` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `equipment_monitoring`
+--
+
+INSERT INTO `equipment_monitoring` (`emID`, `date`, `branchID`, `equipmentID`, `monitoredBy`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-10', 1, 0, 'System S. Administrator', '', '1', '2018-08-10 00:00:00', '1', '2018-08-10 06:08:41', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-10', 1, 1, 'test test', 'test test', '1', '2018-08-10 00:00:00', '1', '2018-08-10 06:27:59', '', '0000-00-00 00:00:00', 2);
 
 -- --------------------------------------------------------
 
@@ -44402,12 +44450,19 @@ CREATE TABLE `equipment_monitoring` (
 --
 
 DROP TABLE IF EXISTS `expense_particulars`;
-CREATE TABLE `expense_particulars` (
+CREATE TABLE IF NOT EXISTS `expense_particulars` (
   `particularID` int(11) NOT NULL,
   `particular` varchar(100) NOT NULL,
   `description` text NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `expense_particulars`
+--
+
+INSERT INTO `expense_particulars` (`particularID`, `particular`, `description`, `status`) VALUES
+(1, 'test particular', 'test Description', 1);
 
 -- --------------------------------------------------------
 
@@ -44416,7 +44471,7 @@ CREATE TABLE `expense_particulars` (
 --
 
 DROP TABLE IF EXISTS `exp_details`;
-CREATE TABLE `exp_details` (
+CREATE TABLE IF NOT EXISTS `exp_details` (
   `id` int(11) NOT NULL,
   `expID` int(11) NOT NULL,
   `particularID` int(11) NOT NULL,
@@ -44431,7 +44486,7 @@ CREATE TABLE `exp_details` (
 --
 
 DROP TABLE IF EXISTS `exp_headers`;
-CREATE TABLE `exp_headers` (
+CREATE TABLE IF NOT EXISTS `exp_headers` (
   `expID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -44443,7 +44498,7 @@ CREATE TABLE `exp_headers` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
+  `status` tinyint(1) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -44453,7 +44508,7 @@ CREATE TABLE `exp_headers` (
 --
 
 DROP TABLE IF EXISTS `field_logs`;
-CREATE TABLE `field_logs` (
+CREATE TABLE IF NOT EXISTS `field_logs` (
   `lid` int(11) NOT NULL,
   `userID` varchar(36) NOT NULL,
   `host` varchar(20) NOT NULL,
@@ -44467,7 +44522,7 @@ CREATE TABLE `field_logs` (
   `field` varchar(20) NOT NULL,
   `oldvalue` text NOT NULL,
   `newvalue` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `field_logs`
@@ -44490,7 +44545,66 @@ INSERT INTO `field_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 (14, '1', '::1', '', '2018-05-29 09:37:12', 'Branch', 'branches', 'branchID', '1', 'Update', 'branchName', 'ACCTG', 'MANDAUE'),
 (15, '1', '::1', '', '2018-05-29 09:37:12', 'Branch', 'branches', 'branchID', '1', 'Update', 'branchAbbr', 'ACCTG', 'MANDAUE'),
 (16, '1', '::1', '', '2018-05-29 09:37:12', 'Branch', 'branches', 'branchID', '1', 'Update', 'branchContact', 'ACCTG', 'MANDAUE'),
-(17, '1', '::1', '', '2018-05-29 09:37:12', 'Branch', 'branches', 'branchID', '1', 'Update', 'branchAddress', 'ACCTG', 'MANDAUE');
+(17, '1', '::1', '', '2018-05-29 09:37:12', 'Branch', 'branches', 'branchID', '1', 'Update', 'branchAddress', 'ACCTG', 'MANDAUE'),
+(18, '1', '::1', '', '2018-07-31 17:11:44', 'Order', 'order_headers', 'orderID', '53', 'Update', 'isDiscounted', 'N', ''),
+(19, '1', '::1', '', '2018-07-31 17:11:44', 'Order', 'order_headers', 'orderID', '53', 'Update', 'amount', '0.00', ''),
+(20, '1', '::1', '', '2018-07-31 17:11:44', 'Order', 'order_headers', 'orderID', '53', 'Update', 'createdBy', '1', ''),
+(21, '1', '::1', '', '2018-07-31 17:13:05', 'Order', 'order_headers', 'orderID', '53', 'Update', 'isDiscounted', '', 'Y'),
+(22, '1', '::1', '', '2018-07-31 17:13:05', 'Order', 'order_headers', 'orderID', '53', 'Update', 'rate', '50.00', '45'),
+(23, '1', '::1', '', '2018-07-31 17:13:05', 'Order', 'order_headers', 'orderID', '53', 'Update', 'amount', '0.00', ''),
+(24, '1', '::1', '', '2018-07-31 17:13:05', 'Order', 'order_headers', 'orderID', '53', 'Update', 'createdBy', '', '1'),
+(25, '1', '::1', '', '2018-08-01 06:06:47', 'Order', 'order_headers', 'orderID', '57', 'Update', 'date', '2018-07-31', '2018-08-01'),
+(26, '1', '::1', '', '2018-08-01 06:06:47', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(27, '1', '::1', '', '2018-08-01 06:08:23', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(28, '1', '::1', '', '2018-08-01 06:09:42', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(29, '1', '::1', '', '2018-08-01 06:10:12', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(30, '1', '::1', '', '2018-08-01 06:11:24', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(31, '1', '::1', '', '2018-08-01 06:12:35', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(32, '1', '::1', '', '2018-08-02 11:46:32', 'Receiving Report', 'rr_headers', 'rrID', '9', 'Update', 'ttlAmount', '155.00', '221'),
+(33, '1', '::1', '', '2018-08-02 11:48:32', 'Receiving Report', 'rr_headers', 'rrID', '9', 'Update', 'ttlAmount', '221.00', '166'),
+(34, '1', '::1', '', '2018-08-02 12:22:31', 'Receiving Report', 'rr_headers', 'rrID', '9', 'Update', 'ttlAmount', '166.00', '170'),
+(35, '1', '::1', '', '2018-08-02 12:23:01', 'Receiving Report', 'rr_headers', 'rrID', '9', 'Update', 'ttlAmount', '170.00', '104'),
+(36, '1', '::1', '', '2018-08-02 12:24:01', 'Receiving Report', 'rr_headers', 'rrID', '1', 'Update', 'ttlAmount', '100.00', '5'),
+(37, '1', '::1', '', '2018-08-02 12:24:01', 'Receiving Report', 'rr_headers', 'rrID', '1', 'Update', 'referenceNo', '', '54'),
+(38, '1', '::1', '', '2018-08-02 12:58:37', 'Order', 'order_headers', 'orderID', '56', 'Update', 'date', '2018-07-31', '2018-08-02'),
+(39, '1', '::1', '', '2018-08-02 12:58:37', 'Order', 'order_headers', 'orderID', '56', 'Update', 'amount', '0.00', ''),
+(40, '1', '::1', '', '2018-08-02 12:59:10', 'Order', 'order_headers', 'orderID', '56', 'Update', 'amount', '0.00', ''),
+(41, '1', '::1', '', '2018-08-02 13:00:42', 'Order', 'order_headers', 'orderID', '55', 'Update', 'date', '2018-07-31', '2018-08-02'),
+(42, '1', '::1', '', '2018-08-02 13:00:42', 'Order', 'order_headers', 'orderID', '55', 'Update', 'amount', '0.00', ''),
+(43, '1', '::1', '', '2018-08-03 07:02:12', 'Receiving Report', 'rr_headers', 'rrID', '11', 'Update', 'ttlAmount', '10.00', '5'),
+(44, '1', '::1', '', '2018-08-03 07:52:14', 'Order', 'order_headers', 'orderID', '61', 'Update', 'custID', '0', '1'),
+(45, '1', '::1', '', '2018-08-03 07:52:14', 'Order', 'order_headers', 'orderID', '61', 'Update', 'amount', '0.00', ''),
+(46, '1', '::1', '', '2018-08-03 08:05:04', 'Order', 'order_headers', 'orderID', '57', 'Update', 'custID', '0', '1'),
+(47, '1', '::1', '', '2018-08-03 08:05:04', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(48, '1', '::1', '', '2018-08-03 08:23:18', 'Order', 'order_headers', 'orderID', '57', 'Update', 'amount', '0.00', ''),
+(49, '1', '::1', '', '2018-08-03 08:24:30', 'Order', 'order_headers', 'orderID', '60', 'Update', 'custID', '0', '1'),
+(50, '1', '::1', '', '2018-08-03 08:24:30', 'Order', 'order_headers', 'orderID', '60', 'Update', 'amount', '0.00', ''),
+(51, '1', '::1', '', '2018-08-03 08:24:43', 'Order', 'order_headers', 'orderID', '60', 'Update', 'amount', '0.00', ''),
+(52, '1', '::1', '', '2018-08-03 08:26:02', 'Order', 'order_headers', 'orderID', '62', 'Update', 'custID', '0', '1'),
+(53, '1', '::1', '', '2018-08-03 08:26:02', 'Order', 'order_headers', 'orderID', '62', 'Update', 'amount', '0.00', ''),
+(54, '1', '::1', '', '2018-08-03 08:32:01', 'Order', 'order_headers', 'orderID', '59', 'Update', 'custID', '0', '2'),
+(55, '1', '::1', '', '2018-08-03 08:32:01', 'Order', 'order_headers', 'orderID', '59', 'Update', 'amount', '0.00', ''),
+(56, '1', '::1', '', '2018-08-03 08:33:10', 'Order', 'order_headers', 'orderID', '59', 'Update', 'isDiscounted', 'Y', 'N'),
+(57, '1', '::1', '', '2018-08-03 08:33:10', 'Order', 'order_headers', 'orderID', '59', 'Update', 'rate', '45.00', '50'),
+(58, '1', '::1', '', '2018-08-03 08:33:10', 'Order', 'order_headers', 'orderID', '59', 'Update', 'amount', '0.00', ''),
+(59, '1', '::1', '', '2018-08-03 08:37:38', 'Order', 'order_headers', 'orderID', '59', 'Update', 'amount', '0.00', ''),
+(60, '1', '::1', '', '2018-08-03 08:37:38', 'Order', 'order_headers', 'orderID', '59', 'Update', 'ttlAmount', '57.00', '62'),
+(61, '1', '::1', '', '2018-08-07 17:18:12', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'itemID', '1', ''),
+(62, '1', '::1', '', '2018-08-07 17:18:12', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'adjType', 'DR', ''),
+(63, '1', '::1', '', '2018-08-07 17:18:12', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'remarks', 'First remarks.', ''),
+(64, '1', '::1', '', '2018-08-07 17:18:12', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'createdBy', '1', ''),
+(65, '1', '::1', '', '2018-08-07 17:18:12', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'status', '1', ''),
+(66, '1', '::1', '', '2018-08-07 17:22:50', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'itemID', '0', ''),
+(67, '1', '::1', '', '2018-08-07 17:22:50', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'status', '0', ''),
+(68, '1', '::1', '', '2018-08-08 10:11:40', 'Complaints', 'complaints', 'comID', '1', 'Update', 'orderID', '0', '1'),
+(69, '1', '::1', '', '2018-08-08 10:11:40', 'Complaints', 'complaints', 'comID', '1', 'Update', 'createdBy', '1', ''),
+(70, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', 'rr_headers', 'rrID', '2', 'Update', 'ttlAmount', '2313213.00', '2316646'),
+(71, '1', '::1', '', '2018-08-08 15:46:38', 'Item Inventory', 'item_inventory', 'invID', '7', 'Update', 'reorderlvl', '12', '15'),
+(72, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', 'customers', 'custID', '3', 'Update', 'bday', '0000-00-00', 'January 01, 1970'),
+(73, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', 'customers', 'custID', '3', 'Update', 'isRegular', '', '1'),
+(74, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'equipmentID', '1', ''),
+(75, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'remarks', 'test', ''),
+(76, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'conductedBy', 'test', 'System S. Administrator');
 
 -- --------------------------------------------------------
 
@@ -44499,7 +44613,7 @@ INSERT INTO `field_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 --
 
 DROP TABLE IF EXISTS `fingerprints`;
-CREATE TABLE `fingerprints` (
+CREATE TABLE IF NOT EXISTS `fingerprints` (
   `fpID` int(11) NOT NULL,
   `empNo` varchar(15) NOT NULL,
   `fpprimary` blob NOT NULL,
@@ -44519,7 +44633,7 @@ CREATE TABLE `fingerprints` (
 --
 
 DROP TABLE IF EXISTS `inventory_adjustments`;
-CREATE TABLE `inventory_adjustments` (
+CREATE TABLE IF NOT EXISTS `inventory_adjustments` (
   `adjID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -44533,8 +44647,19 @@ CREATE TABLE `inventory_adjustments` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0:cancelled, 1:pending, 2:confirmed'
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `inventory_adjustments`
+--
+
+INSERT INTO `inventory_adjustments` (`adjID`, `date`, `branchID`, `itemID`, `adjType`, `qty`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-06', 1, 1, '', 45, '', '1', '2018-08-06 00:00:00', '1', '2018-08-10 03:36:14', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-07', 1, 2, 'CR', 20, 'second remarks', '1', '2018-08-01 00:00:00', '1', '2018-08-10 03:44:58', '', '0000-00-00 00:00:00', 2),
+(3, '2018-08-07', 1, 1, '', 2, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 03:36:30', 0),
+(4, '2018-08-08', 1, 2, '', 0, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 03:45:06', 0),
+(5, '2018-08-08', 1, 2, '', 2, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -44543,14 +44668,30 @@ CREATE TABLE `inventory_adjustments` (
 --
 
 DROP TABLE IF EXISTS `items`;
-CREATE TABLE `items` (
+CREATE TABLE IF NOT EXISTS `items` (
   `itemID` int(11) NOT NULL,
-  `branch` varchar(100) NOT NULL,
+  `brand` varchar(100) NOT NULL,
   `item` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `umsr` varchar(20) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `items`
+--
+
+INSERT INTO `items` (`itemID`, `brand`, `item`, `description`, `umsr`, `status`) VALUES
+(1, 'jag', 'jag item', 'jeans for jag', 'pack', 1),
+(2, 'leg', 'leg item', 'this is a sample decription', 'pieces', 1),
+(3, 'branch item 3', 'item for item 3', 'description for item 3', 'pack', 1),
+(4, 'branch item 4', 'item for item 4', 'description for item 4', 'pack', 1),
+(5, 'branch for item 5', 'item for item 5', 'description for item 5', 'pack', 1),
+(22, 'test brand', 'test Item', 'test Description', 'test UMSR', 1),
+(23, 'test 2', 'test 2', 'test 2', 'test 2', 1),
+(24, 'test3', 'test3', 'test3', 'test3', 1),
+(25, 'test4', 'test4', 'test4', 'test4', 1),
+(26, 'test brand 1', 'test Item 1', 'test Description 1', 'pc', 1);
 
 -- --------------------------------------------------------
 
@@ -44559,10 +44700,59 @@ CREATE TABLE `items` (
 --
 
 DROP TABLE IF EXISTS `item_inventory`;
-CREATE TABLE `item_inventory` (
+CREATE TABLE IF NOT EXISTS `item_inventory` (
   `invID` int(11) NOT NULL,
-  `branchID` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `branchID` int(11) NOT NULL,
+  `itemID` int(11) NOT NULL,
+  `qty` float NOT NULL,
+  `reorderlvl` float NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `item_inventory`
+--
+
+INSERT INTO `item_inventory` (`invID`, `branchID`, `itemID`, `qty`, `reorderlvl`) VALUES
+(1, 1, 1, 4, 400),
+(2, 1, 2, 10, 10),
+(3, 1, 3, -9, 20),
+(4, 1, 4, 60, 50),
+(5, 1, 5, 30, 30),
+(6, 2, 1, 4, 12),
+(7, 2, 2, 10, 15),
+(8, 2, 3, -9, 12),
+(9, 2, 4, 60, 12),
+(10, 2, 5, 30, 12),
+(35, 1, 22, 12, 12),
+(36, 1, 22, 0, 0),
+(37, 1, 23, 1, 1),
+(38, 2, 23, 0, 0),
+(39, 1, 24, 3, 3),
+(40, 2, 24, 0, 0),
+(41, 1, 25, 4, 4),
+(42, 2, 25, 0, 0),
+(43, 1, 26, 15, 15),
+(44, 2, 26, 0, 0),
+(45, 5, 1, 0, 0),
+(46, 5, 2, 0, 0),
+(47, 5, 3, 0, 0),
+(48, 5, 4, 0, 0),
+(49, 5, 5, 0, 0),
+(50, 5, 22, 0, 0),
+(51, 5, 23, 0, 0),
+(52, 5, 24, 0, 0),
+(53, 5, 25, 0, 0),
+(54, 5, 26, 0, 0),
+(55, 6, 1, 0, 0),
+(56, 6, 2, 0, 0),
+(57, 6, 3, 0, 0),
+(58, 6, 4, 0, 0),
+(59, 6, 5, 0, 0),
+(60, 6, 22, 0, 0),
+(61, 6, 23, 0, 0),
+(62, 6, 24, 0, 0),
+(63, 6, 25, 0, 0),
+(64, 6, 26, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -44571,7 +44761,7 @@ CREATE TABLE `item_inventory` (
 --
 
 DROP TABLE IF EXISTS `job_titles`;
-CREATE TABLE `job_titles` (
+CREATE TABLE IF NOT EXISTS `job_titles` (
   `jobTitleID` int(11) NOT NULL,
   `code` varchar(20) NOT NULL,
   `jobTitle` varchar(150) NOT NULL,
@@ -44579,7 +44769,7 @@ CREATE TABLE `job_titles` (
   `remarks` varchar(50) NOT NULL,
   `rank` int(11) NOT NULL DEFAULT '1' COMMENT '1: highest',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1: Active 0: Inactive'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `job_titles`
@@ -44597,7 +44787,7 @@ INSERT INTO `job_titles` (`jobTitleID`, `code`, `jobTitle`, `jobDescription`, `r
 --
 
 DROP TABLE IF EXISTS `login_logs`;
-CREATE TABLE `login_logs` (
+CREATE TABLE IF NOT EXISTS `login_logs` (
   `lid` int(11) NOT NULL,
   `host` varchar(20) NOT NULL,
   `hostname` varchar(30) NOT NULL,
@@ -44605,7 +44795,7 @@ CREATE TABLE `login_logs` (
   `date` datetime NOT NULL,
   `operation` varchar(15) NOT NULL,
   `logs` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `login_logs`
@@ -44674,7 +44864,55 @@ INSERT INTO `login_logs` (`lid`, `host`, `hostname`, `userID`, `date`, `operatio
 (60, '::1', '', '1', '2018-07-27 13:37:44', 'Login', 'Success'),
 (61, '::1', '', '1', '2018-07-27 14:33:21', 'Login', 'Success'),
 (62, '::1', '', '1', '2018-07-27 14:38:52', 'Login', 'Success'),
-(63, '::1', '', '1', '2018-07-27 16:22:27', 'Login', 'Success');
+(63, '::1', '', '1', '2018-07-27 16:22:27', 'Login', 'Success'),
+(64, '::1', '', '1', '2018-07-30 08:43:00', 'Login', 'Success'),
+(65, '::1', '', '1', '2018-07-30 10:17:43', 'Login', 'Success'),
+(66, '::1', '', '1', '2018-07-30 10:19:10', 'Login', 'Success'),
+(67, '::1', '', '1', '2018-07-30 10:20:21', 'Login', 'Success'),
+(68, '::1', '', '1', '2018-07-30 10:21:15', 'Logout', 'Success'),
+(69, '::1', '', '1', '2018-07-30 10:21:22', 'Login', 'Success'),
+(70, '::1', '', '1', '2018-07-31 03:52:43', 'Login', 'Success'),
+(71, '::1', '', '1', '2018-07-31 05:08:07', 'Login', 'Success'),
+(72, '::1', '', '1', '2018-07-31 06:00:10', 'Logout', 'Success'),
+(73, '::1', '', '1', '2018-07-31 06:00:16', 'Login', 'Success'),
+(74, '::1', '', '1', '2018-07-31 17:02:36', 'Login', 'Success'),
+(75, '::1', '', '1', '2018-07-31 17:06:31', 'Login', 'Success'),
+(76, '::1', '', '1', '2018-08-01 04:30:35', 'Login', 'Success'),
+(77, '::1', '', '1', '2018-08-02 04:30:16', 'Login', 'Success'),
+(78, '::1', '', '1', '2018-08-02 04:57:14', 'Logout', 'Success'),
+(79, '::1', '', '1', '2018-08-02 04:57:18', 'Login', 'Success'),
+(80, '::1', '', '1', '2018-08-02 09:45:39', 'Login', 'Success'),
+(81, '::1', '', '1', '2018-08-02 11:30:46', 'Logout', 'Success'),
+(82, '::1', '', '1', '2018-08-02 11:30:51', 'Login', 'Success'),
+(83, '::1', '', '1', '2018-08-02 16:51:07', 'Login', 'Success'),
+(84, '::1', '', '1', '2018-08-03 04:44:40', 'Login', 'Success'),
+(85, '::1', '', '1', '2018-08-03 09:47:50', 'Login', 'Success'),
+(86, '::1', '', '1', '2018-08-03 14:53:12', 'Login', 'Success'),
+(87, '::1', '', '1', '2018-08-05 08:40:49', 'Login', 'Success'),
+(88, '::1', '', '1', '2018-08-05 11:41:51', 'Login', 'Success'),
+(89, '::1', '', '1', '2018-08-05 15:44:18', 'Login', 'Success'),
+(90, '::1', '', '1', '2018-08-06 04:08:03', 'Login', 'Success'),
+(91, '::1', '', '1', '2018-08-06 16:14:56', 'Login', 'Success'),
+(92, '::1', '', '1', '2018-08-07 05:15:25', 'Login', 'Success'),
+(93, '::1', '', '1', '2018-08-07 08:51:56', 'Logout', 'Success'),
+(94, '::1', '', '1', '2018-08-07 08:52:01', 'Login', 'Success'),
+(95, '::1', '', '1', '2018-08-07 16:45:36', 'Login', 'Success'),
+(96, '::1', '', '1', '2018-08-07 16:55:15', 'Logout', 'Success'),
+(97, '::1', '', '1', '2018-08-07 16:55:20', 'Login', 'Success'),
+(98, '::1', '', '1', '2018-08-07 17:01:38', 'Login', 'Success'),
+(99, '::1', '', '1', '2018-08-07 17:03:01', 'Login', 'Success'),
+(100, '::1', '', '1', '2018-08-07 17:46:02', 'Login', 'Success'),
+(101, '::1', '', '1', '2018-08-08 09:40:31', 'Login', 'Success'),
+(102, '::1', '', '1', '2018-08-08 14:30:10', 'Logout', 'Success'),
+(103, '::1', '', '1', '2018-08-08 14:30:14', 'Login', 'Success'),
+(104, '::1', '', '1', '2018-08-08 15:05:16', 'Logout', 'Success'),
+(105, '::1', '', '1', '2018-08-08 15:05:22', 'Login', 'Success'),
+(106, '::1', '', '1', '2018-08-08 16:31:36', 'Login', 'Success'),
+(107, '::1', '', '1', '2018-08-08 16:32:10', 'Login', 'Success'),
+(108, '::1', '', '1', '2018-08-08 16:46:51', 'Login', 'Success'),
+(109, '::1', '', '1', '2018-08-09 14:05:29', 'Login', 'Success'),
+(110, '::1', '', '1', '2018-08-10 11:23:23', 'Login', 'Success'),
+(111, '::1', '', '1', '2018-08-13 09:58:08', 'Login', 'Success');
 
 -- --------------------------------------------------------
 
@@ -44683,7 +44921,7 @@ INSERT INTO `login_logs` (`lid`, `host`, `hostname`, `userID`, `date`, `operatio
 --
 
 DROP TABLE IF EXISTS `orders`;
-CREATE TABLE `orders` (
+CREATE TABLE IF NOT EXISTS `orders` (
   `orderID` int(11) NOT NULL,
   `orderNo` varchar(20) NOT NULL,
   `series` year(4) NOT NULL,
@@ -44705,12 +44943,42 @@ CREATE TABLE `orders` (
 --
 
 DROP TABLE IF EXISTS `order_details`;
-CREATE TABLE `order_details` (
+CREATE TABLE IF NOT EXISTS `order_details` (
   `id` int(11) NOT NULL,
   `orderID` int(11) NOT NULL,
   `clothesCatID` int(11) NOT NULL,
   `qty` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `order_details`
+--
+
+INSERT INTO `order_details` (`id`, `orderID`, `clothesCatID`, `qty`) VALUES
+(1, 2, 1, 43),
+(2, 2, 2, 43),
+(3, 2, 3, 4),
+(4, 2, 4, 0),
+(5, 2, 5, 0),
+(6, 2, 6, 0),
+(7, 2, 7, 0),
+(8, 2, 8, 0),
+(9, 3, 1, 3),
+(10, 3, 2, 3),
+(11, 3, 3, 3),
+(12, 3, 4, 3),
+(13, 3, 5, 0),
+(14, 3, 6, 0),
+(15, 3, 7, 0),
+(16, 3, 8, 0),
+(17, 4, 1, 5),
+(18, 4, 2, 5),
+(19, 4, 3, 5),
+(20, 4, 4, 5),
+(21, 4, 5, 5),
+(22, 4, 6, 0),
+(23, 4, 7, 5),
+(24, 4, 8, 5);
 
 -- --------------------------------------------------------
 
@@ -44719,7 +44987,7 @@ CREATE TABLE `order_details` (
 --
 
 DROP TABLE IF EXISTS `order_headers`;
-CREATE TABLE `order_headers` (
+CREATE TABLE IF NOT EXISTS `order_headers` (
   `orderID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -44728,18 +44996,31 @@ CREATE TABLE `order_headers` (
   `isDiscounted` enum('Y','N') NOT NULL,
   `qty` float NOT NULL,
   `rate` decimal(10,2) NOT NULL,
+  `deliveryFee` decimal(10,2) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
+  `ttlItems` int(11) NOT NULL,
+  `ttlAmount` decimal(10,2) NOT NULL,
   `createdBy` varchar(36) NOT NULL,
-  `dateCreated` datetime NOT NULL,
-  `dateWashed` datetime NOT NULL,
+  `dateCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dateWashed` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `dateFold` datetime NOT NULL,
   `dateReady` datetime NOT NULL,
   `dateReleased` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
   `custSign` blob NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `order_headers`
+--
+
+INSERT INTO `order_headers` (`orderID`, `date`, `branchID`, `custID`, `serviceID`, `isDiscounted`, `qty`, `rate`, `deliveryFee`, `amount`, `ttlItems`, `ttlAmount`, `createdBy`, `dateCreated`, `dateWashed`, `dateFold`, `dateReady`, `dateReleased`, `cancelledBy`, `dateCancelled`, `custSign`, `status`) VALUES
+(1, '2018-07-30', 1, 1, 1, 'Y', 2, '200.00', '200.00', '400.00', 300, '300.00', '1', '2018-07-30 00:00:00', '2018-07-30 00:00:00', '2018-07-30 00:00:00', '2018-07-23 00:00:00', '2018-07-16 00:00:00', '1', '0000-00-00 00:00:00', '', 1),
+(2, '2018-08-07', 1, 0, 1, 'Y', 5, '30.00', '6.00', '0.00', 0, '41.00', '1', '2018-08-07 15:30:47', '2018-08-07 15:30:47', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1),
+(3, '2018-08-08', 1, 0, 1, 'Y', 2, '25.00', '22.00', '0.00', 0, '49.00', '1', '2018-08-08 10:56:22', '2018-08-08 10:56:22', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1),
+(4, '2018-08-10', 1, 3, 3, 'Y', 10, '15.00', '100.00', '0.00', 0, '250.00', '1', '2018-08-10 11:37:37', '2018-08-10 11:37:37', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1);
 
 -- --------------------------------------------------------
 
@@ -44748,14 +45029,28 @@ CREATE TABLE `order_headers` (
 --
 
 DROP TABLE IF EXISTS `pc_details`;
-CREATE TABLE `pc_details` (
+CREATE TABLE IF NOT EXISTS `pc_details` (
   `id` int(11) NOT NULL,
   `pcID` int(11) NOT NULL,
   `itemID` int(11) NOT NULL,
   `systemQty` float NOT NULL,
   `actualQty` float NOT NULL,
   `variance` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `pc_details`
+--
+
+INSERT INTO `pc_details` (`id`, `pcID`, `itemID`, `systemQty`, `actualQty`, `variance`) VALUES
+(1, 1, 1, 20, 20, 0),
+(2, 1, 2, 15, 20, 5),
+(3, 2, 1, 10, 5, 5),
+(14, 4, 1, 34, 30, 4),
+(15, 4, 2, 40, 30, 10),
+(16, 4, 3, 11, 20, -9),
+(17, 4, 4, 70, 10, 60),
+(18, 4, 5, 50, 20, 30);
 
 -- --------------------------------------------------------
 
@@ -44764,20 +45059,29 @@ CREATE TABLE `pc_details` (
 --
 
 DROP TABLE IF EXISTS `pc_headers`;
-CREATE TABLE `pc_headers` (
+CREATE TABLE IF NOT EXISTS `pc_headers` (
   `pcID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
   `conductedBy` varchar(100) NOT NULL,
   `remarks` text NOT NULL,
   `createdBy` varchar(36) NOT NULL,
-  `dateCreated` datetime NOT NULL,
+  `dateCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `approvedBy` varchar(36) NOT NULL,
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `pc_headers`
+--
+
+INSERT INTO `pc_headers` (`pcID`, `date`, `branchID`, `conductedBy`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-13', 1, '1', 'Sample remark', '1', '2018-08-08 07:25:22', '1', '0000-00-00 00:00:00', '1', '0000-00-00 00:00:00', 1),
+(2, '2018-08-13', 1, '1', 'second remarks', '1', '2018-08-21 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1),
+(4, '2018-08-07', 1, '', 'testing remarks', '1', '2018-08-07 14:56:57', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -44786,13 +45090,13 @@ CREATE TABLE `pc_headers` (
 --
 
 DROP TABLE IF EXISTS `provinces`;
-CREATE TABLE `provinces` (
+CREATE TABLE IF NOT EXISTS `provinces` (
   `provinceID` int(11) NOT NULL,
   `countryID` int(11) NOT NULL,
   `province` varchar(50) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `provinces`
@@ -44889,7 +45193,7 @@ INSERT INTO `provinces` (`provinceID`, `countryID`, `province`, `remarks`, `stat
 --
 
 DROP TABLE IF EXISTS `roles`;
-CREATE TABLE `roles` (
+CREATE TABLE IF NOT EXISTS `roles` (
   `roleID` int(11) NOT NULL,
   `module` varchar(50) DEFAULT NULL,
   `roleName` varchar(50) DEFAULT NULL,
@@ -44904,13 +45208,22 @@ CREATE TABLE `roles` (
 --
 
 DROP TABLE IF EXISTS `rr_details`;
-CREATE TABLE `rr_details` (
+CREATE TABLE IF NOT EXISTS `rr_details` (
   `id` int(11) NOT NULL,
   `rrID` int(11) NOT NULL,
   `itemID` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `amount` decimal(10,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `rr_details`
+--
+
+INSERT INTO `rr_details` (`id`, `rrID`, `itemID`, `price`, `amount`) VALUES
+(42, 1, 2, '45.00', '5.00'),
+(46, 2, 1, '213.00', '2313213.00'),
+(47, 2, 4, '2323.00', '3433.00');
 
 -- --------------------------------------------------------
 
@@ -44919,20 +45232,29 @@ CREATE TABLE `rr_details` (
 --
 
 DROP TABLE IF EXISTS `rr_headers`;
-CREATE TABLE `rr_headers` (
+CREATE TABLE IF NOT EXISTS `rr_headers` (
   `rrID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
   `suppID` int(11) NOT NULL,
   `ttlAmount` decimal(10,2) NOT NULL,
   `createdBy` varchar(36) NOT NULL,
-  `dateCreated` datetime NOT NULL,
+  `dateCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `approvedBy` varchar(36) NOT NULL,
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `referenceNo` varchar(255) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `rr_headers`
+--
+
+INSERT INTO `rr_headers` (`rrID`, `date`, `branchID`, `suppID`, `ttlAmount`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `referenceNo`, `status`) VALUES
+(1, '2018-08-13', 1, 1, '5.00', '1', '2018-08-28 00:00:00', '1', '2018-08-27 00:00:00', '1', '2018-08-20 00:00:00', '54', 1),
+(2, '2018-08-08', 1, 2, '2316646.00', '1', '2018-08-08 11:11:02', '1', '2018-08-09 04:15:21', '', '0000-00-00 00:00:00', '231213', 1);
 
 -- --------------------------------------------------------
 
@@ -44941,7 +45263,7 @@ CREATE TABLE `rr_headers` (
 --
 
 DROP TABLE IF EXISTS `seriesno`;
-CREATE TABLE `seriesno` (
+CREATE TABLE IF NOT EXISTS `seriesno` (
   `seriesID` int(11) NOT NULL,
   `branchID` int(11) NOT NULL DEFAULT '1',
   `osNo` int(11) NOT NULL DEFAULT '1',
@@ -44953,7 +45275,15 @@ CREATE TABLE `seriesno` (
   `emNo` int(11) NOT NULL DEFAULT '1',
   `comNo` int(11) NOT NULL DEFAULT '1',
   `assetNo` int(11) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `seriesno`
+--
+
+INSERT INTO `seriesno` (`seriesID`, `branchID`, `osNo`, `rrNo`, `adjNo`, `pcNo`, `wsNo`, `expNo`, `emNo`, `comNo`, `assetNo`) VALUES
+(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+(2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -44962,13 +45292,25 @@ CREATE TABLE `seriesno` (
 --
 
 DROP TABLE IF EXISTS `service_types`;
-CREATE TABLE `service_types` (
+CREATE TABLE IF NOT EXISTS `service_types` (
   `serviceID` int(11) NOT NULL,
   `serviceType` varchar(100) NOT NULL,
   `regRate` decimal(10,0) NOT NULL,
-  `descountedRate` decimal(10,0) NOT NULL,
+  `discountedRate` decimal(10,0) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `service_types`
+--
+
+INSERT INTO `service_types` (`serviceID`, `serviceType`, `regRate`, `discountedRate`, `status`) VALUES
+(1, 'rush', '30', '25', 1),
+(2, 'all-white', '30', '25', 1),
+(3, 'regular', '20', '15', 1),
+(4, 'fluff and fold', '50', '45', 1),
+(5, 'dry cleaning', '50', '45', 1),
+(6, 'test-apple', '45', '5', 1);
 
 -- --------------------------------------------------------
 
@@ -44977,7 +45319,7 @@ CREATE TABLE `service_types` (
 --
 
 DROP TABLE IF EXISTS `stockcard`;
-CREATE TABLE `stockcard` (
+CREATE TABLE IF NOT EXISTS `stockcard` (
   `id` int(11) NOT NULL,
   `branchID` int(11) NOT NULL,
   `itemID` int(11) NOT NULL,
@@ -44987,7 +45329,22 @@ CREATE TABLE `stockcard` (
   `debit` float NOT NULL,
   `credit` float NOT NULL,
   `endBal` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `stockcard`
+--
+
+INSERT INTO `stockcard` (`id`, `branchID`, `itemID`, `date`, `refNo`, `begBal`, `debit`, `credit`, `endBal`) VALUES
+(1, 1, 2, '2018-08-09 00:00:00', 'physical_c', 40, 10, 0, 50),
+(2, 1, 1, '2018-08-09 00:00:00', 'physical_c', 34, 4, 0, 38),
+(3, 1, 3, '2018-08-09 00:00:00', 'physical_c', 11, 0, -9, 2),
+(4, 1, 5, '2018-08-09 00:00:00', 'physical_c', 50, 30, 0, 80),
+(5, 1, 4, '2018-08-09 00:00:00', 'physical_c', 70, 60, 0, 130),
+(6, 1, 1, '2018-08-09 00:00:00', 'receiving_', 4, 4, 0, 4),
+(7, 1, 4, '2018-08-09 00:00:00', 'receiving_', 60, 60, 0, 60),
+(8, 1, 4, '2018-08-09 00:00:00', 'receiving_', 60, 60, 0, 60),
+(9, 1, 1, '2018-08-09 00:00:00', 'receiving_', 4, 4, 0, 4);
 
 -- --------------------------------------------------------
 
@@ -44996,13 +45353,21 @@ CREATE TABLE `stockcard` (
 --
 
 DROP TABLE IF EXISTS `suppliers`;
-CREATE TABLE `suppliers` (
+CREATE TABLE IF NOT EXISTS `suppliers` (
   `supplierID` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `location` varchar(100) NOT NULL,
   `contactNo` varchar(100) NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `suppliers`
+--
+
+INSERT INTO `suppliers` (`supplierID`, `name`, `location`, `contactNo`, `status`) VALUES
+(1, 'school', 'labangon', '0984324', 1),
+(2, 'working coffee', 'ramos', '9788432', 1);
 
 -- --------------------------------------------------------
 
@@ -45011,7 +45376,7 @@ CREATE TABLE `suppliers` (
 --
 
 DROP TABLE IF EXISTS `table_logs`;
-CREATE TABLE `table_logs` (
+CREATE TABLE IF NOT EXISTS `table_logs` (
   `lid` int(11) NOT NULL,
   `userID` varchar(36) NOT NULL,
   `host` varchar(20) NOT NULL,
@@ -45024,7 +45389,7 @@ CREATE TABLE `table_logs` (
   `pid` varchar(36) NOT NULL,
   `operation` varchar(25) NOT NULL,
   `logs` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `table_logs`
@@ -45053,7 +45418,118 @@ INSERT INTO `table_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 (20, '1', '::1', '', '2018-05-29 09:40:52', 'Job Position', '', 'job_positions', 'jobPositionID', '4', 'Insert', 'Record - 1005'),
 (21, '1', '::1', '', '2018-05-29 09:41:22', 'Job Position', '', 'job_positions', 'jobPositionID', '5', 'Insert', 'Record - 1006'),
 (22, '1', '::1', '', '2018-05-29 09:46:27', 'Employee', '', 'employees', 'empID', '1', 'Insert', 'Record - 123456'),
-(23, '1', '::1', '', '2018-07-30 04:27:02', 'Customer', '', 'customers', 'custID', '1', 'Insert', 'Record - ');
+(23, '1', '::1', '', '2018-07-30 04:27:02', 'Customer', '', 'customers', 'custID', '1', 'Insert', 'Record - '),
+(24, '1', '::1', '', '2018-07-31 06:37:25', 'Order', '', 'order_headers', 'orderID', '11', 'Insert', 'Record - '),
+(25, '1', '::1', '', '2018-07-31 07:00:46', 'Order', '', 'order_headers', 'orderID', '12', 'Insert', 'Record - '),
+(26, '1', '::1', '', '2018-07-31 07:23:22', 'Order', '', 'order_headers', 'orderID', '13', 'Insert', 'Record - '),
+(27, '1', '::1', '', '2018-07-31 07:30:34', 'Order', '', 'order_headers', 'orderID', '14', 'Insert', 'Record - '),
+(28, '1', '::1', '', '2018-07-31 07:31:07', 'Order', '', 'order_headers', 'orderID', '15', 'Insert', 'Record - '),
+(29, '1', '::1', '', '2018-07-31 07:39:22', 'Order', '', 'order_headers', 'orderID', '16', 'Insert', 'Record - '),
+(30, '1', '::1', '', '2018-07-31 07:44:51', 'Order', '', 'order_headers', 'orderID', '17', 'Insert', 'Record - '),
+(31, '1', '::1', '', '2018-07-31 07:45:25', 'Order', '', 'order_headers', 'orderID', '18', 'Insert', 'Record - '),
+(32, '1', '::1', '', '2018-07-31 07:54:33', 'Order', '', 'order_headers', 'orderID', '19', 'Insert', 'Record - '),
+(33, '1', '::1', '', '2018-07-31 07:55:02', 'Order', '', 'order_headers', 'orderID', '20', 'Insert', 'Record - '),
+(34, '1', '::1', '', '2018-07-31 08:02:39', 'Order', '', 'order_headers', 'orderID', '21', 'Insert', 'Record - '),
+(35, '1', '::1', '', '2018-07-31 08:21:07', 'Order', '', 'order_headers', 'orderID', '22', 'Insert', 'Record - '),
+(36, '1', '::1', '', '2018-07-31 08:39:55', 'Order', '', 'order_headers', 'orderID', '23', 'Insert', 'Record - '),
+(37, '1', '::1', '', '2018-07-31 08:40:47', 'Order', '', 'order_headers', 'orderID', '24', 'Insert', 'Record - '),
+(38, '1', '::1', '', '2018-07-31 08:41:11', 'Order', '', 'order_headers', 'orderID', '25', 'Insert', 'Record - '),
+(39, '1', '::1', '', '2018-07-31 08:47:53', 'Order', '', 'order_headers', 'orderID', '26', 'Insert', 'Record - '),
+(40, '1', '::1', '', '2018-07-31 08:49:53', 'Order', '', 'order_headers', 'orderID', '27', 'Insert', 'Record - '),
+(41, '1', '::1', '', '2018-07-31 08:50:56', 'Order', '', 'order_headers', 'orderID', '28', 'Insert', 'Record - '),
+(42, '1', '::1', '', '2018-07-31 08:51:31', 'Order', '', 'order_headers', 'orderID', '29', 'Insert', 'Record - '),
+(43, '1', '::1', '', '2018-07-31 08:53:33', 'Order', '', 'order_headers', 'orderID', '30', 'Insert', 'Record - '),
+(44, '1', '::1', '', '2018-07-31 08:58:07', 'Order', '', 'order_headers', 'orderID', '31', 'Insert', 'Record - '),
+(45, '1', '::1', '', '2018-07-31 08:58:47', 'Order', '', 'order_headers', 'orderID', '32', 'Insert', 'Record - '),
+(46, '1', '::1', '', '2018-07-31 09:00:01', 'Order', '', 'order_headers', 'orderID', '33', 'Insert', 'Record - '),
+(47, '1', '::1', '', '2018-07-31 09:01:16', 'Order', '', 'order_headers', 'orderID', '34', 'Insert', 'Record - '),
+(48, '1', '::1', '', '2018-07-31 09:01:36', 'Order', '', 'order_headers', 'orderID', '35', 'Insert', 'Record - '),
+(49, '1', '::1', '', '2018-07-31 09:03:50', 'Order', '', 'order_headers', 'orderID', '36', 'Insert', 'Record - '),
+(50, '1', '::1', '', '2018-07-31 09:06:34', 'Order', '', 'order_headers', 'orderID', '37', 'Insert', 'Record - '),
+(51, '1', '::1', '', '2018-07-31 09:06:50', 'Order', '', 'order_headers', 'orderID', '38', 'Insert', 'Record - '),
+(52, '1', '::1', '', '2018-07-31 09:08:57', 'Order', '', 'order_headers', 'orderID', '39', 'Insert', 'Record - '),
+(53, '1', '::1', '', '2018-07-31 09:09:00', 'Order', '', 'order_headers', 'orderID', '40', 'Insert', 'Record - '),
+(54, '1', '::1', '', '2018-07-31 09:09:17', 'Order', '', 'order_headers', 'orderID', '41', 'Insert', 'Record - '),
+(55, '1', '::1', '', '2018-07-31 09:09:40', 'Order', '', 'order_headers', 'orderID', '42', 'Insert', 'Record - '),
+(56, '1', '::1', '', '2018-07-31 09:11:54', 'Order', '', 'order_headers', 'orderID', '43', 'Insert', 'Record - '),
+(57, '1', '::1', '', '2018-07-31 09:11:58', 'Order', '', 'order_headers', 'orderID', '44', 'Insert', 'Record - '),
+(58, '1', '::1', '', '2018-07-31 09:12:54', 'Order', '', 'order_headers', 'orderID', '45', 'Insert', 'Record - '),
+(59, '1', '::1', '', '2018-07-31 09:31:30', 'Order', '', 'order_headers', 'orderID', '46', 'Insert', 'Record - '),
+(60, '1', '::1', '', '2018-07-31 09:32:43', 'Order', '', 'order_headers', 'orderID', '47', 'Insert', 'Record - '),
+(61, '1', '::1', '', '2018-07-31 10:19:08', 'Order', '', 'order_headers', 'orderID', '48', 'Insert', 'Record - '),
+(62, '1', '::1', '', '2018-07-31 10:22:21', 'Order', '', 'order_headers', 'orderID', '49', 'Insert', 'Record - '),
+(63, '1', '::1', '', '2018-07-31 10:55:17', 'Order', '', 'order_headers', 'orderID', '50', 'Insert', 'Record - '),
+(64, '1', '::1', '', '2018-07-31 11:04:24', 'Order', '', 'order_headers', 'orderID', '51', 'Insert', 'Record - '),
+(65, '1', '::1', '', '2018-07-31 11:07:57', 'Order', '', 'order_headers', 'orderID', '52', 'Insert', 'Record - '),
+(66, '1', '::1', '', '2018-07-31 11:33:08', 'Order', '', 'order_headers', 'orderID', '53', 'Insert', 'Record - '),
+(67, '1', '::1', '', '2018-07-31 11:33:50', 'Order', '', 'order_headers', 'orderID', '54', 'Insert', 'Record - '),
+(68, '1', '::1', '', '2018-07-31 11:59:14', 'Order', '', 'order_headers', 'orderID', '54', 'Delete', 'Record - 54'),
+(69, '1', '::1', '', '2018-07-31 12:01:24', 'Order', '', 'order_headers', 'orderID', '55', 'Insert', 'Record - '),
+(70, '1', '::1', '', '2018-07-31 12:25:52', 'Customer', '', 'customers', 'custID', '2', 'Insert', 'Record - '),
+(71, '1', '::1', '', '2018-07-31 12:46:05', 'Order', '', 'order_headers', 'orderID', '56', 'Insert', 'Record - '),
+(72, '1', '::1', '', '2018-07-31 13:34:08', 'Order', '', 'order_headers', 'orderID', '57', 'Insert', 'Record - '),
+(73, '1', '::1', '', '2018-07-31 17:11:45', 'Order', '', 'order_headers', 'orderID', '53', 'Update', 'Record - 61o|o|p7zi&f&d&frgh-|9v||h9|f9'),
+(74, '1', '::1', '', '2018-07-31 17:13:06', 'Order', '', 'order_headers', 'orderID', '53', 'Update', 'Record - -c2gnu61-t&f&d&vcnj-id||kp|sly'),
+(75, '1', '::1', '', '2018-08-01 06:06:47', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - r|-||2-fhu&f&h&|-j8|3p|yux2hk-'),
+(76, '1', '::1', '', '2018-08-01 06:08:23', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - |l9||sy6|v&f&h&l9ni||xfuf8k|nb'),
+(77, '1', '::1', '', '2018-08-01 06:09:42', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - 1dwc|phx||&f&h&gp|2cym|i|-|x|a'),
+(78, '1', '::1', '', '2018-08-01 06:10:12', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - |g9sf0ctr0&f&h&|9eptq-kv-|scd|'),
+(79, '1', '::1', '', '2018-08-01 06:11:24', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - 552|zitj-l&f&h&nxz|||h|c|iizhc'),
+(80, '1', '::1', '', '2018-08-01 06:12:35', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - --6uza74|i&f&h&|ita6ma0dde|s1|'),
+(81, '1', '::1', '', '2018-08-01 14:39:13', 'Receiving Report', '', 'rr_headers', 'rrID', '7', 'Insert', 'Record - '),
+(82, '1', '::1', '', '2018-08-02 04:39:48', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Insert', 'Record - '),
+(83, '1', '::1', '', '2018-08-02 04:48:04', 'Receiving Report', '', 'rr_headers', 'rrID', '3', 'Insert', 'Record - '),
+(84, '1', '::1', '', '2018-08-02 04:51:16', 'Receiving Report', '', 'rr_headers', 'rrID', '4', 'Insert', 'Record - '),
+(85, '1', '::1', '', '2018-08-02 04:52:47', 'Receiving Report', '', 'rr_headers', 'rrID', '5', 'Insert', 'Record - '),
+(86, '1', '::1', '', '2018-08-02 04:55:03', 'Receiving Report', '', 'rr_headers', 'rrID', '6', 'Insert', 'Record - '),
+(87, '1', '::1', '', '2018-08-02 04:57:41', 'Receiving Report', '', 'rr_headers', 'rrID', '7', 'Insert', 'Record - '),
+(88, '1', '::1', '', '2018-08-02 10:05:26', 'Receiving Report', '', 'rr_headers', 'rrID', '8', 'Insert', 'Record - '),
+(89, '1', '::1', '', '2018-08-02 10:27:47', 'Receiving Report', '', 'rr_headers', 'rrID', '9', 'Insert', 'Record - '),
+(90, '1', '::1', '', '2018-08-02 11:46:32', 'Receiving Report', '', 'rr_headers', 'rrID', '9', 'Update', 'Record - zih4|r|-d|&j&q0||7|c|4jo2|q-3q'),
+(91, '1', '::1', '', '2018-08-02 11:48:32', 'Receiving Report', '', 'rr_headers', 'rrID', '9', 'Update', 'Record - gs1m||t2c|&j&z96|kfrb96|jztd-0'),
+(92, '1', '::1', '', '2018-08-02 12:22:31', 'Receiving Report', '', 'rr_headers', 'rrID', '9', 'Update', 'Record - ax|om66v1-&j&|dny-d2kb|h0g|kij'),
+(93, '1', '::1', '', '2018-08-02 12:23:02', 'Receiving Report', '', 'rr_headers', 'rrID', '9', 'Update', 'Record - |||ifc|8pi&j&c7yj0mceqh|z3l|-x'),
+(94, '1', '::1', '', '2018-08-02 12:24:01', 'Receiving Report', '', 'rr_headers', 'rrID', '1', 'Update', 'Record - x|h0qh27|3&b&||1||i-9wz0|m|b|c'),
+(95, '1', '::1', '', '2018-08-02 12:58:37', 'Order', '', 'order_headers', 'orderID', '56', 'Update', 'Record - j|dxo|xri|&f&g&0j|bxiht|xhz|r1'),
+(96, '1', '::1', '', '2018-08-02 12:59:10', 'Order', '', 'order_headers', 'orderID', '56', 'Update', 'Record - de5nd9mpm|&f&g&mtr|||seu6n||v|'),
+(97, '1', '::1', '', '2018-08-02 13:00:42', 'Order', '', 'order_headers', 'orderID', '55', 'Update', 'Record - hw|cvw|n9|&f&f&q2|m5k|36u|ix||'),
+(98, '1', '::1', '', '2018-08-02 13:04:14', 'Order', '', 'order_headers', 'orderID', '57', 'Delete', 'Record - 57'),
+(99, '1', '::1', '', '2018-08-03 04:46:53', 'Receiving Report', '', 'rr_headers', 'rrID', '10', 'Insert', 'Record - '),
+(100, '1', '::1', '', '2018-08-03 07:01:31', 'Receiving Report', '', 'rr_headers', 'rrID', '11', 'Insert', 'Record - '),
+(101, '1', '::1', '', '2018-08-03 07:02:12', 'Receiving Report', '', 'rr_headers', 'rrID', '11', 'Update', 'Record - |x||ehf92-&b&b&|3|kn|wfb3qoi2|'),
+(102, '1', '::1', '', '2018-08-03 07:32:05', 'Order', '', 'order_headers', 'orderID', '57', 'Insert', 'Record - '),
+(103, '1', '::1', '', '2018-08-03 07:33:00', 'Order', '', 'order_headers', 'orderID', '58', 'Insert', 'Record - '),
+(104, '1', '::1', '', '2018-08-03 07:35:36', 'Order', '', 'order_headers', 'orderID', '59', 'Insert', 'Record - '),
+(105, '1', '::1', '', '2018-08-03 07:50:55', 'Order', '', 'order_headers', 'orderID', '60', 'Insert', 'Record - '),
+(106, '1', '::1', '', '2018-08-03 07:51:36', 'Order', '', 'order_headers', 'orderID', '61', 'Insert', 'Record - '),
+(107, '1', '::1', '', '2018-08-03 07:52:14', 'Order', '', 'order_headers', 'orderID', '61', 'Update', 'Record - whi-hti|c|&g&b&|-|bap1b8n|w||v'),
+(108, '1', '::1', '', '2018-08-03 08:05:05', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - z||9salw|q&f&h&6ind7-g|3z|||||'),
+(109, '1', '::1', '', '2018-08-03 08:23:19', 'Order', '', 'order_headers', 'orderID', '57', 'Update', 'Record - psy||fjxqd&f&h&v-32g||l-4f7opz'),
+(110, '1', '::1', '', '2018-08-03 08:24:30', 'Order', '', 'order_headers', 'orderID', '60', 'Update', 'Record - 2kc|-je74a&g&a&etegj||hj|9y|--'),
+(111, '1', '::1', '', '2018-08-03 08:24:43', 'Order', '', 'order_headers', 'orderID', '60', 'Update', 'Record - z2|itdtl8p&g&a&|w|ajj3|d6kt85|'),
+(112, '1', '::1', '', '2018-08-03 08:25:27', 'Order', '', 'order_headers', 'orderID', '62', 'Insert', 'Record - '),
+(113, '1', '::1', '', '2018-08-03 08:26:02', 'Order', '', 'order_headers', 'orderID', '62', 'Update', 'Record - -jdt|4tt|3&g&c&--|5f65|-|q|2|o'),
+(114, '1', '::1', '', '2018-08-03 08:32:01', 'Order', '', 'order_headers', 'orderID', '59', 'Update', 'Record - a38|do8cv|&f&j&g||euo|yrx34yql'),
+(115, '1', '::1', '', '2018-08-03 08:33:11', 'Order', '', 'order_headers', 'orderID', '59', 'Update', 'Record - |16yacqif|&f&j&6|b|8zq|u|d-||r'),
+(116, '1', '::1', '', '2018-08-03 08:37:38', 'Order', '', 'order_headers', 'orderID', '59', 'Update', 'Record - p|a20|-vc-&f&j&g|0y|grg0|bntu4'),
+(117, '1', '::1', '', '2018-08-03 08:38:27', 'Order', '', 'order_headers', 'orderID', '63', 'Insert', 'Record - '),
+(118, '1', '::1', '', '2018-08-07 08:52:41', 'Physical count', '', 'pc_headers', 'pcID', '3', 'Insert', 'Record - '),
+(119, '1', '::1', '', '2018-08-07 08:56:58', 'Physical count', '', 'pc_headers', 'pcID', '4', 'Insert', 'Record - '),
+(120, '1', '::1', '', '2018-08-07 09:30:47', 'Order', '', 'order_headers', 'orderID', '2', 'Insert', 'Record - '),
+(121, '1', '::1', '', '2018-08-07 17:18:13', 'Inventory Adjustment', '', 'inventory_adjustments', 'adjID', '1', 'Update', 'Record - '),
+(122, '1', '::1', '', '2018-08-07 17:22:50', 'Inventory Adjustment', '', 'inventory_adjustments', 'adjID', '1', 'Update', 'Record - '),
+(123, '1', '::1', '', '2018-08-08 10:11:41', 'Complaints', '', 'complaints', 'comID', '1', 'Update', 'Record - '),
+(124, '1', '::1', '', '2018-08-08 10:56:22', 'Order', '', 'order_headers', 'orderID', '3', 'Insert', 'Record - '),
+(125, '1', '::1', '', '2018-08-08 11:09:24', 'Withdrawal slip', '', 'ws_headers', 'wsID', '1', 'Insert', 'Record - '),
+(126, '1', '::1', '', '2018-08-08 11:11:02', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Insert', 'Record - '),
+(127, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Update', 'Record - 9|mkh9rhks&c&i-1i7|r|ga8|lcir8'),
+(128, '1', '::1', '', '2018-08-08 12:48:17', 'Branch', '', 'branches', 'branchID', '2', 'Insert', 'Record - tal'),
+(129, '1', '::1', '', '2018-08-08 15:46:38', 'Item Inventory', '', 'item_inventory', 'invID', '7', 'Update', 'Record - '),
+(130, '1', '::1', '', '2018-08-10 11:35:55', 'Customer', '', 'customers', 'custID', '3', 'Insert', 'Record - '),
+(131, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', '', 'customers', 'custID', '3', 'Update', 'Record - ||bof|bkh9&d&-uu97-|xao3af|q||'),
+(132, '1', '::1', '', '2018-08-10 11:37:37', 'Order', '', 'order_headers', 'orderID', '4', 'Insert', 'Record - '),
+(133, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', '', 'equipment_monitoring', 'emID', '1', 'Update', 'Record - '),
+(134, '1', '::1', '', '2018-08-13 11:09:42', 'Branch', '', 'branches', 'branchID', '6', 'Insert', 'Record - test 1');
 
 -- --------------------------------------------------------
 
@@ -45062,7 +45538,7 @@ INSERT INTO `table_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 --
 
 DROP TABLE IF EXISTS `temp_image`;
-CREATE TABLE `temp_image` (
+CREATE TABLE IF NOT EXISTS `temp_image` (
   `id` int(11) NOT NULL,
   `empNo` varchar(15) NOT NULL,
   `image` longblob NOT NULL,
@@ -45072,17 +45548,31 @@ CREATE TABLE `temp_image` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `terminals`
+--
+
+DROP TABLE IF EXISTS `terminals`;
+CREATE TABLE IF NOT EXISTS `terminals` (
+  `id` int(11) NOT NULL,
+  `userID` varchar(36) NOT NULL,
+  `terminal` varchar(50) NOT NULL,
+  `ip` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `usergrouproles`
 --
 
 DROP TABLE IF EXISTS `usergrouproles`;
-CREATE TABLE `usergrouproles` (
+CREATE TABLE IF NOT EXISTS `usergrouproles` (
   `grID` int(11) NOT NULL,
   `groupID` int(11) DEFAULT NULL,
   `roleID` int(11) DEFAULT NULL,
   `roleName` varchar(50) NOT NULL,
   `rstatus` tinyint(4) DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `usergrouproles`
@@ -45115,13 +45605,13 @@ INSERT INTO `usergrouproles` (`grID`, `groupID`, `roleID`, `roleName`, `rstatus`
 --
 
 DROP TABLE IF EXISTS `usergroups`;
-CREATE TABLE `usergroups` (
+CREATE TABLE IF NOT EXISTS `usergroups` (
   `groupID` int(11) NOT NULL,
   `groupName` varchar(30) DEFAULT NULL,
   `groupDesc` varchar(100) DEFAULT NULL,
   `rstatus` tinyint(4) DEFAULT '1',
   `rank` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `usergroups`
@@ -45139,13 +45629,13 @@ INSERT INTO `usergroups` (`groupID`, `groupName`, `groupDesc`, `rstatus`, `rank`
 --
 
 DROP TABLE IF EXISTS `userroles`;
-CREATE TABLE `userroles` (
+CREATE TABLE IF NOT EXISTS `userroles` (
   `id` int(11) NOT NULL,
   `roleID` int(11) DEFAULT NULL,
   `userID` varchar(36) DEFAULT NULL,
   `roleName` varchar(50) NOT NULL,
   `rstatus` tinyint(4) DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=209 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 --
 -- Dumping data for table `userroles`
@@ -45203,7 +45693,7 @@ INSERT INTO `userroles` (`id`, `roleID`, `userID`, `roleName`, `rstatus`) VALUES
 --
 
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `userID` varchar(36) NOT NULL,
   `companyID` int(11) NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -45233,7 +45723,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`userID`, `companyID`, `branchID`, `deptID`, `sessionID`, `userName`, `userPswd`, `empNo`, `lastName`, `firstName`, `middleName`, `dateEntered`, `groupID`, `isAdmin`, `preferences`, `theme`, `status`, `loginAttempt`, `lastDateAuthorized`, `accessTimeStart`, `accessTimeEnd`, `imageExtension`) VALUES
-('1', 0, 0, 0, '57754509a438347aabd488c4b0862938', 'admin', '0192023a7bbd73250516f069df18b500', '', 'Administrator', 'System', '.', '2010-06-02 11:41:51', 5, 1, 'Employee,Master Files,Administrator', '', 1, 0, '2013-07-01', 0, 0, '.png'),
+('1', 0, 1, 0, 'bf09d74add128dc5040721c78d4e622a', 'admin', '0192023a7bbd73250516f069df18b500', '', 'Administrator', 'System', '.', '2010-06-02 11:41:51', 5, 1, 'Employee,Master Files,Administrator', '', 1, 0, '2013-07-01', 0, 0, '.png'),
 ('c43884083eb1905cd141a57101927a43', 0, 0, 0, '', 'scad', 'd134a1e78e4a89502ba2e4e6a87ba3d9', 'fasfsadfsadf', 'fasdfsaf', 'safsdaf', 'safasfsafs', '2018-05-29 05:58:43', 2, 0, 'Employee,Salary and Wages,Master Files', '', 1, 0, '0000-00-00', 0, 0, '.png');
 
 -- --------------------------------------------------------
@@ -45243,7 +45733,7 @@ INSERT INTO `users` (`userID`, `companyID`, `branchID`, `deptID`, `sessionID`, `
 --
 
 DROP TABLE IF EXISTS `user_ess`;
-CREATE TABLE `user_ess` (
+CREATE TABLE IF NOT EXISTS `user_ess` (
   `userID` varchar(36) NOT NULL,
   `sessionID` varchar(36) NOT NULL,
   `empID` int(11) NOT NULL,
@@ -45264,12 +45754,22 @@ CREATE TABLE `user_ess` (
 --
 
 DROP TABLE IF EXISTS `ws_details`;
-CREATE TABLE `ws_details` (
+CREATE TABLE IF NOT EXISTS `ws_details` (
   `id` int(11) NOT NULL,
   `wsID` int(11) NOT NULL,
   `itemID` int(11) NOT NULL,
   `qty` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `ws_details`
+--
+
+INSERT INTO `ws_details` (`id`, `wsID`, `itemID`, `qty`) VALUES
+(4, 1, 1, 2),
+(5, 1, 2, 3),
+(6, 1, 3, 5),
+(7, 1, 3, 4);
 
 -- --------------------------------------------------------
 
@@ -45278,7 +45778,7 @@ CREATE TABLE `ws_details` (
 --
 
 DROP TABLE IF EXISTS `ws_headers`;
-CREATE TABLE `ws_headers` (
+CREATE TABLE IF NOT EXISTS `ws_headers` (
   `wsID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
@@ -45290,8 +45790,15 @@ CREATE TABLE `ws_headers` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `ws_headers`
+--
+
+INSERT INTO `ws_headers` (`wsID`, `date`, `branchID`, `withdrawnedBy`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-08', 1, '', 'test remarks', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 0);
 
 --
 -- Indexes for dumped tables
@@ -45319,26 +45826,19 @@ ALTER TABLE `attendance`
 -- Indexes for table `barangays`
 --
 ALTER TABLE `barangays`
-  ADD PRIMARY KEY (`barangayID`),
-  ADD KEY `countryID` (`countryID`,`provinceID`,`cityID`,`barangay`);
+  ADD PRIMARY KEY (`barangayID`), ADD KEY `countryID` (`countryID`,`provinceID`,`cityID`,`barangay`);
 
 --
 -- Indexes for table `biometric_logs`
 --
 ALTER TABLE `biometric_logs`
-  ADD PRIMARY KEY (`logID`),
-  ADD KEY `employmentID` (`empID`),
-  ADD KEY `employmentID_2` (`empID`,`logType`,`logTime`),
-  ADD KEY `employmentID_3` (`empID`,`logType`),
-  ADD KEY `logType` (`logType`,`logTime`),
-  ADD KEY `employmentID_4` (`empID`,`logTime`);
+  ADD PRIMARY KEY (`logID`), ADD KEY `employmentID` (`empID`), ADD KEY `employmentID_2` (`empID`,`logType`,`logTime`), ADD KEY `employmentID_3` (`empID`,`logType`), ADD KEY `logType` (`logType`,`logTime`), ADD KEY `employmentID_4` (`empID`,`logTime`);
 
 --
 -- Indexes for table `branches`
 --
 ALTER TABLE `branches`
-  ADD PRIMARY KEY (`branchID`),
-  ADD KEY `companyID` (`companyID`);
+  ADD PRIMARY KEY (`branchID`), ADD KEY `companyID` (`companyID`);
 
 --
 -- Indexes for table `chat`
@@ -45350,15 +45850,13 @@ ALTER TABLE `chat`
 -- Indexes for table `cities`
 --
 ALTER TABLE `cities`
-  ADD PRIMARY KEY (`cityID`),
-  ADD KEY `countryID` (`countryID`,`provinceID`);
+  ADD PRIMARY KEY (`cityID`), ADD KEY `countryID` (`countryID`,`provinceID`);
 
 --
 -- Indexes for table `ci_sessions`
 --
 ALTER TABLE `ci_sessions`
-  ADD PRIMARY KEY (`session_id`),
-  ADD KEY `last_activity_idx` (`last_activity`);
+  ADD PRIMARY KEY (`session_id`), ADD KEY `last_activity_idx` (`last_activity`);
 
 --
 -- Indexes for table `clothes_categories`
@@ -45382,8 +45880,7 @@ ALTER TABLE `complaints`
 -- Indexes for table `config`
 --
 ALTER TABLE `config`
-  ADD PRIMARY KEY (`configID`),
-  ADD KEY `name` (`name`);
+  ADD PRIMARY KEY (`configID`), ADD KEY `name` (`name`);
 
 --
 -- Indexes for table `countries`
@@ -45413,16 +45910,7 @@ ALTER TABLE `employees`
 -- Indexes for table `employments`
 --
 ALTER TABLE `employments`
-  ADD PRIMARY KEY (`employmentID`),
-  ADD KEY `empID` (`empID`,`companyID`,`branchID`),
-  ADD KEY `empID_2` (`empID`,`companyID`,`branchID`,`employeeTypeID`),
-  ADD KEY `empID_3` (`empID`,`companyID`,`branchID`,`employeeTypeID`),
-  ADD KEY `empID_4` (`empID`),
-  ADD KEY `companyID` (`companyID`),
-  ADD KEY `officeID` (`branchID`),
-  ADD KEY `employeeTypeID` (`employeeTypeID`),
-  ADD KEY `employmentNo` (`employmentNo`),
-  ADD KEY `shiftID` (`shiftID`);
+  ADD PRIMARY KEY (`employmentID`), ADD KEY `empID` (`empID`,`companyID`,`branchID`), ADD KEY `empID_2` (`empID`,`companyID`,`branchID`,`employeeTypeID`), ADD KEY `empID_3` (`empID`,`companyID`,`branchID`,`employeeTypeID`), ADD KEY `empID_4` (`empID`), ADD KEY `companyID` (`companyID`), ADD KEY `officeID` (`branchID`), ADD KEY `employeeTypeID` (`employeeTypeID`), ADD KEY `employmentNo` (`employmentNo`), ADD KEY `shiftID` (`shiftID`);
 
 --
 -- Indexes for table `equipments`
@@ -45512,12 +46000,7 @@ ALTER TABLE `orders`
 -- Indexes for table `order_details`
 --
 ALTER TABLE `order_details`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `orderID` (`orderID`),
-  ADD KEY `empID` (`clothesCatID`),
-  ADD KEY `orderID_2` (`orderID`,`clothesCatID`),
-  ADD KEY `orderID_3` (`orderID`,`clothesCatID`),
-  ADD KEY `empID_2` (`clothesCatID`);
+  ADD PRIMARY KEY (`id`), ADD KEY `orderID` (`orderID`), ADD KEY `empID` (`clothesCatID`), ADD KEY `orderID_2` (`orderID`,`clothesCatID`), ADD KEY `orderID_3` (`orderID`,`clothesCatID`), ADD KEY `empID_2` (`clothesCatID`);
 
 --
 -- Indexes for table `order_headers`
@@ -45541,8 +46024,7 @@ ALTER TABLE `pc_headers`
 -- Indexes for table `provinces`
 --
 ALTER TABLE `provinces`
-  ADD PRIMARY KEY (`provinceID`),
-  ADD KEY `countryID` (`countryID`);
+  ADD PRIMARY KEY (`provinceID`), ADD KEY `countryID` (`countryID`);
 
 --
 -- Indexes for table `roles`
@@ -45554,7 +46036,7 @@ ALTER TABLE `roles`
 -- Indexes for table `rr_details`
 --
 ALTER TABLE `rr_details`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`), ADD KEY `rrID` (`rrID`);
 
 --
 -- Indexes for table `rr_headers`
@@ -45596,15 +46078,19 @@ ALTER TABLE `table_logs`
 -- Indexes for table `temp_image`
 --
 ALTER TABLE `temp_image`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `empNo` (`empNo`);
+  ADD PRIMARY KEY (`id`), ADD KEY `empNo` (`empNo`);
+
+--
+-- Indexes for table `terminals`
+--
+ALTER TABLE `terminals`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `usergrouproles`
 --
 ALTER TABLE `usergrouproles`
-  ADD PRIMARY KEY (`grID`),
-  ADD KEY `complex` (`groupID`,`roleID`);
+  ADD PRIMARY KEY (`grID`), ADD KEY `complex` (`groupID`,`roleID`);
 
 --
 -- Indexes for table `usergroups`
@@ -45622,17 +46108,13 @@ ALTER TABLE `userroles`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`userID`),
-  ADD KEY `sessionID` (`sessionID`),
-  ADD KEY `complex` (`userName`,`userPswd`);
+  ADD PRIMARY KEY (`userID`), ADD KEY `sessionID` (`sessionID`), ADD KEY `complex` (`userName`,`userPswd`);
 
 --
 -- Indexes for table `user_ess`
 --
 ALTER TABLE `user_ess`
-  ADD PRIMARY KEY (`userID`),
-  ADD KEY `empID` (`empID`),
-  ADD KEY `sessionID` (`sessionID`);
+  ADD PRIMARY KEY (`userID`), ADD KEY `empID` (`empID`), ADD KEY `sessionID` (`sessionID`);
 
 --
 -- Indexes for table `ws_details`
@@ -45655,301 +46137,271 @@ ALTER TABLE `ws_headers`
 --
 ALTER TABLE `agencies`
   MODIFY `agencyID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `age_groups`
 --
 ALTER TABLE `age_groups`
-  MODIFY `ageGroupID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
+  MODIFY `ageGroupID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
   MODIFY `attendanceID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `barangays`
 --
 ALTER TABLE `barangays`
-  MODIFY `barangayID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42029;
-
+  MODIFY `barangayID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=42029;
 --
 -- AUTO_INCREMENT for table `biometric_logs`
 --
 ALTER TABLE `biometric_logs`
   MODIFY `logID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `branches`
 --
 ALTER TABLE `branches`
-  MODIFY `branchID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `branchID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=7;
 --
 -- AUTO_INCREMENT for table `chat`
 --
 ALTER TABLE `chat`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `cities`
 --
 ALTER TABLE `cities`
-  MODIFY `cityID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1654;
-
+  MODIFY `cityID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1654;
 --
 -- AUTO_INCREMENT for table `clothes_categories`
 --
 ALTER TABLE `clothes_categories`
-  MODIFY `clothesCatID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `clothesCatID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `companyID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `companyID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `complaints`
 --
 ALTER TABLE `complaints`
-  MODIFY `comID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `comID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=8;
 --
 -- AUTO_INCREMENT for table `config`
 --
 ALTER TABLE `config`
-  MODIFY `configID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=159;
-
+  MODIFY `configID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=159;
 --
 -- AUTO_INCREMENT for table `countries`
 --
 ALTER TABLE `countries`
-  MODIFY `countryID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
-
+  MODIFY `countryID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=83;
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `custID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `custID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `deptID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `deptID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `empID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `empID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `employments`
 --
 ALTER TABLE `employments`
-  MODIFY `employmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
+  MODIFY `employmentID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `equipments`
 --
 ALTER TABLE `equipments`
-  MODIFY `equipmentID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `equipmentID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `equipment_inventory`
 --
 ALTER TABLE `equipment_inventory`
   MODIFY `eqID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `equipment_monitoring`
 --
 ALTER TABLE `equipment_monitoring`
-  MODIFY `emID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `emID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `expense_particulars`
 --
 ALTER TABLE `expense_particulars`
-  MODIFY `particularID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `particularID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `exp_details`
 --
 ALTER TABLE `exp_details`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `exp_headers`
 --
 ALTER TABLE `exp_headers`
   MODIFY `expID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `field_logs`
 --
 ALTER TABLE `field_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=77;
 --
 -- AUTO_INCREMENT for table `fingerprints`
 --
 ALTER TABLE `fingerprints`
   MODIFY `fpID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `inventory_adjustments`
 --
 ALTER TABLE `inventory_adjustments`
-  MODIFY `adjID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `adjID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `itemID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `itemID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=27;
 --
 -- AUTO_INCREMENT for table `item_inventory`
 --
 ALTER TABLE `item_inventory`
-  MODIFY `invID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `invID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=65;
 --
 -- AUTO_INCREMENT for table `job_titles`
 --
 ALTER TABLE `job_titles`
-  MODIFY `jobTitleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
+  MODIFY `jobTitleID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
-
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=112;
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
   MODIFY `orderID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=25;
 --
 -- AUTO_INCREMENT for table `order_headers`
 --
 ALTER TABLE `order_headers`
-  MODIFY `orderID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `orderID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT for table `pc_details`
 --
 ALTER TABLE `pc_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=19;
 --
 -- AUTO_INCREMENT for table `pc_headers`
 --
 ALTER TABLE `pc_headers`
-  MODIFY `pcID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `pcID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT for table `provinces`
 --
 ALTER TABLE `provinces`
-  MODIFY `provinceID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
-
+  MODIFY `provinceID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=105;
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
   MODIFY `roleID` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `rr_details`
 --
 ALTER TABLE `rr_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=48;
 --
 -- AUTO_INCREMENT for table `rr_headers`
 --
 ALTER TABLE `rr_headers`
-  MODIFY `rrID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `rrID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `seriesno`
 --
 ALTER TABLE `seriesno`
-  MODIFY `seriesID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `seriesID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `service_types`
 --
 ALTER TABLE `service_types`
-  MODIFY `serviceID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `serviceID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=7;
 --
 -- AUTO_INCREMENT for table `stockcard`
 --
 ALTER TABLE `stockcard`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=10;
 --
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `supplierID` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `supplierID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `table_logs`
 --
 ALTER TABLE `table_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
-
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=135;
 --
 -- AUTO_INCREMENT for table `temp_image`
 --
 ALTER TABLE `temp_image`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+--
+-- AUTO_INCREMENT for table `terminals`
+--
+ALTER TABLE `terminals`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `usergrouproles`
 --
 ALTER TABLE `usergrouproles`
-  MODIFY `grID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
-
+  MODIFY `grID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=19;
 --
 -- AUTO_INCREMENT for table `usergroups`
 --
 ALTER TABLE `usergroups`
-  MODIFY `groupID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
+  MODIFY `groupID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `userroles`
 --
 ALTER TABLE `userroles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=209;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=209;
 --
 -- AUTO_INCREMENT for table `ws_details`
 --
 ALTER TABLE `ws_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=8;
 --
 -- AUTO_INCREMENT for table `ws_headers`
 --
 ALTER TABLE `ws_headers`
-  MODIFY `wsID` int(11) NOT NULL AUTO_INCREMENT;
-COMMIT;
+  MODIFY `wsID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `order_details`
+--
+ALTER TABLE `order_details`
+ADD CONSTRAINT `orderID` FOREIGN KEY (`orderID`) REFERENCES `order_headers` (`orderID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `rr_details`
+--
+ALTER TABLE `rr_details`
+ADD CONSTRAINT `rrID` FOREIGN KEY (`rrID`) REFERENCES `rr_headers` (`rrID`) ON DELETE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 08, 2018 at 11:16 AM
+-- Generation Time: Aug 13, 2018 at 12:00 PM
 -- Server version: 5.6.24
 -- PHP Version: 5.5.24
 
@@ -42219,14 +42219,19 @@ CREATE TABLE IF NOT EXISTS `branches` (
   `timekeeper` varchar(50) NOT NULL,
   `remarks` varchar(50) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0: Inactive 1: Active'
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `branches`
 --
 
 INSERT INTO `branches` (`branchID`, `companyID`, `branchCode`, `branchName`, `branchAbbr`, `branchContact`, `branchEmail`, `branchAddress`, `branchHeadID`, `branchHeadTitle`, `adminOfficer`, `timekeeper`, `remarks`, `status`) VALUES
-(1, 1, 'MANDAUE', 'MANDAUE', 'MANDAUE', 'MANDAUE', '', 'MANDAUE', '', '', '', '', '', 1);
+(1, 1, 'MANDAUE', 'MANDAUE', 'MANDAUE', '132123', 'mandaue@gmail.com', 'MANDAUE', '1', 'MANDAUE', 'MANDAUE', 'MANDAUE', 'MANDAUE', 1),
+(2, 1, 'tal', 'talamban', 'talamban', '312313', 'talamban@gmail.com', 'talamban', '1', 'talamban', 'talamban', 'talamban', 'talamban', 1),
+(3, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(4, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(5, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1),
+(6, 1, 'test 1', 'test 1', 'test 1', '23123', '', 'test 1', '1', '', 'test 1', '', '', 1);
 
 -- --------------------------------------------------------
 
@@ -43989,7 +43994,7 @@ CREATE TABLE IF NOT EXISTS `companies` (
 --
 
 INSERT INTO `companies` (`companyID`, `companyCode`, `companyName`, `companyAbbr`, `companyContact`, `companyEmail`, `companyAddress`, `companyHeadID`, `companyHeadTitle`, `remarks`, `status`) VALUES
-(1, 'LH Prime', 'LH Prime', 'LH Prime', 'LH Prime', '', 'LH Prime', 0, '', '', 1);
+(1, 'iWash', 'iWash', 'iWash', 'iWash', '', 'iWash', 0, '', '', 1);
 
 -- --------------------------------------------------------
 
@@ -44008,21 +44013,25 @@ CREATE TABLE IF NOT EXISTS `complaints` (
   `contactNo` varchar(20) NOT NULL,
   `createdBy` varchar(36) NOT NULL,
   `dateCreated` datetime NOT NULL,
-  `confirmedBy` varchar(36) NOT NULL,
-  `dateConfirmed` datetime NOT NULL,
+  `approvedBy` varchar(36) NOT NULL,
+  `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '-1:cancelled; 0:disapproved, 1:pending, 2:confirmed'
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0:cancelled, 1:pending, 2:confirmed'
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `complaints`
 --
 
-INSERT INTO `complaints` (`comID`, `date`, `branchID`, `custID`, `orderID`, `complaint`, `contactNo`, `createdBy`, `dateCreated`, `confirmedBy`, `dateConfirmed`, `cancelledBy`, `dateCancelled`, `status`) VALUES
-(1, '2018-08-07', 0, 1, 1, 'test complaint', '12345679', '', '2018-08-07 17:16:48', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 0),
-(2, '2018-08-08', 1, 1, 1, 'test complaint', '12313213313', '1', '2018-08-08 10:15:54', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 0),
-(3, '2018-08-08', 1, 1, 0, 'test complaint', '1231313', '1', '2018-08-08 10:19:09', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1);
+INSERT INTO `complaints` (`comID`, `date`, `branchID`, `custID`, `orderID`, `complaint`, `contactNo`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-07', 0, 1, 1, 'test complaint', '12345679', '', '2018-08-07 17:16:48', '1', '2018-08-10 02:31:40', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-08', 1, 1, 1, 'test complaint', '12313213313', '1', '2018-08-08 10:15:54', '1', '2018-08-10 02:35:01', '', '0000-00-00 00:00:00', 2),
+(3, '2018-08-08', 1, 1, 0, 'test complaint', '1231313', '1', '2018-08-08 10:19:09', '1', '2018-08-10 02:34:22', '', '0000-00-00 00:00:00', 2),
+(4, '2018-08-10', 2, 3, 4, 'test complaint', '1234567498', '1', '2018-08-10 11:38:08', '1', '2018-08-10 02:45:47', '', '0000-00-00 00:00:00', 2),
+(5, '2018-08-10', 1, 3, 4, 'asdaf', '2332', '1', '2018-08-10 14:18:48', '1', '2018-08-10 02:46:08', '', '0000-00-00 00:00:00', 2),
+(6, '2018-08-10', 2, 1, 0, 'aefaffaf', '2323', '1', '2018-08-10 14:50:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 02:50:07', 0),
+(7, '2018-08-13', 3, 3, 4, 'test complaint', '313211313', '1', '2018-08-13 11:17:55', '1', '2018-08-13 11:18:01', '', '0000-00-00 00:00:00', 2);
 
 -- --------------------------------------------------------
 
@@ -44213,7 +44222,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `bday` date NOT NULL,
   `isRegular` enum('Y','N') NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `customers`
@@ -44221,7 +44230,8 @@ CREATE TABLE IF NOT EXISTS `customers` (
 
 INSERT INTO `customers` (`custID`, `title`, `fname`, `mname`, `lname`, `suffix`, `provinceID`, `cityID`, `barangayID`, `telephone`, `mobile`, `bday`, `isRegular`, `status`) VALUES
 (1, 'Highcharts Demo', 'ian', 'uayan', 'rosales', 'Mr', 20, 1, 37051, '', '098432', '0000-00-00', '', 1),
-(2, 'jr', 'james', 'yap', 'lao', 'Mr', 20, 2, 37083, '', '098432', '0000-00-00', 'Y', 1);
+(2, 'jr', 'james', 'yap', 'lao', 'Mr', 20, 2, 37083, '', '098432', '0000-00-00', 'Y', 1),
+(3, 'Ms.', 'Apple Jan', 'Tabelon', 'Tacardon', '', 20, 2, 37083, '', '123700', '0000-00-00', 'Y', 1);
 
 -- --------------------------------------------------------
 
@@ -44378,7 +44388,14 @@ CREATE TABLE IF NOT EXISTS `equipments` (
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `equipments`
+--
+
+INSERT INTO `equipments` (`equipmentID`, `brand`, `model`, `serialNo`, `name`, `description`, `status`) VALUES
+(1, 'test Brand', 'test Model', 'test Serial Number', 'test Name', 'test Description', 1);
 
 -- --------------------------------------------------------
 
@@ -44406,8 +44423,8 @@ CREATE TABLE IF NOT EXISTS `equipment_monitoring` (
   `emID` int(11) NOT NULL,
   `date` date NOT NULL,
   `branchID` int(11) NOT NULL,
-  `eqID` int(11) NOT NULL,
-  `conductedBy` varchar(100) NOT NULL,
+  `equipmentID` int(11) NOT NULL,
+  `monitoredBy` varchar(100) NOT NULL,
   `remarks` text NOT NULL,
   `createdBy` varchar(36) NOT NULL,
   `dateCreated` datetime NOT NULL,
@@ -44416,7 +44433,15 @@ CREATE TABLE IF NOT EXISTS `equipment_monitoring` (
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `equipment_monitoring`
+--
+
+INSERT INTO `equipment_monitoring` (`emID`, `date`, `branchID`, `equipmentID`, `monitoredBy`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
+(1, '2018-08-10', 1, 0, 'System S. Administrator', '', '1', '2018-08-10 00:00:00', '1', '2018-08-10 06:08:41', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-10', 1, 1, 'test test', 'test test', '1', '2018-08-10 00:00:00', '1', '2018-08-10 06:27:59', '', '0000-00-00 00:00:00', 2);
 
 -- --------------------------------------------------------
 
@@ -44430,7 +44455,14 @@ CREATE TABLE IF NOT EXISTS `expense_particulars` (
   `particular` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `expense_particulars`
+--
+
+INSERT INTO `expense_particulars` (`particularID`, `particular`, `description`, `status`) VALUES
+(1, 'test particular', 'test Description', 1);
 
 -- --------------------------------------------------------
 
@@ -44490,7 +44522,7 @@ CREATE TABLE IF NOT EXISTS `field_logs` (
   `field` varchar(20) NOT NULL,
   `oldvalue` text NOT NULL,
   `newvalue` text NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=77 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `field_logs`
@@ -44566,7 +44598,13 @@ INSERT INTO `field_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 (67, '1', '::1', '', '2018-08-07 17:22:50', 'Inventory Adjustment', 'inventory_adjustments', 'adjID', '1', 'Update', 'status', '0', ''),
 (68, '1', '::1', '', '2018-08-08 10:11:40', 'Complaints', 'complaints', 'comID', '1', 'Update', 'orderID', '0', '1'),
 (69, '1', '::1', '', '2018-08-08 10:11:40', 'Complaints', 'complaints', 'comID', '1', 'Update', 'createdBy', '1', ''),
-(70, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', 'rr_headers', 'rrID', '2', 'Update', 'ttlAmount', '2313213.00', '2316646');
+(70, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', 'rr_headers', 'rrID', '2', 'Update', 'ttlAmount', '2313213.00', '2316646'),
+(71, '1', '::1', '', '2018-08-08 15:46:38', 'Item Inventory', 'item_inventory', 'invID', '7', 'Update', 'reorderlvl', '12', '15'),
+(72, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', 'customers', 'custID', '3', 'Update', 'bday', '0000-00-00', 'January 01, 1970'),
+(73, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', 'customers', 'custID', '3', 'Update', 'isRegular', '', '1'),
+(74, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'equipmentID', '1', ''),
+(75, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'remarks', 'test', ''),
+(76, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', 'equipment_monitoring', 'emID', '1', 'Update', 'conductedBy', 'test', 'System S. Administrator');
 
 -- --------------------------------------------------------
 
@@ -44609,17 +44647,19 @@ CREATE TABLE IF NOT EXISTS `inventory_adjustments` (
   `dateApproved` datetime NOT NULL,
   `cancelledBy` varchar(36) NOT NULL,
   `dateCancelled` datetime NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0:cancelled, 1:pending, 2:confirmed'
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `inventory_adjustments`
 --
 
 INSERT INTO `inventory_adjustments` (`adjID`, `date`, `branchID`, `itemID`, `adjType`, `qty`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
-(1, '2018-08-06', 1, 0, '', 45, '', '', '2018-08-06 00:00:00', '1', '2018-08-06 00:00:00', '1', '2018-08-13 00:00:00', 0),
-(2, '2018-08-07', 1, 2, 'CR', 20, 'second remarks', '1', '2018-08-01 00:00:00', '1', '2018-08-14 00:00:00', '1', '2018-08-07 00:00:00', 1),
-(3, '2018-08-07', 1, 0, '', 2, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 0);
+(1, '2018-08-06', 1, 1, '', 45, '', '1', '2018-08-06 00:00:00', '1', '2018-08-10 03:36:14', '', '0000-00-00 00:00:00', 2),
+(2, '2018-08-07', 1, 2, 'CR', 20, 'second remarks', '1', '2018-08-01 00:00:00', '1', '2018-08-10 03:44:58', '', '0000-00-00 00:00:00', 2),
+(3, '2018-08-07', 1, 1, '', 2, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 03:36:30', 0),
+(4, '2018-08-08', 1, 2, '', 0, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '1', '2018-08-10 03:45:06', 0),
+(5, '2018-08-08', 1, 2, '', 2, '', '1', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -44635,7 +44675,7 @@ CREATE TABLE IF NOT EXISTS `items` (
   `description` text NOT NULL,
   `umsr` varchar(20) NOT NULL,
   `status` tinyint(4) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `items`
@@ -44646,7 +44686,12 @@ INSERT INTO `items` (`itemID`, `brand`, `item`, `description`, `umsr`, `status`)
 (2, 'leg', 'leg item', 'this is a sample decription', 'pieces', 1),
 (3, 'branch item 3', 'item for item 3', 'description for item 3', 'pack', 1),
 (4, 'branch item 4', 'item for item 4', 'description for item 4', 'pack', 1),
-(5, 'branch for item 5', 'item for item 5', 'description for item 5', 'pack', 1);
+(5, 'branch for item 5', 'item for item 5', 'description for item 5', 'pack', 1),
+(22, 'test brand', 'test Item', 'test Description', 'test UMSR', 1),
+(23, 'test 2', 'test 2', 'test 2', 'test 2', 1),
+(24, 'test3', 'test3', 'test3', 'test3', 1),
+(25, 'test4', 'test4', 'test4', 'test4', 1),
+(26, 'test brand 1', 'test Item 1', 'test Description 1', 'pc', 1);
 
 -- --------------------------------------------------------
 
@@ -44661,18 +44706,53 @@ CREATE TABLE IF NOT EXISTS `item_inventory` (
   `itemID` int(11) NOT NULL,
   `qty` float NOT NULL,
   `reorderlvl` float NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `item_inventory`
 --
 
 INSERT INTO `item_inventory` (`invID`, `branchID`, `itemID`, `qty`, `reorderlvl`) VALUES
-(1, 1, 1, 34, 400),
-(2, 2, 2, 40, 500),
-(3, 1, 3, 11, 20),
-(4, 1, 4, 70, 50),
-(5, 1, 5, 51, 30);
+(1, 1, 1, 4, 400),
+(2, 1, 2, 10, 10),
+(3, 1, 3, -9, 20),
+(4, 1, 4, 60, 50),
+(5, 1, 5, 30, 30),
+(6, 2, 1, 4, 12),
+(7, 2, 2, 10, 15),
+(8, 2, 3, -9, 12),
+(9, 2, 4, 60, 12),
+(10, 2, 5, 30, 12),
+(35, 1, 22, 12, 12),
+(36, 1, 22, 0, 0),
+(37, 1, 23, 1, 1),
+(38, 2, 23, 0, 0),
+(39, 1, 24, 3, 3),
+(40, 2, 24, 0, 0),
+(41, 1, 25, 4, 4),
+(42, 2, 25, 0, 0),
+(43, 1, 26, 15, 15),
+(44, 2, 26, 0, 0),
+(45, 5, 1, 0, 0),
+(46, 5, 2, 0, 0),
+(47, 5, 3, 0, 0),
+(48, 5, 4, 0, 0),
+(49, 5, 5, 0, 0),
+(50, 5, 22, 0, 0),
+(51, 5, 23, 0, 0),
+(52, 5, 24, 0, 0),
+(53, 5, 25, 0, 0),
+(54, 5, 26, 0, 0),
+(55, 6, 1, 0, 0),
+(56, 6, 2, 0, 0),
+(57, 6, 3, 0, 0),
+(58, 6, 4, 0, 0),
+(59, 6, 5, 0, 0),
+(60, 6, 22, 0, 0),
+(61, 6, 23, 0, 0),
+(62, 6, 24, 0, 0),
+(63, 6, 25, 0, 0),
+(64, 6, 26, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -44715,7 +44795,7 @@ CREATE TABLE IF NOT EXISTS `login_logs` (
   `date` datetime NOT NULL,
   `operation` varchar(15) NOT NULL,
   `logs` varchar(10) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=112 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `login_logs`
@@ -44822,7 +44902,17 @@ INSERT INTO `login_logs` (`lid`, `host`, `hostname`, `userID`, `date`, `operatio
 (98, '::1', '', '1', '2018-08-07 17:01:38', 'Login', 'Success'),
 (99, '::1', '', '1', '2018-08-07 17:03:01', 'Login', 'Success'),
 (100, '::1', '', '1', '2018-08-07 17:46:02', 'Login', 'Success'),
-(101, '::1', '', '1', '2018-08-08 09:40:31', 'Login', 'Success');
+(101, '::1', '', '1', '2018-08-08 09:40:31', 'Login', 'Success'),
+(102, '::1', '', '1', '2018-08-08 14:30:10', 'Logout', 'Success'),
+(103, '::1', '', '1', '2018-08-08 14:30:14', 'Login', 'Success'),
+(104, '::1', '', '1', '2018-08-08 15:05:16', 'Logout', 'Success'),
+(105, '::1', '', '1', '2018-08-08 15:05:22', 'Login', 'Success'),
+(106, '::1', '', '1', '2018-08-08 16:31:36', 'Login', 'Success'),
+(107, '::1', '', '1', '2018-08-08 16:32:10', 'Login', 'Success'),
+(108, '::1', '', '1', '2018-08-08 16:46:51', 'Login', 'Success'),
+(109, '::1', '', '1', '2018-08-09 14:05:29', 'Login', 'Success'),
+(110, '::1', '', '1', '2018-08-10 11:23:23', 'Login', 'Success'),
+(111, '::1', '', '1', '2018-08-13 09:58:08', 'Login', 'Success');
 
 -- --------------------------------------------------------
 
@@ -44858,7 +44948,7 @@ CREATE TABLE IF NOT EXISTS `order_details` (
   `orderID` int(11) NOT NULL,
   `clothesCatID` int(11) NOT NULL,
   `qty` float NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `order_details`
@@ -44880,7 +44970,15 @@ INSERT INTO `order_details` (`id`, `orderID`, `clothesCatID`, `qty`) VALUES
 (13, 3, 5, 0),
 (14, 3, 6, 0),
 (15, 3, 7, 0),
-(16, 3, 8, 0);
+(16, 3, 8, 0),
+(17, 4, 1, 5),
+(18, 4, 2, 5),
+(19, 4, 3, 5),
+(20, 4, 4, 5),
+(21, 4, 5, 5),
+(22, 4, 6, 0),
+(23, 4, 7, 5),
+(24, 4, 8, 5);
 
 -- --------------------------------------------------------
 
@@ -44912,7 +45010,7 @@ CREATE TABLE IF NOT EXISTS `order_headers` (
   `dateCancelled` datetime NOT NULL,
   `custSign` blob NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '1'
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `order_headers`
@@ -44921,7 +45019,8 @@ CREATE TABLE IF NOT EXISTS `order_headers` (
 INSERT INTO `order_headers` (`orderID`, `date`, `branchID`, `custID`, `serviceID`, `isDiscounted`, `qty`, `rate`, `deliveryFee`, `amount`, `ttlItems`, `ttlAmount`, `createdBy`, `dateCreated`, `dateWashed`, `dateFold`, `dateReady`, `dateReleased`, `cancelledBy`, `dateCancelled`, `custSign`, `status`) VALUES
 (1, '2018-07-30', 1, 1, 1, 'Y', 2, '200.00', '200.00', '400.00', 300, '300.00', '1', '2018-07-30 00:00:00', '2018-07-30 00:00:00', '2018-07-30 00:00:00', '2018-07-23 00:00:00', '2018-07-16 00:00:00', '1', '0000-00-00 00:00:00', '', 1),
 (2, '2018-08-07', 1, 0, 1, 'Y', 5, '30.00', '6.00', '0.00', 0, '41.00', '1', '2018-08-07 15:30:47', '2018-08-07 15:30:47', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1),
-(3, '2018-08-08', 1, 0, 1, 'Y', 2, '25.00', '22.00', '0.00', 0, '49.00', '1', '2018-08-08 10:56:22', '2018-08-08 10:56:22', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1);
+(3, '2018-08-08', 1, 0, 1, 'Y', 2, '25.00', '22.00', '0.00', 0, '49.00', '1', '2018-08-08 10:56:22', '2018-08-08 10:56:22', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1),
+(4, '2018-08-10', 1, 3, 3, 'Y', 10, '15.00', '100.00', '0.00', 0, '250.00', '1', '2018-08-10 11:37:37', '2018-08-10 11:37:37', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '', 1);
 
 -- --------------------------------------------------------
 
@@ -44980,8 +45079,8 @@ CREATE TABLE IF NOT EXISTS `pc_headers` (
 --
 
 INSERT INTO `pc_headers` (`pcID`, `date`, `branchID`, `conductedBy`, `remarks`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `status`) VALUES
-(1, '2018-08-13', 1, '1', 'Sample remark', '1', '2018-08-08 07:25:22', '1', '2018-08-03 06:21:00', '1', '2018-08-03 09:20:32', 1),
-(2, '2018-08-13', 1, '1', 'second remarks', '1', '2018-08-21 00:00:00', '1', '2018-08-07 00:00:00', '1', '2018-08-13 00:00:00', 1),
+(1, '2018-08-13', 1, '1', 'Sample remark', '1', '2018-08-08 07:25:22', '1', '0000-00-00 00:00:00', '1', '0000-00-00 00:00:00', 1),
+(2, '2018-08-13', 1, '1', 'second remarks', '1', '2018-08-21 00:00:00', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1),
 (4, '2018-08-07', 1, '', 'testing remarks', '1', '2018-08-07 14:56:57', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', 1);
 
 -- --------------------------------------------------------
@@ -45155,7 +45254,7 @@ CREATE TABLE IF NOT EXISTS `rr_headers` (
 
 INSERT INTO `rr_headers` (`rrID`, `date`, `branchID`, `suppID`, `ttlAmount`, `createdBy`, `dateCreated`, `approvedBy`, `dateApproved`, `cancelledBy`, `dateCancelled`, `referenceNo`, `status`) VALUES
 (1, '2018-08-13', 1, 1, '5.00', '1', '2018-08-28 00:00:00', '1', '2018-08-27 00:00:00', '1', '2018-08-20 00:00:00', '54', 1),
-(2, '2018-08-08', 1, 2, '2316646.00', '1', '2018-08-08 11:11:02', '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', '231213', 1);
+(2, '2018-08-08', 1, 2, '2316646.00', '1', '2018-08-08 11:11:02', '1', '2018-08-09 04:15:21', '', '0000-00-00 00:00:00', '231213', 1);
 
 -- --------------------------------------------------------
 
@@ -45230,7 +45329,22 @@ CREATE TABLE IF NOT EXISTS `stockcard` (
   `debit` float NOT NULL,
   `credit` float NOT NULL,
   `endBal` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `stockcard`
+--
+
+INSERT INTO `stockcard` (`id`, `branchID`, `itemID`, `date`, `refNo`, `begBal`, `debit`, `credit`, `endBal`) VALUES
+(1, 1, 2, '2018-08-09 00:00:00', 'physical_c', 40, 10, 0, 50),
+(2, 1, 1, '2018-08-09 00:00:00', 'physical_c', 34, 4, 0, 38),
+(3, 1, 3, '2018-08-09 00:00:00', 'physical_c', 11, 0, -9, 2),
+(4, 1, 5, '2018-08-09 00:00:00', 'physical_c', 50, 30, 0, 80),
+(5, 1, 4, '2018-08-09 00:00:00', 'physical_c', 70, 60, 0, 130),
+(6, 1, 1, '2018-08-09 00:00:00', 'receiving_', 4, 4, 0, 4),
+(7, 1, 4, '2018-08-09 00:00:00', 'receiving_', 60, 60, 0, 60),
+(8, 1, 4, '2018-08-09 00:00:00', 'receiving_', 60, 60, 0, 60),
+(9, 1, 1, '2018-08-09 00:00:00', 'receiving_', 4, 4, 0, 4);
 
 -- --------------------------------------------------------
 
@@ -45275,7 +45389,7 @@ CREATE TABLE IF NOT EXISTS `table_logs` (
   `pid` varchar(36) NOT NULL,
   `operation` varchar(25) NOT NULL,
   `logs` text NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `table_logs`
@@ -45408,7 +45522,14 @@ INSERT INTO `table_logs` (`lid`, `userID`, `host`, `hostname`, `date`, `module`,
 (124, '1', '::1', '', '2018-08-08 10:56:22', 'Order', '', 'order_headers', 'orderID', '3', 'Insert', 'Record - '),
 (125, '1', '::1', '', '2018-08-08 11:09:24', 'Withdrawal slip', '', 'ws_headers', 'wsID', '1', 'Insert', 'Record - '),
 (126, '1', '::1', '', '2018-08-08 11:11:02', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Insert', 'Record - '),
-(127, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Update', 'Record - 9|mkh9rhks&c&i-1i7|r|ga8|lcir8');
+(127, '1', '::1', '', '2018-08-08 11:11:14', 'Receiving Report', '', 'rr_headers', 'rrID', '2', 'Update', 'Record - 9|mkh9rhks&c&i-1i7|r|ga8|lcir8'),
+(128, '1', '::1', '', '2018-08-08 12:48:17', 'Branch', '', 'branches', 'branchID', '2', 'Insert', 'Record - tal'),
+(129, '1', '::1', '', '2018-08-08 15:46:38', 'Item Inventory', '', 'item_inventory', 'invID', '7', 'Update', 'Record - '),
+(130, '1', '::1', '', '2018-08-10 11:35:55', 'Customer', '', 'customers', 'custID', '3', 'Insert', 'Record - '),
+(131, '1', '::1', '', '2018-08-10 11:36:19', 'Customer', '', 'customers', 'custID', '3', 'Update', 'Record - ||bof|bkh9&d&-uu97-|xao3af|q||'),
+(132, '1', '::1', '', '2018-08-10 11:37:37', 'Order', '', 'order_headers', 'orderID', '4', 'Insert', 'Record - '),
+(133, '1', '::1', '', '2018-08-10 18:25:58', 'Equipment Monitoring', '', 'equipment_monitoring', 'emID', '1', 'Update', 'Record - '),
+(134, '1', '::1', '', '2018-08-13 11:09:42', 'Branch', '', 'branches', 'branchID', '6', 'Insert', 'Record - test 1');
 
 -- --------------------------------------------------------
 
@@ -45602,7 +45723,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 INSERT INTO `users` (`userID`, `companyID`, `branchID`, `deptID`, `sessionID`, `userName`, `userPswd`, `empNo`, `lastName`, `firstName`, `middleName`, `dateEntered`, `groupID`, `isAdmin`, `preferences`, `theme`, `status`, `loginAttempt`, `lastDateAuthorized`, `accessTimeStart`, `accessTimeEnd`, `imageExtension`) VALUES
-('1', 0, 1, 0, '1158ac69ca5f6abc2f8f20b6eabf4dad', 'admin', '0192023a7bbd73250516f069df18b500', '', 'Administrator', 'System', '.', '2010-06-02 11:41:51', 5, 1, 'Employee,Master Files,Administrator', '', 1, 0, '2013-07-01', 0, 0, '.png'),
+('1', 0, 1, 0, 'bf09d74add128dc5040721c78d4e622a', 'admin', '0192023a7bbd73250516f069df18b500', '', 'Administrator', 'System', '.', '2010-06-02 11:41:51', 5, 1, 'Employee,Master Files,Administrator', '', 1, 0, '2013-07-01', 0, 0, '.png'),
 ('c43884083eb1905cd141a57101927a43', 0, 0, 0, '', 'scad', 'd134a1e78e4a89502ba2e4e6a87ba3d9', 'fasfsadfsadf', 'fasdfsaf', 'safsdaf', 'safasfsafs', '2018-05-29 05:58:43', 2, 0, 'Employee,Salary and Wages,Master Files', '', 1, 0, '0000-00-00', 0, 0, '.png');
 
 -- --------------------------------------------------------
@@ -46040,7 +46161,7 @@ ALTER TABLE `biometric_logs`
 -- AUTO_INCREMENT for table `branches`
 --
 ALTER TABLE `branches`
-  MODIFY `branchID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+  MODIFY `branchID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=7;
 --
 -- AUTO_INCREMENT for table `chat`
 --
@@ -46065,7 +46186,7 @@ ALTER TABLE `companies`
 -- AUTO_INCREMENT for table `complaints`
 --
 ALTER TABLE `complaints`
-  MODIFY `comID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+  MODIFY `comID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=8;
 --
 -- AUTO_INCREMENT for table `config`
 --
@@ -46080,7 +46201,7 @@ ALTER TABLE `countries`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `custID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+  MODIFY `custID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT for table `departments`
 --
@@ -46100,7 +46221,7 @@ ALTER TABLE `employments`
 -- AUTO_INCREMENT for table `equipments`
 --
 ALTER TABLE `equipments`
-  MODIFY `equipmentID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `equipmentID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `equipment_inventory`
 --
@@ -46110,12 +46231,12 @@ ALTER TABLE `equipment_inventory`
 -- AUTO_INCREMENT for table `equipment_monitoring`
 --
 ALTER TABLE `equipment_monitoring`
-  MODIFY `emID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `emID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `expense_particulars`
 --
 ALTER TABLE `expense_particulars`
-  MODIFY `particularID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `particularID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `exp_details`
 --
@@ -46130,7 +46251,7 @@ ALTER TABLE `exp_headers`
 -- AUTO_INCREMENT for table `field_logs`
 --
 ALTER TABLE `field_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=71;
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=77;
 --
 -- AUTO_INCREMENT for table `fingerprints`
 --
@@ -46140,17 +46261,17 @@ ALTER TABLE `fingerprints`
 -- AUTO_INCREMENT for table `inventory_adjustments`
 --
 ALTER TABLE `inventory_adjustments`
-  MODIFY `adjID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+  MODIFY `adjID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `itemID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+  MODIFY `itemID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=27;
 --
 -- AUTO_INCREMENT for table `item_inventory`
 --
 ALTER TABLE `item_inventory`
-  MODIFY `invID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+  MODIFY `invID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=65;
 --
 -- AUTO_INCREMENT for table `job_titles`
 --
@@ -46160,7 +46281,7 @@ ALTER TABLE `job_titles`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=102;
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=112;
 --
 -- AUTO_INCREMENT for table `orders`
 --
@@ -46170,12 +46291,12 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=25;
 --
 -- AUTO_INCREMENT for table `order_headers`
 --
 ALTER TABLE `order_headers`
-  MODIFY `orderID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+  MODIFY `orderID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT for table `pc_details`
 --
@@ -46220,7 +46341,7 @@ ALTER TABLE `service_types`
 -- AUTO_INCREMENT for table `stockcard`
 --
 ALTER TABLE `stockcard`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=10;
 --
 -- AUTO_INCREMENT for table `suppliers`
 --
@@ -46230,7 +46351,7 @@ ALTER TABLE `suppliers`
 -- AUTO_INCREMENT for table `table_logs`
 --
 ALTER TABLE `table_logs`
-  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=128;
+  MODIFY `lid` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=135;
 --
 -- AUTO_INCREMENT for table `temp_image`
 --
