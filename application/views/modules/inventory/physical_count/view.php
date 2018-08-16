@@ -232,7 +232,6 @@
                 var expected_qty = $tds.eq(3).text();
                 var physical_qty = $tds.eq(4).text();
 
-
                 //alert(item_id);
                 if(item_id != "") {
                     //check variance if positive update item inventory and update stock card
@@ -241,7 +240,9 @@
 
                         var updated_inventory_qty = +expected_qty + +variance;
                         //console.log("updated inventory", updated_inventory_qty);
-                        addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
+                        debit = updated_inventory_qty;
+
+                        addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID, "positive");
 
 
                     }
@@ -250,9 +251,10 @@
                         //cast to positive
                         var cast_variance = Math.abs(variance);
                         //console.log("negative", cast_variance)
+                        credit = cast_variance;
                         var updated_inventory_qty = +expected_qty - +cast_variance;
                         //console.log("result for negative", updated_inventory_qty);
-                        addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
+                        addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID, 'negative');
 
 
                     }
@@ -275,9 +277,9 @@
 
     //updateStockCardAndItemInventory
     //reffNo, item_id, variance, debit, credit, begBal, endBal pcID
-    function addStockCardAndItemInventory(reffNo, item_id, variance, debit, credit, begBal, endBal, pcID)
+    function addStockCardAndItemInventory(reffNo, item_id, variance, debit, credit, begBal, endBal, pcID, sign)
     {
-        $.post("<?php echo $controller_page ?>/updateStockCardAndItemInventory", { reffNo: reffNo, item_id: item_id, variance: variance, debit: debit, credit: credit, begBal: begBal, endBal: endBal, pcID: pcID },
+        $.post("<?php echo $controller_page ?>/updateStockCardAndItemInventory", { reffNo: reffNo, item_id: item_id, variance: variance, debit: debit, credit: credit, begBal: begBal, endBal: endBal, pcID: pcID , sign: sign},
             function(data, status){
                 console.log(data);
                 if(status == "success") {

@@ -13,6 +13,7 @@ class Receiving_report extends CI_Controller {
     var $modules;
     var $module_path;
     var $controller_page;
+    var $branchID;
 
     public function __construct() {
         parent::__construct ();
@@ -23,6 +24,8 @@ class Receiving_report extends CI_Controller {
         $this->pfield = $this->data ['pfield'] = 'rrID'; // defines primary key
         $this->logfield = 'rrID';
         $this->module_path = 'modules/' . strtolower ( str_replace(" ","_",$this->module) ) . '/receiving_report'; // defines module path
+
+        $this->branchID = $this->session->userdata('current_user')->branchID;
 
 
 
@@ -115,10 +118,22 @@ class Receiving_report extends CI_Controller {
             $this->db->where('status', 1);
             $suppliers = $this->db->get('suppliers')->result();
             $data['suppliers'] = $suppliers;
+//            //get items
+//            $this->db->select('	*');
+//            $this->db->where('status', 1);
+//            $items = $this->db->get('items')->result();
+//            $data['items'] = $items;
+
             //get items
-            $this->db->select('	*');
+            $this->db->select('items.*');
             $this->db->where('status', 1);
-            $items = $this->db->get('items')->result();
+            $this->db->from('items');
+            //intem inventory
+            $this->db->select('item_inventory.qty as expected_qty');
+            // join
+            $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
+            $items = $this->db->get()->result();
             $data['items'] = $items;
             // load views
             $this->load->view ( 'header', $data );
@@ -267,9 +282,15 @@ class Receiving_report extends CI_Controller {
             $data['rr_details'] = $details;
 
             //get items
-            $this->db->select('	*');
+            $this->db->select('items.*');
             $this->db->where('status', 1);
-            $items = $this->db->get('items')->result();
+            $this->db->from('items');
+            //intem inventory
+            $this->db->select('item_inventory.qty as expected_qty');
+            // join
+            $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
+            $items = $this->db->get()->result();
             $data['items'] = $items;
 
             //echo json_encode($order_details);
@@ -906,6 +927,7 @@ class Receiving_report extends CI_Controller {
         $this->db->from($table);
         $this->db->join ( 'items', 'rr_details.itemID=items.itemID', 'left' );
         $this->db->join ( 'item_inventory', 'items.itemID=item_inventory.itemID', 'left' );
+        $this->db->where('item_inventory.branchID', $this->branchID);
 
          //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
         $this->db->where($compare, $value);
@@ -935,6 +957,16 @@ class Receiving_report extends CI_Controller {
         $endbal = trim($this->input->post('endBal'));
         $rrID = trim($this->input->post('rrID'));
         $reference_no = $this->router->fetch_class().'-'.$rrID;
+
+        $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();
+        //$row->endBal;
+
+        $begbal = $row->endBal;
+
+        $endbal = $row->endBal + $variance;
+
+        //always debit plus
+
 
         require_once(APPPATH.'controllers/Generic_ajax.php');
         //update approved by

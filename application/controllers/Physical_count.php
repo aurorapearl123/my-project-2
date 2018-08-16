@@ -1002,15 +1002,16 @@ class Physical_count extends CI_Controller {
         $begbal = trim($this->input->post('begBal'));
         $endbal = trim($this->input->post('endBal'));
         $pcID = trim($this->input->post('pcID'));
+        $sign = trim($this->input->post('sign'));
 
 
 
         //add stockcard
         //$endbal = 0;
         //$begbal = 0;
-        $added = $this->addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal);
+        $added = $this->addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal, $variance, $sign);
         //update item inventory
-        $result_item_inventory = $this->updateItemInventoryQty($itemID, $variance);
+        $result_item_inventory = $this->updateItemInventoryQty($itemID, $variance, $sign);
         //update physical count update approved by
         $update_pc = $this->updateApproveBy($pcID);
 
@@ -1026,7 +1027,7 @@ class Physical_count extends CI_Controller {
         echo json_encode($response);
     }
 
-    public function addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal)
+    public function addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal, $variance, $sign)
     {
         //auth user branch
 
@@ -1034,6 +1035,17 @@ class Physical_count extends CI_Controller {
         $branch = $this->db->get('branches');
         $current_branch = $branch->row();
 
+        //$last_insert_id = $this->db->insert_id();
+        $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();
+        //echo $row->id; //it will provide latest or last record id.
+        $endbal = 0;
+        //current end balance
+        if($sign == "positive") {
+            $endbal = $row->endBal + $variance;
+        }
+        elseif($sign == "negative") {
+            $endbal = $row->endBal - $variance;
+        }
 
         $data  = [
             'branchID' => $current_branch->branchID,
@@ -1043,7 +1055,7 @@ class Physical_count extends CI_Controller {
             'debit' => $debit,
             'credit' => $credit,
             'endbal' => $endbal,
-            'begbal' => $begbal
+            'begbal' => $row->endBal,
         ];
 
         //return $data;

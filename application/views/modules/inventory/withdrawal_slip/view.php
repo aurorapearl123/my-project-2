@@ -237,12 +237,13 @@
                     //console.log("result");
                     //console.log(item_id);
                     //console.log(inventory_qty);
+                    var variance = inventory_qty;
                     var debit = 0;
                     var credit = inventory_qty;
                     var begBal = inventory_qty;
                     var endBal = inventory_qty;
 
-                    addStockCard(item_id,  debit, credit, begBal, endBal, wsID);
+                    addStockCard(item_id,  debit, credit, begBal, endBal, wsID, variance);
 
                 }
 
@@ -255,10 +256,10 @@
         });
     });
 
-    function addStockCard(item_id, debit, credit, begBal, endBal, wsID)
+    function addStockCard(item_id, debit, credit, begBal, endBal, wsID, variance)
     {
 
-        $.post("<?php echo $controller_page ?>/addStockCard", {item_id: item_id, debit: debit, credit: credit, begBal: begBal, endBal: endBal, wsID: wsID },
+        $.post("<?php echo $controller_page ?>/addStockCard", {item_id: item_id, debit: debit, credit: credit, begBal: begBal, endBal: endBal, wsID: wsID, variance: variance },
             function(data, status){
                 console.log(data);
                 if(status == "success") {

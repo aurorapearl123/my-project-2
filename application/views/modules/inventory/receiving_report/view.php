@@ -243,7 +243,7 @@
                     var begBal = inventory_qty;
                     var endBal = inventory_qty;
                     var rrID = "<?php echo $rec->rrID; ?>";
-                    addStockCard(item_id,variance, debit, credit, begBal, endBal, rrID, 0);
+                    addStockCard(item_id,inventory_qty, debit, credit, begBal, endBal, rrID, 0);
                 }
 
             });

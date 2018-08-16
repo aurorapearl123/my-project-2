@@ -908,19 +908,10 @@ class Withdrawal_slip extends CI_Controller {
         $itemID = trim($this->input->post('item_id'));
         $debit = trim($this->input->post('debit'));
         $credit = trim($this->input->post('credit'));
-        //$begbal = trim($this->input->post('begBal'));
-        //$endbal = trim($this->input->post('endBal'));
-        $variance = trim($this->input->post('variance'));
+        $begbal = trim($this->input->post('begBal'));
+        $endbal = trim($this->input->post('endBal'));
         $wsID = trim($this->input->post('wsID'));
         $reference_no = $this->router->fetch_class().'-'.$wsID;
-
-
-        $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();
-        //$row->endBal;
-
-        $begbal = $row->endBal;
-
-        $endbal = $row->endBal - $variance;
 
         require_once(APPPATH.'controllers/Generic_ajax.php');
         //update approved by
