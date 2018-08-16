@@ -15,16 +15,12 @@
 				<div class="card-head">
 					<div class="head-caption">
 						<div class="head-title">
-							<h4 class="head-text">View <?php echo $current_module['module_label'] ?>
-                                <?php if($rec->dateApproved == '0000-00-00 00:00:00' && $rec->dateCancelled == '0000-00-00 00:00:00' ) : ?>
-                                    <button type="button" class="btn btn-primary btn-xs pill ml-15" id="confirm">Confirm</button>
-                                    <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                                <?php endif;?>                     
-                            </h4>
+							<h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
 						</div>
 					</div>
 					<div class="card-head-tools">
 						<ul class="tools-list">
+                            
 							<?php if ($roles['edit']) { ?>
 							<li>
 								<a href="<?php echo site_url('receiving_report/edit/'.$this->encrypter->encode($rec->rrID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
@@ -40,6 +36,10 @@
 								<button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/receiving_report/rrID/'.$this->encrypter->encode($rec->rrID).'/Receiving Report') ?>', 1000, 500)"><i class="la la-server"></i></button>
 							</li>
 							<?php } ?>
+                            <?php if($rec->dateApproved == '0000-00-00 00:00:00' && $rec->dateCancelled == '0000-00-00 00:00:00' ) : ?>
+                                <button type="button" class="btn btn-primary btn-xs pill ml-15" id="confirm">Confirm</button>
+                                <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
+                            <?php endif;?>
 						</ul>
 					</div>
 				</div>
@@ -114,7 +114,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="form-sepator solid mx-0"></div>
+                        <div class="form-sepator solid"></div>
                         <div class="data-view">
                             <table class="view-table">
                                 <tbody>
