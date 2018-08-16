@@ -109,6 +109,7 @@ class Physical_count extends CI_Controller {
             $this->db->select('item_inventory.qty as expected_qty');
              // join
             $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
 
             $items = $this->db->get()->result();
             $data['items'] = $items;
@@ -958,6 +959,7 @@ class Physical_count extends CI_Controller {
             $this->db->select('item_inventory.qty as expected_qty');
              // join
             $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('item_inventory.branchID',$this->session->userdata('current_user')->branchID);
 
             $items = $this->db->get()->result_array();
 
@@ -1052,6 +1054,7 @@ class Physical_count extends CI_Controller {
     {
         $this->db->set('qty', $qty);
         $this->db->where('itemID', $itemId);
+        $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
         $data = $this->db->update('item_inventory');
         return $data;
     }
