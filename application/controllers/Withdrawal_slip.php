@@ -111,15 +111,17 @@ class Withdrawal_slip extends CI_Controller {
 
             //get items
             $this->db->select(' *');
-            $this->db->where('status', 1);
             $this->db->from('items');
             //intem inventory
-            $this->db->select('item_inventory.qty as expected_qty');
+            //$this->db->select('item_inventory.qty as expected_qty');
              // join
             $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('items.status', 1);
+            $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
 
             $items = $this->db->get()->result();
             $data['items'] = $items;
+
 
         
             // load views
@@ -265,7 +267,7 @@ class Withdrawal_slip extends CI_Controller {
         
 
             //get headers details
-            $details = $this->getDetails('ws_details', 'wsID', $id);
+            $details = $this->getDetails('ws_details', 'wsID', $id, $this->session->userdata('current_user')->branchID);
             $data['items'] = $details;
 
 
@@ -529,7 +531,7 @@ class Withdrawal_slip extends CI_Controller {
             $data ['rec'] = $this->db->get ()->row ();
 
             //get details
-            $details = $this->getDetails('ws_details', 'wsID', $id);
+            $details = $this->getDetails('ws_details', 'wsID', $id, $this->session->userdata('current_user')->branchID);
             $data['items'] = $details;
 
            
@@ -881,7 +883,7 @@ class Withdrawal_slip extends CI_Controller {
         $this->db->delete($table);
     }
 
-    public function getDetails($table, $compare, $value)
+    public function getDetails($table, $compare, $value, $branchID)
     {
 
 
@@ -895,6 +897,7 @@ class Withdrawal_slip extends CI_Controller {
 
          //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
         $this->db->where($compare, $value);
+        $this->db->where('item_inventory.branchID', $branchID);
         $details = $this->db->get()->result();
         return $details;
     }

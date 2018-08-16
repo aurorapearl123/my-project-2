@@ -54,7 +54,7 @@ class ApiOrder extends REST_Controller
         $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
         $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
         $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
-        $this->db->where('order_headers.status',1);
+        $this->db->where('order_headers.status',4);
         //$this->db->where('order_headers.custID', $cusID);
         $orders = $this->db->get()->result();
         $data = [];
@@ -132,7 +132,7 @@ class ApiOrder extends REST_Controller
         $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
         $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
         $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
-        $this->db->where('order_headers.status',1);
+        $this->db->where('order_headers.status',4);
         $this->db->where('order_headers.orderID', $orderID);
         $orders = $this->db->get()->result();
         $data = [];
@@ -202,6 +202,8 @@ class ApiOrder extends REST_Controller
     {
         $data = [
             'custSign' => $blob,
+            'dateReleased' => date('Y-m-d h:i:s'),
+            'status' => 5,
         ];
         $this->db->where('orderID', $id);
         return $this->db->update($this->table, $data);

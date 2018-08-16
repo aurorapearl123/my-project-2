@@ -598,7 +598,46 @@ class Generic_ajax extends CI_Controller
         return self::get_instance()->db->update($table, $data);
     }
 
+    static function updateDate($date, $id, $userID)
+    {
+        $data = [];
+        switch ($date) {
+            case 'dateWashed' :
+                $data = [
+                    'dateWashed' => date('Y-m-d h:i:s'),
+                    'status' => 2,
+                ];
+                break;
+            case 'dateFold' :
+                $data = [
+                    'dateFold' => date('Y-m-d h:i:s'),
+                    'status' => 3,
+                ];
+                break;
+            case 'dateReady' :
+                $data = [
+                    'dateReady' => date('Y-m-d h:i:s'),
+                    'status' => 4,
+                ];
+                break;
+            case 'dateReleased' :
+                $data = [
+                    'dateReleased' => date('Y-m-d h:i:s'),
+                    'status' => 5,
+                ];
+                break;
+            case 'dateCancelled' :
+                $data = [
+                    'dateCancelled' => date('Y-m-d h:i:s'),
+                    'cancelledBy' => $userID,
+                    'status' => 6,
+                ];
+                break;
+        }
 
+        self::get_instance()->db->where("orderID", $id);
+        return self::get_instance()->db->update("order_headers", $data);
 
-	
+    }
+
 }	

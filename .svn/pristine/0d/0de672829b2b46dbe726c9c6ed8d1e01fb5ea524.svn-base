@@ -102,25 +102,11 @@
 											<td><?php echo $row->isDiscounted ?></td>
 											<td align="center">
 												<?php 
-                                                if ($row->status == 2) {
-                                                    echo "<span class='badge badge-pill badge-success'>Washed</span>";
-                                                }
-                                                else if($row->status == 3) {
-                                                    echo "<span class='badge badge-pill badge-danger'>Fold</span>";
-                                                }
-                                                else if($row->status == 4) {
-                                                    echo "<span class='badge badge-pill badge-danger'>Ready</span>";
-                                                }
-                                                else if($row->status == 5) {
-                                                    echo "<span class='badge badge-pill badge-danger'>Released</span>";
-                                                }
-                                                else if($row->status == 6) {
-                                                    echo "<span class='badge badge-pill badge-danger'>Cancelled</span>";
-                                                }
-                                                if ($row->status == 1) {
-                                                    echo "<span class='badge badge-pill badge-success'>Active</span>";
-                                                }
-
+													if ($row->status == 1) {
+														echo "<span class='badge badge-pill badge-success'>Active</span>";
+													} else {
+														echo "<span class='badge badge-pill badge-danger'>Inactive</span>";
+													}
 													?>
 											</td>
 										</tr>

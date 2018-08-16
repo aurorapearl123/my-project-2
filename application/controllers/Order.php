@@ -535,6 +535,11 @@ class Order extends CI_Controller {
             $this->db->select('users.middleName');
             $this->db->select('users.lastName');
 
+            //cancelled by
+            $this->db->select('cancelledUser.firstName as cancelledFirstName');
+            $this->db->select('cancelledUser.middleName as cancelledMiddleName');
+            $this->db->select('cancelledUser.lastName as cancelledLastName');
+
             // select
             $this->db->select ( $this->table . '.*' );
 
@@ -546,12 +551,17 @@ class Order extends CI_Controller {
             $this->db->join ( 'customers', $this->table . '.custID=customers.custID', 'left' );
             $this->db->join ( 'service_types', $this->table . '.serviceID=service_types.serviceID', 'left' );
             $this->db->join ( 'users', $this->table . '.createdBy=users.userID', 'left' );
+            //called by
+            $this->db->join ( 'users as cancelledUser', $this->table . '.cancelledBy=users.userID', 'left' );
             $this->db->where('orderID', $id);
 
 
 
             // ----------------------------------------------------------------------------------
             $data ['rec'] = $this->db->get ()->row ();
+
+            //echo json_encode($data['rec']);
+            //die();
 
             //order details
             $this->db->select('order_details.qty');
@@ -894,6 +904,26 @@ class Order extends CI_Controller {
     {
         $this->db->where('orderID', $orderID);
         $this->db->delete('order_details');
+    }
+
+    public function updateDate()
+    {
+        $orID = trim($this->input->post('orID'));
+        $date = trim($this->input->post('date'));
+
+        $userID = $this->session->userdata('current_user')->userID;
+
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+
+        $data = Generic_ajax::updateDate($date, $orID, $userID);
+
+        $response = [
+            'data' => [
+                'added' => $data,
+            ]
+        ];
+
+        echo json_encode($response);
     }
 
 }

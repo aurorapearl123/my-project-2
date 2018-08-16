@@ -15,26 +15,7 @@
         <div class="card-head">
           <div class="head-caption">
             <div class="head-title">
-              <h4 class="head-text">View <?php echo $current_module['module_label'] ?>
-                  <?php if($rec->status != 6) : ?>
-                      <?php if($rec->dateWashed == '0000-00-00 00:00:00') : ?>
-                      <span id="span_wash">
-                           <button type="button" class="btn btn-primary btn-xs pill ml-15" id="wash">Wash</button>
-                          <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                      </span>
-                      <?php elseif($rec->dateReady == '0000-00-00 00:00:00'): ?>
-                          <span id="span_ready">
-                              <button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>
-                              <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                          </span>
-                      <?php elseif($rec->dateReleased == '0000-00-00 00:00:00'): ?>
-                          <span id="span_released">
-                              <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                          </span>
-                      <?php endif;?>
-                  <?php endif; ?>
-                  <span id="result-date"></span>
-              </h4>
+              <h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
             </div>
           </div>
           <div class="card-head-tools">
@@ -169,7 +150,7 @@
                     <td class="data-title">Date Ready : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
                   </tr>
                   <tr>
-                    <td class="data-title">Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->cancelledFirstName .' '.$rec->cancelledMiddleName.' '.$rec->cancelledLastName;?></span></td>
+                    <td class="data-title">Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
                   </tr>
                   <tr>
                     <td class="data-title">Date Fold : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
@@ -186,66 +167,6 @@
     </div>
   </div>
 </div>
-
-
-<!-- Modal -->
-<div class="modal fade" id="washModal" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-
-                <h4 class="modal-title">Are you sure you want to update this item to wash?</h4>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" id="wash_proceed">Proceed</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-
-<!-- Modal -->
-<div class="modal fade" id="readyModal" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-
-                <h4 class="modal-title">Are you sure you want to update this item to ready?</h4>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" id="ready_proceed">Proceed</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- Modal -->
-<div class="modal fade" id="cancelModal" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-
-                <h4 class="modal-title">Are you sure you want to cancel this item?</h4>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel_proceed">Proceed</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-
 <script>
   $(document).ready(function(){
       var rate = parseInt($('#rate').val());
@@ -259,71 +180,6 @@
       var total = subtotal + deliveryFee;
   
       $('#ttlAmount').val(total);
-
-      var orderID = "<?php echo $rec->orderID; ?>";
-
-      //button's actions
-      $('#wash').on('click', function(){
-          $("#washModal").modal();
-      });
-
-
-      //modal button's
-      $('#wash_proceed').on('click', function(){
-
-          //updateDate(orderID, 'dateWashed');
-          //update button to ready
-          updateDate(orderID, 'dateWashed');
-          $("#span_wash").hide();
-
-          var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
-               listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
-          $("#result-date").append(listHTML);
-
-      });
-
-      $('#ready_proceed').on('click', function(){
-            //console.log("ready jprocedd");
-          updateDate(orderID, 'dateReady');
-
-          $("#result-date").html('');
-          $("#span_ready").html('');
-
-          var listHTML = '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
-          $("#result-date").append(listHTML);
-      });
-
-      $(document).on('click', '#ready', function(e){
-          //alert("hello");
-          $("#readyModal").modal();
-      });
-
-      $(document).on('click', '#cancel', function(e){
-         // alert("ready");
-          $("#cancelModal").modal();
-      });
-
-      $(document).on('click', '#cancel_proceed', function(){
-
-          updateDate(orderID, 'dateCancelled');
-          $("#result-date").html('');
-          $("#span_wash").html('');
-          $("#span_ready").html('');
-          $("#span_released").html('');
-
-      });
-
-
   });
-
-  function updateDate(orderID, date)
-  {
-
-      $.post("<?php echo $controller_page ?>/updateDate", { orID: orderID, date: date},
-          function(data, status){
-              console.log(data);
-
-          });
-  }
   
 </script>
