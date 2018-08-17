@@ -59,13 +59,14 @@
                   </tr>
                   <tr>
                     <td class="form-label">Service :</td>
-                    <td class="form-group form-input">
+                    <td class="form-group form-input select-service-type">
                       <select class="form-control" id="serviceID" name="serviceID" data-live-search="true" livesearchnormalize="true" title="Service" required>
                         <option value="" selected>&nbsp;</option>
                         <?php foreach($service_types as $row) { ?>
                         <option value="<?php echo $row->serviceID ?>"><?php echo $row->serviceType ?></option>
                         <?php } ?>
                       </select>
+
                     </td>
                   </tr>
                 </tbody>
@@ -106,7 +107,8 @@
                     </td>
                     <td class="form-label" style="width:13%">Quantity in kilos : </td>
                     <td class="form-group form-input" style="width:22%">
-                      <input type="number" class="form-control" name="qty" id="qty" min="0" title="Quantity in kilos" required>
+                        <span id="span_error" style="color: red"></span>
+                      <input type="number" class="form-control quantity" name="qty" id="qty" min="0" title="Quantity in kilos" required>
                     </td>
                     <td class="d-xxl-none"></td>
                   </tr>
@@ -117,7 +119,7 @@
                     </td>
                     <td class="form-label" style="width:13%">Deliver Fee:  <span class="asterisk">*</span></td>
                     <td class="form-group form-input" style="width:22%">
-                      <input type="text" class="form-control" name="deliveryFee" id="deliveryFee" title="Delivery Fee" required>
+                      <input type="number" class="form-control" name="deliveryFee" id="deliveryFee" title="Delivery Fee" required>
                     </td>
                     <td class="d-xxl-none"></td>
                   </tr>
@@ -203,7 +205,18 @@
   });
      $(document).ready(function() {
          //set initial state.
-  
+
+         $("#deliveryFee").prop('disabled', true);
+
+         $(".select-service-type").change(function(){
+             //$("#span_error").html("");
+             var service_id = $('#serviceID').val();
+             if(service_id.length != 0) {
+                 $("#qty").prop('disabled', false);
+                 //
+             }
+
+         });
   
          $('#isDiscounted').change(function() {
              //$('#textbox1').val($(this).is(':checked'));
@@ -237,10 +250,30 @@
   
          });
          //event for quantity in kilos
+
+        /* var service_id = $('#serviceID').val();
+         if(service_id.length == 0) {
+             $("#qty").prop('disabled', true);
+             $("#deliveryFee").prop('disabled', true);
+             console.log("disable me");
+         }*/
+        //check service
+         checkService();
          $('#qty').keyup(function(){
              //alert('Hello');
+             $("#deliveryFee").prop('disabled', false);
+             var qty = $("#qty").val();
+             //console.log(qty);
+             // if(isNaN(qty)) {
+             //     $("#deliveryFee").prop('disabled', true);
+             //
+             // }
+
+
              if($('#rate').val() == "") {
-                 alert("please input rate");
+                 //alert("please input rate");
+                // message = "Please select service type.";
+
              }
              else {
                  var rate = parseInt($('#rate').val());
@@ -250,6 +283,7 @@
                  $('#subtotal').val(total);
              }
          });
+         //$("#span_error").append(message);
   
          $('#deliveryFee').keyup(function(){
              //alert('Hello');
@@ -280,6 +314,16 @@
                  }
   
              });
+     }
+
+     function checkService()
+     {
+         var service_id = $('#serviceID').val();
+         if(service_id.length == 0) {
+             $("#qty").prop('disabled', true);
+             $("#deliveryFee").prop('disabled', true);
+             console.log("disable me");
+         }
      }
   
      // $(document).ready(function() {

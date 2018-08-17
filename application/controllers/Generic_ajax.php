@@ -432,23 +432,30 @@ class Generic_ajax extends CI_Controller
         //$data = [];
         switch ($className) {
             case 'physical_count' :
+
+                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $value_row = $row->pcNo + 1;
                 $data = [
                     'branchID' => $branchId,
-                    'pcNo' => $value,
+                    'pcNo' => $value_row,
                 ];
                 Generic_ajax::insertSeriesNo($data);
                 break;
             case 'receiving_report' :
+                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $value_row = $row->rrNo + 1;
                 $data = [
                     'branchID' => $branchId,
-                    'rrNo' => $value,
+                    'rrNo' => $value_row,
                 ];
                 Generic_ajax::insertSeriesNo($data);
                 break;
             case 'withdrawal_slip' :
+                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $value_row = $row->	wsNo + 1;
                 $data = [
                     'branchID' => $branchId,
-                    'wsNo' => $value,
+                    'wsNo' => $value_row,
                 ];
                 Generic_ajax::insertSeriesNo($data);
                 break;
@@ -509,14 +516,14 @@ class Generic_ajax extends CI_Controller
         return self::get_instance()->db->update($table, $data);
     }
 
-    static function addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal, $branchID)
+    static function addStockCard($refNo, $itemID, $debit, $credit , $endbal, $begbal, $branchID)
     {
 
         $data  = [
             'branchID' => $branchID,
             'itemID' => $itemID,
             'date' => date('Y-m-d'),
-            'refNo' => $pcID,
+            'refNo' => $refNo,
             'debit' => $debit,
             'credit' => $credit,
             'endbal' => $endbal,

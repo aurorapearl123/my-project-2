@@ -912,7 +912,9 @@ class Withdrawal_slip extends CI_Controller {
         //$endbal = trim($this->input->post('endBal'));
         $variance = trim($this->input->post('variance'));
         $wsID = trim($this->input->post('wsID'));
-        $reference_no = $this->router->fetch_class().'-'.$wsID;
+
+        $row_series = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+        $reference_no = $this->router->fetch_class().'-'.$row_series->wsNo;
 
 
         $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();

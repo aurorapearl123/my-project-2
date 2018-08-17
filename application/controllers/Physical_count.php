@@ -1047,11 +1047,13 @@ class Physical_count extends CI_Controller {
             $endbal = $row->endBal - $variance;
         }
 
+        $row_series = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+
         $data  = [
             'branchID' => $current_branch->branchID,
             'itemID' => $itemID,
             'date' => date('Y-m-d'),
-            'refNo' => $this->router->fetch_class().'-'.$pcID,
+            'refNo' => '0000'.$row_series->pcNo,
             'debit' => $debit,
             'credit' => $credit,
             'endbal' => $endbal,

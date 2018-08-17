@@ -16,6 +16,16 @@
     <script src="<?php echo base_url('assets/js/jquery-3.2.1.min.js') ?>" type="text/javascript"></script>
     <script src="<?php echo base_url('assets/js/framework.js') ?>" type="text/javascript"></script>
 
+      <style>
+          input[type=number]::-webkit-inner-spin-button,
+          input[type=number]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              -moz-appearance: none;
+              appearance: none;
+              margin: 0;
+          }
+      </style>
+
     
     <?php 
     if (!empty($css)) {

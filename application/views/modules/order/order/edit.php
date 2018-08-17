@@ -199,7 +199,7 @@
          //initialize subtotal
          var rate = parseInt($('#rate').val());
          var quantity_kilo = parseInt($('#qty').val());
-         var total = quantity_kilo + rate;
+         var total = quantity_kilo * rate;
          $('#subtotal').val(total);
          //initial total amount
          var subtotal = parseInt($('#subtotal').val());
@@ -249,7 +249,7 @@
              else {
                  var rate = parseInt($('#rate').val());
                  var quantity_kilo = parseInt($('#qty').val());
-                 var total = quantity_kilo + rate;
+                 var total = quantity_kilo * rate;
   
                  $('#subtotal').val(total);
              }
