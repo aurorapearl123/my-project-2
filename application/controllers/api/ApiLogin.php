@@ -50,6 +50,13 @@ class ApiLogin extends REST_Controller
                 ];
                 $this->response($response, 400);
             }
+            elseif($user == 3) {
+                $response = [
+                    'status' => FALSE,
+                    'message' => 'Only deliver can login.'
+                ];
+                $this->response($response, 400);
+            }
             else {
 
                 //Load Authorization Token Library
@@ -87,19 +94,29 @@ class ApiLogin extends REST_Controller
 
     public function login($username, $password)
     {
+        $this->db->select('users.*');
+        $this->db->select('usergroups.*');
         $this->db->where('userName', $username);
-        $q = $this->db->get($this->table);
+        $this->db->from($this->table);
+        $this->db->join('usergroups', $this->table.'.groupID=usergroups.groupID', 'left');
+        $q = $this->db->get();
+        //get the user groups
 
         if($q->num_rows()) {
             $hashed_password = $q->row('userPswd');
             if(hash_equals($hashed_password, $password)) {
-                $data['userID'] = $q->row('userID');
-                $data['userName'] = $q->row('userName');
-                $data['firstName'] = $q->row('firstName');
-                $data['middleName'] = $q->row('middleName');
-                $data['lastName'] = $q->row('lastName');
-                $data['branchID'] = $q->row('branchID');
-                return $data;
+                if($q->row('groupName') === 'Delivery') {
+                    $data['userID'] = $q->row('userID');
+                    $data['userName'] = $q->row('userName');
+                    $data['firstName'] = $q->row('firstName');
+                    $data['middleName'] = $q->row('middleName');
+                    $data['lastName'] = $q->row('lastName');
+                    $data['branchID'] = $q->row('branchID');
+                    return $data;
+                }else {
+                    return 3;
+                }
+
             }
             else {
                 return false;
