@@ -58,6 +58,7 @@ class ApiLogin extends REST_Controller
                 $token_data['id'] = $user['userID'];
                 $token_data['userName'] = $user['userName'];
                 $token_data['firstName'] = $user['firstName'];
+                $token_data['branchID'] = $user['branchID'];
                 $token_data['time'] = time();
 
 
@@ -69,6 +70,7 @@ class ApiLogin extends REST_Controller
                     'firstName' => $user['firstName'],
                     'middleName' => $user['middleName'],
                     'lastName' => $user['lastName'],
+                    'branchID' => $user['branchID'],
                     'token' => $user_token
                 ];
 
@@ -96,6 +98,7 @@ class ApiLogin extends REST_Controller
                 $data['firstName'] = $q->row('firstName');
                 $data['middleName'] = $q->row('middleName');
                 $data['lastName'] = $q->row('lastName');
+                $data['branchID'] = $q->row('branchID');
                 return $data;
             }
             else {

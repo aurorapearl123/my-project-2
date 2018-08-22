@@ -24,7 +24,9 @@ class ApiOrder extends REST_Controller
             $user_id = $is_valid_token['data']->id;
             $id = $this->uri->segment(3);
 
-            $orders = $this->getOrders($id);
+            $branchID = $is_valid_token['data']->branchID;
+
+            $orders = $this->getOrders($id, $branchID);
 
 
             $this->response([
@@ -43,7 +45,7 @@ class ApiOrder extends REST_Controller
         }
     }
 
-    public function getOrders($cusID)
+    public function getOrders($cusID, $branchID)
     {
 
         $this->db->select('order_headers.*');
@@ -55,7 +57,7 @@ class ApiOrder extends REST_Controller
         $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
         $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
         $this->db->where('order_headers.status',4);
-        //$this->db->where('order_headers.custID', $cusID);
+        $this->db->where('order_headers.branchID', $branchID);
         $orders = $this->db->get()->result();
         $data = [];
        foreach($orders as $order) {
@@ -207,5 +209,78 @@ class ApiOrder extends REST_Controller
         ];
         $this->db->where('orderID', $id);
         return $this->db->update($this->table, $data);
+    }
+
+    public function order_by_date_get()
+    {
+        header("Access-Control-Allow-Origin: *");
+        //Load Authorization Token Library
+        $this->load->library('Authorization_Token');
+        //user token validation
+        $is_valid_token = $this->authorization_token->validateToken();
+        //get the id
+        //$is_valid_token['data']->id;
+        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
+            $user_id = $is_valid_token['data']->id;
+            $branchID = $is_valid_token['data']->branchID;
+            $param = $this->uri->segment(3);
+            $array_param = explode(':', $param);
+
+            if(!empty($array_param)) {
+                //get from and to date
+                $from = $array_param[0];
+                $to = $array_param[1];
+                $filterOrderByDate = $this->filterOrderByDate($from, $to, $branchID);
+                $this->response([
+                    'status' => true,
+                    'data' => $filterOrderByDate,
+                ]);
+            }
+        }
+        else {
+            $this->response(
+                [
+                    'status' => FALSE,
+                    'message' => $is_valid_token['message']
+                ],
+                REST_Controller::HTTP_NOT_FOUND
+            );
+        }
+    }
+
+    public function filterOrderByDate($from, $to, $branchID)
+    {
+        $this->db->select('order_headers.*');
+        $this->db->select('service_types.*');
+        $this->db->select('customers.*');
+        $this->db->select('branches.branchName');
+        $this->db->from('order_headers');
+        $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
+        $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
+        $this->db->where('order_headers.status',5);
+        $this->db->where('DATE(order_headers.date) >= ', $from);
+        $this->db->where('DATE(order_headers.date) <= ', $to);
+        $this->db->where('order_headers.branchID', $branchID);
+        $orders = $this->db->get()->result();
+        $data = [];
+        foreach($orders as $order) {
+            $data[] = [
+                'order_id' => $order->orderID,
+                'custID' => $order->custID,
+                'suffix' => $order->suffix,
+                'fname' => $order->fname,
+                'mname' => $order->mname,
+                'lname' => $order->lname,
+                'date' => $order->date,
+                'service_id' => $order->serviceID,
+                'service_type' => $order->serviceType,
+                'branch_id' => $order->branchID,
+                'branch_name' => $order->branchName,
+                'order_details' => $this->getDetails('order_details',$order->orderID)
+            ];
+        }
+
+        return $data;
     }
 }
