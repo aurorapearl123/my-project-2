@@ -65,4 +65,5 @@ $route['api/order-details/(:any)'] = 'api/ApiOrder/order_details';
 $route['api/order-details'] = 'api/ApiOrder/update_order_details';
 //get order by date
 $route['api/order-date/(:any)'] = 'api/ApiOrder/order_by_date';
-
+//order get history details
+$route['api/order-history'] = 'api/ApiOrder/order_history';
