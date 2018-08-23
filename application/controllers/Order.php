@@ -58,11 +58,11 @@ class Order extends CI_Controller {
 
     private function check_roles() {
         // check roles
-        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_userID' ), 'Add ' . $this->module );
-        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_userID' ), 'View ' . $this->module );
-        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_userID' ), 'Edit Existing ' . $this->module );
-        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_userID' ), 'Delete Existing ' . $this->module );
-        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_userID' ), 'Approve ' . $this->module );
+        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Add ' . $this->module );
+        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'View ' . $this->module );
+        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Edit Existing ' . $this->module );
+        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Delete Existing ' . $this->module );
+        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Approve ' . $this->module );
     }
 
     private function _in_used($id = 0) {
@@ -140,8 +140,10 @@ class Order extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
-        $table_fields = array ('date', 'branchID', 'serviceID', 'ttlAmount', 'rate', 'deliveryFee', 'amount' , 'ttlAmount', 'createdBy', 'qty', 'custID');
+        $table_fields = array ('date', 'branchID', 'serviceID', 'ttlAmount', 'rate', 'deliveryFee', 'amount' , 'ttlAmount', 'createdBy', 'qty', 'custID', 'isDiscounted');
 
+        //echo json_encode($this->input->post('isDiscounted'));
+        //die();
         // check role
         if ($this->roles ['create']) {
             $this->records->table = $this->table;
@@ -155,6 +157,7 @@ class Order extends CI_Controller {
                     }
                     else {
                         $this->records->fields [$fld] = 'Y';
+
                     }
                 }
                 else {
@@ -182,6 +185,9 @@ class Order extends CI_Controller {
                 $clothes_qtys = $this->input->post ( 'clothes_qtys' );
                 $clothes_ids = $this->input->post('clothes_ids');
                 $this->insert_order_details($id, $clothes_qtys, $clothes_ids);
+
+                $this->addSeriesNo($id, $this->session->userdata('current_user')->branchID);
+
                 $logfield = $this->pfield;
                 // success msg
                 $data ["class"] = "success";
@@ -853,7 +859,7 @@ class Order extends CI_Controller {
 
     //Conditions and fields changes
     public function check_duplicate() {
-        $this->db->where ( 'branchID', trim ( $this->input->post ( 'custID' ) ) );
+        $this->db->where ( 'orderID', trim ( $this->input->post ( 'orderID' ) ) );
 
         if ($this->db->count_all_results ( $this->table ))
             echo "1"; // duplicate
@@ -925,6 +931,18 @@ class Order extends CI_Controller {
         ];
 
         echo json_encode($response);
+    }
+
+
+    public function addSeriesNo($id, $branchID)
+    {
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        $series = '0000'.$id;
+        $className = $this->router->fetch_class();
+
+        $data = Generic_ajax::addSeriesNo($className, $series, $branchID);
+        return $data;
+
     }
 
 }

@@ -1047,7 +1047,7 @@ class Physical_count extends CI_Controller {
             $endbal = $row->endBal - $variance;
         }
 
-        $row_series = self::get_instance()->db->select("*")->where('branchID', $this->session->userdata('current_user')->branchID)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+        $row_series = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
 
         $data  = [
             'branchID' => $current_branch->branchID,

@@ -63,11 +63,11 @@ class Withdrawal_slip extends CI_Controller {
 
     private function check_roles() {
         // check roles
-        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Add ' . $this->module );
-        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'View ' . $this->module );
-        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Edit Existing ' . $this->module );
-        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Delete Existing ' . $this->module );
-        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Approve ' . $this->module );
+        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Add ' . $this->data['current_module']['module_label'] ); 
+        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'View ' . $this->data['current_module']['module_label'] );
+        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Edit Existing ' . $this->data['current_module']['module_label'] );
+        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Delete Existing ' . $this->data['current_module']['module_label'] );
+        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Approve ' . $this->data['current_module']['module_label'] );
 
     }
 
@@ -913,8 +913,8 @@ class Withdrawal_slip extends CI_Controller {
         $variance = trim($this->input->post('variance'));
         $wsID = trim($this->input->post('wsID'));
 
-        $row_series = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
-        $reference_no = $this->router->fetch_class().'-'.$row_series->wsNo;
+        $row_series = self::get_instance()->db->select("*")->where('branchID', $this->session->userdata('current_user')->branchID)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+        $reference_no = '0000'.$row_series->wsNo;
 
 
         $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();

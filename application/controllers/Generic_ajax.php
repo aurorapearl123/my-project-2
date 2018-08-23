@@ -433,40 +433,35 @@ class Generic_ajax extends CI_Controller
         switch ($className) {
             case 'physical_count' :
 
-                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $row = self::get_instance()->db->select("*")->where('branchID', $branchId)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
                 $value_row = $row->pcNo + 1;
-                $data = [
-                    'branchID' => $branchId,
-                    'pcNo' => $value_row,
-                ];
-                Generic_ajax::insertSeriesNo($data);
+                Generic_ajax::insertSeriesNo('pcNo', $value_row, $branchId);
                 break;
             case 'receiving_report' :
-                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $row = self::get_instance()->db->select("*")->where('branchID', $branchId)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
                 $value_row = $row->rrNo + 1;
-                $data = [
-                    'branchID' => $branchId,
-                    'rrNo' => $value_row,
-                ];
-                Generic_ajax::insertSeriesNo($data);
+                Generic_ajax::insertSeriesNo('rrNo', $value_row, $branchId);
                 break;
             case 'withdrawal_slip' :
-                $row = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $row = self::get_instance()->db->select("*")->where('branchID', $branchId)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
                 $value_row = $row->	wsNo + 1;
-                $data = [
-                    'branchID' => $branchId,
-                    'wsNo' => $value_row,
-                ];
-                Generic_ajax::insertSeriesNo($data);
+                Generic_ajax::insertSeriesNo('wsNo', $value_row, $branchId);
+                break;
+            case 'order' :
+                $row = self::get_instance()->db->select("*")->where('branchID', $branchId)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+                $value_row = $row->	osNo + 1;
+                Generic_ajax::insertSeriesNo('osNo', $value_row, $branchId);
                 break;
 
         }
 
     }
 
-    static function insertSeriesNo($data)
+    static function insertSeriesNo($column, $value, $branchId)
     {
-        self::get_instance()->db->insert('seriesno', $data);
+        self::get_instance()->db->set($column, $value);
+        self::get_instance()->db->where('branchID', $branchId);
+        self::get_instance()->db->update('seriesno');
     }
 
 

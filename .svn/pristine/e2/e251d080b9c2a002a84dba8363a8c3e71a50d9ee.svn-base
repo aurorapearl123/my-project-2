@@ -1,7 +1,7 @@
 <?php
 defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 
-class Physical_count extends CI_Controller {
+class Withdrawal_slip extends CI_Controller {
     //Default Variables
     var $menu;
     var $roles;
@@ -18,11 +18,12 @@ class Physical_count extends CI_Controller {
         parent::__construct ();
         $this->load->model ( 'generic_model', 'records' );
         $this->module = 'Inventory';
-        $this->data['controller_page'] = $this->controller_page = site_url('physical_count'); // defines contoller link
-        $this->table = 'pc_headers'; // defines the default table
-        $this->pfield = $this->data ['pfield'] = 'pcID'; // defines primary key
-        $this->logfield = 'rrID';
-        $this->module_path = 'modules/' . strtolower ( str_replace(" ","_",$this->module) ) . '/physical_count'; // defines module path
+        $this->data['controller_page'] = $this->controller_page = site_url('withdrawal_slip'); // defines contoller link
+        $this->table = 'ws_headers'; // defines the default table
+        $this->pfield = $this->data ['pfield'] = 'wsID'; // defines primary key
+        $this->logfield = 'wsID';
+        $this->module_path = 'modules/' . strtolower ( str_replace(" ","_",$this->module) ) . '/withdrawal_slip'; // defines module path
+
 
 
 
@@ -53,7 +54,7 @@ class Physical_count extends CI_Controller {
 
         $this->data ['modules'] = $this->modules;
         $this->data ['current_main_module'] = $this->modules [$this->module]['main']; // defines the current main module
-        $this->data ['current_module'] = $this->modules [$this->module]['sub']['Physical count']; // defines the current sub module
+        $this->data ['current_module'] = $this->modules [$this->module]['sub']['Withdrawal slip']; // defines the current sub module
 
         // check roles
         $this->check_roles ();
@@ -62,16 +63,16 @@ class Physical_count extends CI_Controller {
 
     private function check_roles() {
         // check roles
-        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Add ' . $this->data['current_module']['module_label'] );
-        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'View ' . $this->module );
-        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Edit Existing ' . $this->module );
-        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Delete Existing ' . $this->module );
-        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Approve ' . $this->module );
+        $this->roles ['create'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Add ' . $this->data['current_module']['module_label'] ); 
+        $this->roles ['view'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'View ' . $this->data['current_module']['module_label'] );
+        $this->roles ['edit'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Edit Existing ' . $this->data['current_module']['module_label'] );
+        $this->roles ['delete'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Delete Existing ' . $this->data['current_module']['module_label'] );
+        $this->roles ['approve'] = $this->userrole_model->has_access ( $this->session->userdata ( 'current_user' )->userID, 'Approve ' . $this->data['current_module']['module_label'] );
 
     }
 
     private function _in_used($id = 0) {
-        $tables = array ('branches' => 'branchID');
+        $tables = array ('branches' => 'companyID', 'customers' => 'custID', 'service_types' => 'serviceID' );
 
         if (! empty ( $tables )) {
             foreach ( $tables as $table => $fld ) {
@@ -94,25 +95,33 @@ class Physical_count extends CI_Controller {
         // check roles
         if ($this->roles ['create']) {
 
-            
             //get branch
             $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
             $branch = $this->db->get('branches');
             $current_branch = $branch->row();
             $data['branchName'] = $current_branch->branchName;
             $data['branchID'] = $current_branch->branchID;
+
+            //get branch
+            $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
+            $branch = $this->db->get('branches');
+            $current_branch = $branch->row();
+            $data['branchName'] = $current_branch->branchName;
+            $data['branchID'] = $current_branch->branchID;
+
             //get items
             $this->db->select(' *');
-            $this->db->where('status', 1);
             $this->db->from('items');
             //intem inventory
-            $this->db->select('item_inventory.qty as expected_qty');
+            //$this->db->select('item_inventory.qty as expected_qty');
              // join
             $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('items.status', 1);
             $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
 
             $items = $this->db->get()->result();
             $data['items'] = $items;
+
 
         
             // load views
@@ -136,7 +145,8 @@ class Physical_count extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
-        $table_fields = array ('date', 'branchID','remarks','createdBy');
+        $table_fields = array ('date', 'branchID', 'remarks','createdBy');
+
 
         // check role
         if ($this->roles ['create']) {
@@ -155,32 +165,25 @@ class Physical_count extends CI_Controller {
 
             }
 
+                 // $items_ids = $this->input->post ( 'item_ids' );
+                 //    $quantity = $this->input->post('quantity');
+                 //    $test = $this->insert_details(3, $items_ids, $quantity);
+                 //    echo json_encode($test);
+                 //    die();
+
             if ($this->records->save ()) {
                 $this->records->fields = array ();
-                $id = $this->records->where ['pcID'] = $this->db->insert_id ();
+                $id = $this->records->where ['wsID'] = $this->db->insert_id ();
                 $this->records->retrieve ();
                 // record logs
                 $logs = "Record - " . trim ( $this->input->post ( $this->logfield ) );
 
-                //insert details
-                //system quantity
-                $system_quantity = $this->input->post('expected_qyts');
-                //get physical count
-                $physical_counts = $this->input->post('physical_counts');
-                //get item ids
-                $item_ids = $this->input->post('item_ids');
-                //get variances
-                $variances = $this->input->post('variances');
+                $items_ids = $this->input->post ( 'item_ids' );
+                $quantity = $this->input->post('quantity');
+                $this->insert_details($id, $items_ids, $quantity);
 
-                $this->insert_pc_details($id, $item_ids, $physical_counts, $variances, $system_quantity);
-               // echo json_encode($test);
-                //die();
 
                 $this->addSeriesNo($id, $this->session->userdata('current_user')->branchID);
-
-
-
-
                 $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $id, 'Insert', $logs );
 
                 $logfield = $this->pfield;
@@ -231,7 +234,14 @@ class Physical_count extends CI_Controller {
             $data ['rec'] = $this->records->field;
 
 
-            // select
+            //get branch
+            $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
+            $branch = $this->db->get('branches');
+            $current_branch = $branch->row();
+            $data['branchName'] = $current_branch->branchName;
+            $data['branchID'] = $current_branch->branchID;
+
+
             $this->db->select ( $this->table . '.*' );
             $this->db->select ( 'branches.branchName' );
             $this->db->select ( 'branches.branchCode' );
@@ -240,49 +250,27 @@ class Physical_count extends CI_Controller {
             $this->db->select ( 'users.firstName' );
             $this->db->select ( 'users.middleName' );
             $this->db->select ( 'users.lastName' );
-            
-            //approved by
-            $this->db->select('approvedUser.firstName as approvedFirstName');
-            $this->db->select('approvedUser.middleName as approvedMiddleName');
-            $this->db->select('approvedUser.lastName as approvedLastName');
-            //cancelled by
-            $this->db->select('cancelledUser.firstName as cancelledFirstName');
-            $this->db->select('cancelledUser.middleName as cancelledMiddleName');
-            $this->db->select('cancelledUser.lastName as cancelledLastName');
+
 
             // from
             $this->db->from ( $this->table );
 
             // join
             $this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+            //$this->db->join ( 'suppliers', $this->table . '.suppID=suppliers.supplierID', 'left' );
             $this->db->join ( 'users', $this->table . '.createdBy=users.userID', 'left' );
-            //approved by
-            $this->db->join ( 'users as approvedUser', $this->table . '.approvedBy=users.userID', 'left' );
-            //called by
-            $this->db->join ( 'users as cancelledUser', $this->table . '.approvedBy=users.userID', 'left' );
-
-            $this->db->where('pcID', $id);
+            $this->db->where('wsID', $id);
 
             // ----------------------------------------------------------------------------------
             $data ['rec'] = $this->db->get ()->row ();
 
-            $result_data = [];
-             $pc_items = $this->getItems($value->itemID);
-             foreach ($pc_items as $key => $value) {
-                $result_data[] = [
-                    'itemID' => $value['itemID'],
-                    'brand' => $value['brand'],
-                    'item' => $value['item'],
-                    'description' => $value['description'],
-                    'umsr' => $value['umsr'],
-                    'status' => $value['status'],
-                    'expected_qty' => $value['expected_qty'],
-                    'pc_details' => $this->getPcdetailByItemID($value['itemID'], $id),
-                ];
-             }
-
-            $data['details_pc'] = $result_data;
         
+
+            //get headers details
+            $details = $this->getDetails('ws_details', 'wsID', $id, $this->session->userdata('current_user')->branchID);
+            $data['items'] = $details;
+
+
             // load views
             $this->load->view ( 'header', $data );
             $this->load->view ( $this->module_path . '/edit' );
@@ -297,19 +285,6 @@ class Physical_count extends CI_Controller {
             $this->load->view ( 'footer' );
         }
     }
-
-    function super_unique($array,$key)
-    {
-        $temp_array = [];
-        foreach ($array as &$v) {
-            if (!isset($temp_array[$v[$key]]))
-                $temp_array[$v[$key]] =& $v;
-        }
-        $array = array_values($temp_array);
-        return $array;
-
-    }
-
 
     function array_remove_keys($array, $keys = array()) {
 
@@ -358,8 +333,7 @@ class Physical_count extends CI_Controller {
         // load submenu
         $this->submenu ();
         $data = $this->data;
-
-        $table_fields = array ('date', 'branchID','remarks','createdBy');
+        $table_fields = array ('date', 'branchID', 'remarks','createdBy');
 
 
         // check roles
@@ -378,12 +352,10 @@ class Physical_count extends CI_Controller {
 
             }
 
-
+          
 
             $this->records->pfield = $this->pfield;
             $this->records->pk = $this->encrypter->decode ( $this->input->post ( $this->pfield ) );
-
-            
 
             // field logs here
             $wasChange = $this->log_model->field_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->encrypter->decode ( $this->input->post ( $this->pfield ) ), 'Update', $this->records->fields );
@@ -395,24 +367,13 @@ class Physical_count extends CI_Controller {
                     $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Update', $logs );
                 }
                 //remove rr details
+                $this->delete_details('ws_details', 'wsID', $this->records->pk);
                 //insert details
-                //system quantity
-                $system_quantity = $this->input->post('expected_qyts');
-                //get physical count
-                $physical_counts = $this->input->post('physical_counts');
-                //get item ids
-                $item_ids = $this->input->post('item_ids');
-                //get variances
-                $variances = $this->input->post('variances');
 
-                //remove details first
-                
-                $this->delete_details('pc_details', 'pcID', $this->records->pk);
-                //insert details
-                $this->insert_pc_details($this->records->pk, $item_ids, $physical_counts, $variances, $system_quantity);
+                $item_ids = $this->input->post ( 'item_ids' );
+                $quantities = $this->input->post('quantities');
+                $this-> insert_details($this->records->pk, $item_ids, $quantities);
 
-                //echo json_encode($test);
-                //die();
 
                 // successful
                 $data ["class"] = "success";
@@ -561,22 +522,19 @@ class Physical_count extends CI_Controller {
             //approved by
             $this->db->join ( 'users as approvedUser', $this->table . '.approvedBy=users.userID', 'left' );
             //called by
-            $this->db->join ( 'users as cancelledUser', $this->table . '.cancelledBy=users.userID', 'left' );
+            $this->db->join ( 'users as cancelledUser', $this->table . '.	cancelledBy=users.userID', 'left' );
 
-            $this->db->where('pcID', $id);
+            $this->db->where('wsID', $id);
 
 
             // ----------------------------------------------------------------------------------
             $data ['rec'] = $this->db->get ()->row ();
 
-            //echo json_encode($data['rec']);
-            //die
-
             //get details
-            $details = $this->getDetails('pc_details', 'pcID', $id);
+            $details = $this->getDetails('ws_details', 'wsID', $id, $this->session->userdata('current_user')->branchID);
             $data['items'] = $details;
 
-
+           
             $data ['in_used'] = $this->_in_used ( $id );
 
             // record logs
@@ -620,7 +578,7 @@ class Physical_count extends CI_Controller {
         );
 
         // sorting fields
-        $sorting_fields = array ('pcID' => 'asc' );
+        $sorting_fields = array ('wsID' => 'asc' );
 
         $controller = $this->uri->segment ( 1 );
 
@@ -876,47 +834,10 @@ class Physical_count extends CI_Controller {
         }
     }
 
-
-    function combine_keys_with_arrays($keys, $arrays) {
-        $results = array();
-
-        foreach ($arrays as $subKey => $arr)
-        {
-            foreach ($keys as $index => $key)
-            {
-                $results[$key][$subKey] = $arr[$index];
-            }
-        }
-
-        return $results;
-    }
-
-    public function delete_details($table, $compare, $id)
-    {
-        $this->db->where($compare, $id);
-        $this->db->delete($table);
-    }
-
-    public function getDetails($table, $compare, $value)
-    {
-
-
-        //join item
-        $this->db->select('items.*');
-        $this->db->select($table.'.*');
-        $this->db->from($table);
-        $this->db->join ( 'items', 'pc_details.itemID=items.itemID', 'right' );
-
-         //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
-        $this->db->where($compare, $value);
-        $details = $this->db->get()->result();
-        return $details;
-    }   
-    
-    public function insert_pc_details($rrID, $items_ids = array(), $physical_counts = array(), $variances= array(), $system_quantity = array())
+    public function insert_details($rrID, $items_ids = array(), $quanties = array())
     {
         /*$result = array_merge($items_ids, $prices);*/
-        $size = count($items_ids);
+         $size = count($items_ids);
         $size = $size - 1;
 
         $keys = [];
@@ -932,172 +853,107 @@ class Physical_count extends CI_Controller {
         }
 
 
-        $pc_details = $this->combine_keys_with_arrays($keys, array(
-            'pcID' => $rrIDs,
+        $ws_details = $this->combine_keys_with_arrays($keys, array(
+            'wsID' => $rrIDs,
             'itemID'  => $items_ids,
-            'systemQty' => $system_quantity,
-            'actualQty'    => $physical_counts,
-            'variance' => $variances
+            'qty' => $quanties,
         ));
 
-
-        //echo json_encode($rr_details);
-        //return $pc_details;
-
-       return $this->db->insert_batch('pc_details', $pc_details);
+       // return $ws_details;
+        return $this->db->insert_batch('ws_details', $ws_details);
     }
 
-    public function getItems($itemID)
-    {
-          //get items
-            $this->db->select(' *');
-            $this->db->select('item_inventory.qty as expected_qty');
-            $this->db->where('status', 1);
-            //$this->db->where('items.itemID', $itemID);
-            $this->db->from('items');
-            //intem inventory
-            $this->db->select('item_inventory.qty as expected_qty');
-             // join
-            $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
-            $this->db->where('item_inventory.branchID',$this->session->userdata('current_user')->branchID);
+    function combine_keys_with_arrays($keys, $arrays) {
+        $results = array();
 
-            $items = $this->db->get()->result_array();
+        foreach ($arrays as $subKey => $arr)
+        {
+            foreach ($keys as $index => $key)
+            {
+                $results[$key][$subKey] = $arr[$index];
+            }
+        }
 
-            return $items;
+        return $results;
     }
 
-    public function getPcdetailByItemID($itemID, $id)
+    public function delete_details($table, $compare, $rrID)
     {
+        $this->db->where($compare, $rrID);
+        $this->db->delete($table);
+    }
+
+    public function getDetails($table, $compare, $value, $branchID)
+    {
+
+
         //join item
         $this->db->select('items.*');
-        $this->db->select('pc_details'.'.*');
-        $this->db->from('pc_details');
-        $this->db->join ( 'items', 'pc_details.itemID=items.itemID', 'right' );
+        $this->db->select($table.'.*');
+        $this->db->select('item_inventory.qty as inventory_qty');
+        $this->db->from($table);
+        $this->db->join ( 'items', $table.'.itemID=items.itemID', 'right' );
+        $this->db->join ( 'item_inventory', 'items.itemID=item_inventory.itemID', 'left' );
 
-         $this->db->where('pc_details.itemID', $itemID);
-         $this->db->where('pc_details.pcID', $id);
+         //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+        $this->db->where($compare, $value);
+        $this->db->where('item_inventory.branchID', $branchID);
         $details = $this->db->get()->result();
         return $details;
     }
 
-    public function updateStockCard()
-    {
-        $reffNo = trim($this->input->post('reffNo'));
-        $data = [
-            'data' => ['status' => 200, 'reffno' => $reffNo]
-        ];
-        echo json_encode($data);
-
-    }
-
-    public function updateStockCardAndItemInventory()
+    public function addStockCard()
     {
 
-        //reffNo: reffNo, item_id: item_id, variance: variance, debit: debit, credit: credit, begBal: begBal, endBal: endBal, pcID: pcID
-        $reffNo = trim($this->input->post('reffNo'));
         $itemID = trim($this->input->post('item_id'));
-        $variance = trim($this->input->post('variance'));
         $debit = trim($this->input->post('debit'));
         $credit = trim($this->input->post('credit'));
-        $begbal = trim($this->input->post('begBal'));
-        $endbal = trim($this->input->post('endBal'));
-        $pcID = trim($this->input->post('pcID'));
-        $sign = trim($this->input->post('sign'));
+        //$begbal = trim($this->input->post('begBal'));
+        //$endbal = trim($this->input->post('endBal'));
+        $variance = trim($this->input->post('variance'));
+        $wsID = trim($this->input->post('wsID'));
+
+        $row_series = self::get_instance()->db->select("*")->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
+        $reference_no = $this->router->fetch_class().'-'.$row_series->wsNo;
 
 
+        $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();
+        //$row->endBal;
 
-        //add stockcard
-        //$endbal = 0;
-        //$begbal = 0;
-        $added = $this->addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal, $variance, $sign);
-        //update item inventory
-        $result_item_inventory = $this->updateItemInventoryQty($itemID, $variance, $sign);
-        //update physical count update approved by
-        $update_pc = $this->updateApproveBy($pcID);
+        $begbal = $row->endBal;
+
+        $endbal = $row->endBal - $variance;
+
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        //update approved by
+        //updateApproveBy($table, $compareId, $id, $approvedBy)
+        $approvedBy = Generic_ajax::updateApproveBy($this->table, "wsID", $wsID, $this->session->userdata('current_user')->userID);
+
+        $branchId = $this->session->userdata('current_user')->branchID;
+        $added = Generic_ajax::addStockCard($reference_no, $itemID, $debit, $credit, $endbal, $begbal, $branchId);
 
         $response = [
             'data' => [
                 'status' => 200,
                 'added' => $added,
-                'result_item_added' => $result_item_inventory,
-                'pc_updated' => $update_pc,
-                //'seriesno' => $this->addSeriesNo(45)
+                'approvedBy' => $approvedBy
             ]
         ];
+
         echo json_encode($response);
     }
 
-    public function addStockCard($pcID, $itemID, $debit, $credit , $endbal, $begbal, $variance, $sign)
+    public function updateCanceledBy()
     {
-        //auth user branch
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        //update cancel by
+        $wsID = trim($this->input->post('wsID'));
 
-        $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
-        $branch = $this->db->get('branches');
-        $current_branch = $branch->row();
-
-        //$last_insert_id = $this->db->insert_id();
-        $row = $this->db->select("*")->limit(1)->order_by('id',"DESC")->get("stockcard")->row();
-        //echo $row->id; //it will provide latest or last record id.
-        $endbal = 0;
-        //current end balance
-        if($sign == "positive") {
-            $endbal = $row->endBal + $variance;
-        }
-        elseif($sign == "negative") {
-            $endbal = $row->endBal - $variance;
-        }
-
-        $row_series = self::get_instance()->db->select("*")->where('branchID', $this->session->userdata('current_user')->branchID)->limit(1)->order_by('seriesID',"DESC")->get("seriesno")->row();
-
-        $data  = [
-            'branchID' => $current_branch->branchID,
-            'itemID' => $itemID,
-            'date' => date('Y-m-d'),
-            'refNo' => '0000'.$row_series->pcNo,
-            'debit' => $debit,
-            'credit' => $credit,
-            'endbal' => $endbal,
-            'begbal' => $row->endBal,
-        ];
-
-        //return $data;
-       return $this->db->insert('stockcard', $data);
-    }
-
-    public function updateItemInventoryQty($itemId, $qty)
-    {
-        $this->db->set('qty', $qty);
-        $this->db->where('itemID', $itemId);
-        $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
-        $data = $this->db->update('item_inventory');
-        return $data;
-    }
-
-    public function updateApproveBy($pcID)
-    {
-        $data = [
-            'approvedBy' => $this->session->userdata('current_user')->userID,
-            'dateApproved' => date('Y-m-d h:i:s'),
-        ];
-        $this->db->where('pcID', $pcID);
-        return $this->db->update('pc_headers', $data);
-
-    }
-
-    public function updateCancelBy()
-    {
-        $pcID = trim($this->input->post('pcID'));
-
-        $data = [
-            'cancelledBy' => $this->session->userdata('current_user')->userID,
-            'dateCancelled' => date('Y-m-d h:i:s'),
-        ];
-        $this->db->where('pcID', $pcID);
-        $added =  $this->db->update('pc_headers', $data);
-
+        $cancelledBy = Generic_ajax::updateCancelBy($this->table, "wsID", $wsID, $this->session->userdata('current_user')->userID);
         $response = [
             'data' => [
-                'added' => $added,
+                'status' => 200,
+                'cancelledBy' => $cancelledBy
             ]
         ];
 
@@ -1114,8 +970,6 @@ class Physical_count extends CI_Controller {
         return $data;
 
     }
-
-
 
 
 }
