@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Equipment_monitoring extends CI_Controller
+class Expense_inventory extends CI_Controller
 {
     //Default Variables
     var $menu;
@@ -20,11 +20,11 @@ class Equipment_monitoring extends CI_Controller
         parent::__construct();
         $this->load->model('generic_model','record');
         $this->module       = 'Inventory';
-        $this->data['controller_page']  = $this->controller_page = site_url('equipment_monitoring');// defines contoller link
-        $this->table        = 'equipment_monitoring';        
-        $this->pfield = $this->data['pfield'] = 'emID'; // defines primary key
+        $this->data['controller_page']  = $this->controller_page = site_url('expense_inventory');// defines contoller link
+        $this->table        = 'exp_headers';                                                  // defines the default table
+        $this->pfield = $this->data['pfield'] = 'expID';                                                 // defines primary key
         // $this->logfield     = 'deptCode';
-        $this->module_path  = 'modules/'.strtolower(str_replace(" ","_",$this->module)).'/equipment_monitoring';// defines module path / folder name
+        $this->module_path  = 'modules/'.strtolower(str_replace(" ","_",$this->module)).'/expense_inventory';// defines module path / folder name
         
         // check for maintenance period
         if ($this->config_model->getConfig('Maintenance Mode')=='1') {
@@ -51,7 +51,7 @@ class Equipment_monitoring extends CI_Controller
 
         $this->data['modules']               = $this->modules;
         $this->data['current_main_module']   = $this->modules[$this->module]['main'];              // defines the current main module
-        $this->data['current_module']        = $this->modules[$this->module]['sub']['Equipment Monitoring'];      // defines the current sub module
+        $this->data['current_module']        = $this->modules[$this->module]['sub']['Expense Inventory'];      // defines the current sub module
         // check roles
         $this->check_roles();
         $this->data['roles']   = $this->roles;
@@ -115,7 +115,7 @@ class Equipment_monitoring extends CI_Controller
         //load submenu
         $this->submenu();
         $data = $this->data;
-        $table_fields = array('branchID','equipmentID','remarks');
+        $table_fields = array('branchID','ttlAmount','remarks');
 
         // check role
         if ($this->roles['create']) {
@@ -124,45 +124,12 @@ class Equipment_monitoring extends CI_Controller
             
             foreach($table_fields as $fld) {
                 $this->record->fields[$fld] = trim($this->input->post($fld));
-
-                $equipment_id = $this->input->post('equipmentID');               
             }
-
-            //check branchID of current user
-            $userCurrentBranch      =   $this->session->userdata('current_user')->branchID;
-
-            $this->db->where('branchID', $userCurrentBranch);       
-            $emAssetSeries= $this->db->get('seriesno')->row();
-
-            $assetSeriesNo = $emAssetSeries->assetNo + 1;
-
-            $data = array(
-                'branchID'      =>  $userCurrentBranch,
-                'equipmentID'   =>  $equipment_id,
-                'assetNo'       =>  $assetSeriesNo
-
-            );
-
-            $this->db->insert('equipment_inventory', $data);
-
-            
-            $emSeriesNo = $emAssetSeries->emNo + 1;            
-                       
-            require_once(APPPATH.'controllers/Generic_ajax.php');
-            $seriesNo = Generic_ajax::updateSeriesNo('emNo',$emSeriesNo,$userCurrentBranch);
-            $seriesNo = Generic_ajax::updateSeriesNo('assetNo',$assetSeriesNo,$userCurrentBranch);
-
-            $this->record->fields['emNo']           =   $emSeriesNo;
-            $this->record->fields['date']           =   date('Y-m-d');
-            $this->record->fields['dateCreated']    =   date('Y-m-d H:i:s');
-            $this->record->fields['createdBy']      =   $this->session->userdata('current_user')->userID;
-            $this->record->fields['monitoredBy']    =   $this->session->userdata('current_user')->firstName.' '.$this->session->userdata('current_user')->middleName.' '.$this->session->userdata('current_user')->lastName;
             
             if ($this->record->save()) {
                 $this->record->fields = array();
-                $emID = $this->record->where['emID'] = $this->db->insert_id();
+                $expID = $this->record->where['expID'] = $this->db->insert_id();
                 $this->record->retrieve();  
-
                 // record logs
                 // $logs = "Record - ".trim($this->input->post($this->logfield));
                 // $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
@@ -171,7 +138,7 @@ class Equipment_monitoring extends CI_Controller
                 // success msg
                 $data["class"]   = "success";
                 $data["msg"]     = $this->data['current_module']['module_label']." successfully saved.";
-                $data["urlredirect"] = $this->controller_page."/view/".$this->encrypter->encode($emID);
+                $data["urlredirect"] = $this->controller_page."/view/".$this->encrypter->encode($expID);
                 $this->load->view("header",$data);
                 $this->load->view("message");
                 $this->load->view("footer");
@@ -183,8 +150,8 @@ class Equipment_monitoring extends CI_Controller
                 $data["urlredirect"] = "";
                 $this->load->view("header",$data);
                 $this->load->view("message");
-                $this->load->view("footer");
             }
+                $this->load->view("footer");
         } else {
             // error
             $data["class"]   = "danger";
@@ -208,17 +175,6 @@ class Equipment_monitoring extends CI_Controller
             $this->record->table = $this->table;
             // set fields for the current table
             $this->record->setFields();
-            // extend fields - join tables              
-            $this->record->fields[] = 'branches.branchName';       
-            $this->record->fields[] = 'equipments.brand as brand';
-            $this->record->fields[] = 'equipments.model as model';
-            $this->record->fields[] = 'equipments.serialNo as serialNo';
-            $this->record->fields[] = 'equipments.name as name';
-            $this->record->fields[] = 'equipments.description as description';
-            $this->record->fields[] = 'equipments.status as equipStatus';
-            // set joins
-            $this->record->joins[]  = array('branches',$this->table.'.branchID=branches.branchID','left');
-            $this->record->joins[]  = array('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');         
             // set where
             $this->record->where[$this->pfield] = $id;
             // execute retrieve
@@ -246,7 +202,7 @@ class Equipment_monitoring extends CI_Controller
         // load submenu
         $this->submenu();
         $data = $this->data;
-        $table_fields = array('branchID','equipmentID','remarks');
+        $table_fields = array('particular','description','status');
 
         // check roles
         if ($this->roles['edit']) {
@@ -256,9 +212,6 @@ class Equipment_monitoring extends CI_Controller
             foreach($table_fields as $fld) {
                 $this->record->fields[$fld] = trim($this->input->post($fld));
             }
-
-            $this->record->fields['date']           =   date('Y-m-d');
-            $this->record->fields['monitoredBy']    =   $this->session->userdata('current_user')->firstName.' '.$this->session->userdata('current_user')->middleName.' '.$this->session->userdata('current_user')->lastName;
             
             $this->record->pfield   = $this->pfield;
             $this->record->pk       = $this->encrypter->decode($this->input->post($this->pfield));
@@ -395,47 +348,16 @@ class Equipment_monitoring extends CI_Controller
             $this->record->setFields();
             
             // extend fields - join tables
-            $this->record->fields[] = 'branches.branchName'; 
             
-            $this->record->fields[] = 'equipments.brand as brand';
-            $this->record->fields[] = 'equipments.model as model';
-            $this->record->fields[] = 'equipments.serialNo as serialNo';
-            $this->record->fields[] = 'equipments.name as name';
-            $this->record->fields[] = 'equipments.description as description';
-            $this->record->fields[] = 'equipments.status as equipStatus';
-
-            $this->record->fields[] = 'createdByUser.firstName as createdByFirst';
-            $this->record->fields[] = 'createdByUser.middleName as createdByMiddle';
-            $this->record->fields[] = 'createdByUser.lastName as createdByLast';
-
-            $this->record->fields[] = 'confirmedByUser.firstName as confirmedByFirst';
-            $this->record->fields[] = 'confirmedByUser.middleName as confirmedByMiddle';
-            $this->record->fields[] = 'confirmedByUser.lastName as confirmedByLast';
-
-            $this->record->fields[] = 'cancelledByUser.firstName as cancelledByFirst';
-            $this->record->fields[] = 'cancelledByUser.middleName as cancelledByMiddle';
-            $this->record->fields[] = 'cancelledByUser.lastName as cancelledByLast';
-
             // set joins
-            $this->record->joins[]  = array('branches',$this->table.'.branchID=branches.branchID','left');                        
-            $this->record->joins[]  = array('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');
-            $this->record->joins[]  = array('users as createdByUser',$this->table.'.createdBy=createdByUser.userID','left');
-            $this->record->joins[]  = array('users as confirmedByUser',$this->table.'.approvedBy=confirmedByUser.userID','left');
-            $this->record->joins[]  = array('users as cancelledByUser',$this->table.'.cancelledBy=cancelledByUser.userID','left');
-
-
+            
             // set where
             $this->record->where[$this->pfield] = $id;
             
             // execute retrieve
             $this->record->retrieve();
-
-            // echo $this->db->last_query();
-            // die();
             // ----------------------------------------------------------------------------------
             $data['rec'] = $this->record->field;
-            // var_dump($data['rec']);
-            
             // var_dump($data['rec']);
 
             //change start
@@ -475,21 +397,12 @@ class Equipment_monitoring extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter                
         $condition_fields = array(
-            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'brand', 'field'=>'equipments.brand', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>' model', 'field'=>'equipments.model', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'serialNo', 'field'=>'equipments.serialNo', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'name', 'field'=>'equipments.name', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'description', 'field'=>'equipments.description', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'monitoredBy', 'field'=>$this->table.'.monitoredBy', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'particular', 'field'=>$this->table.'.particular', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'description', 'field'=>$this->table.'.description', 'default_value'=>'', 'operator'=>'like_both'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
         
-        // sorting fields
         
-                
         $controller = $this->uri->segment(1);
         
         if ($this->uri->segment(3))
@@ -570,23 +483,14 @@ class Equipment_monitoring extends CI_Controller
             $data[$key['variable']] = $$key['variable'];
         }
         
-        // select
+        
+        // // select
         $this->db->select($this->table.'.*');
-        $this->db->select('branches.branchName');
-        $this->db->select('equipments.brand as brand');
-        $this->db->select('equipments.model as model');
-        $this->db->select('equipments.serialNo as serialNo');
-        $this->db->select('equipments.name as name');
-        $this->db->select('equipments.description as description');
-        $this->db->select('equipments.status as equipStatus');
-            
 
-        // from
+        // // from
         $this->db->from($this->table);
         
-        // join   
-        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-        $this->db->join('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');
+        // // join
                 
         // where
         // set conditions here
@@ -614,20 +518,11 @@ class Equipment_monitoring extends CI_Controller
         
         // select
         $this->db->select($this->table.'.*');
-        $this->db->select('branches.branchName');
-        $this->db->select('equipments.brand as brand');
-        $this->db->select('equipments.model as model');
-        $this->db->select('equipments.serialNo as serialNo');
-        $this->db->select('equipments.name as name');
-        $this->db->select('equipments.description as description');
-        $this->db->select('equipments.status as equipStatus');
         
         // from
         $this->db->from($this->table);
         
-        // join    
-        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-        $this->db->join('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');
+        // join
         
         // where
         // set conditions here
@@ -703,21 +598,14 @@ class Equipment_monitoring extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter
         $condition_fields = array(
-            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'brand', 'field'=>'equipments.brand', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>' model', 'field'=>'equipments.model', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'serialNo', 'field'=>'equipments.serialNo', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'name', 'field'=>'equipments.name', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'description', 'field'=>'equipments.description', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'monitoredBy', 'field'=>$this->table.'.monitoredBy', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'particular', 'field'=>$this->table.'.particular', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'description', 'field'=>$this->table.'.description', 'default_value'=>'', 'operator'=>'like_both'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
 
         
         // sorting fields
-        $sorting_fields = array('date'=>'asc');
+        $sorting_fields = array('particular'=>'asc');
         
         $controller = $this->uri->segment(1);
         
@@ -732,20 +620,11 @@ class Equipment_monitoring extends CI_Controller
         
         // select
         $this->db->select($this->table.'.*');
-        $this->db->select('branches.branchName');
-        $this->db->select('equipments.brand as brand');
-        $this->db->select('equipments.model as model');
-        $this->db->select('equipments.serialNo as serialNo');
-        $this->db->select('equipments.name as name');
-        $this->db->select('equipments.description as description');
-        $this->db->select('equipments.status as equipStatus');
-
+        
         // from
         $this->db->from($this->table);
-
-        // join     
-        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-        $this->db->join('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');
+        
+        // join
         
         // where
         // set conditions here
@@ -804,8 +683,8 @@ class Equipment_monitoring extends CI_Controller
         
         // get
         $data['records'] = $this->db->get()->result();
-       
-        $data['title'] = "Equipment Monitoring";
+        
+        $data['title'] = "Expense Particular List";
 
         //load views
         $this->load->view('header_print', $data);
@@ -823,20 +702,13 @@ class Equipment_monitoring extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter
         $condition_fields = array(
-            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'brand', 'field'=>'equipments.brand', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>' model', 'field'=>'equipments.model', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'serialNo', 'field'=>'equipments.serialNo', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'name', 'field'=>'equipments.name', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'description', 'field'=>'equipments.description', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'monitoredBy', 'field'=>$this->table.'.monitoredBy', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'particular', 'field'=>$this->table.'.particular', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'description', 'field'=>$this->table.'.description', 'default_value'=>'', 'operator'=>'like_both'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
         
         // sorting fields
-        $sorting_fields = array('date'=>'asc');
+        $sorting_fields = array('particular'=>'asc');
         
         $controller = $this->uri->segment(1);
         
@@ -851,21 +723,11 @@ class Equipment_monitoring extends CI_Controller
         
         // select
         $this->db->select($this->table.'.*');
-        $this->db->select('branches.branchName');
-        $this->db->select('equipments.brand as brand');
-        $this->db->select('equipments.model as model');
-        $this->db->select('equipments.serialNo as serialNo');
-        $this->db->select('equipments.name as name');
-        $this->db->select('equipments.description as description');
-        $this->db->select('equipments.status as equipStatus');
-
+        
         // from
         $this->db->from($this->table);
         
-        // join     
-
-        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-        $this->db->join('equipments',$this->table.'.equipmentID=equipments.equipmentID','left');
+        // join
         
         // where
         // set conditions here
@@ -926,7 +788,7 @@ class Equipment_monitoring extends CI_Controller
         $records = $this->db->get()->result();
         
     
-        $title          = "Equipment Monitoring";
+        $title          = "Expense Particular List";
         $companyName    = $this->config_model->getConfig('Company');
         $address        = $this->config_model->getConfig('Address');
          
@@ -1010,38 +872,31 @@ class Equipment_monitoring extends CI_Controller
     
         // header
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
     
         $data .= "<Row ss:StyleID='s20'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'>".$companyName."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'>".$companyName."</Data></Cell>";
         $data .= "</Row>";
         $data .= "<Row ss:StyleID='s24A'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'>".$address."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'>".$address."</Data></Cell>";
         $data .= "</Row>";
     
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
          
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'>".strtoupper($title)."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'>".strtoupper($title)."</Data></Cell>";
         $data .= "</Row>";
          
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='10'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='3'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
     
         $fields[]="  ";
-        $fields[]="DATE";            
-        $fields[]="BRANCH";            
-        $fields[]="BRAND";            
-        $fields[]="MODEL";            
-        $fields[]="SERIAL NO";            
-        $fields[]="NAME";            
+        $fields[]="PARTICULAR";            
         $fields[]="DESCRIPTION";            
-        $fields[]="MONITORED BY";            
-        $fields[]="REMARKS";            
         $fields[]="STATUS";
     
         $data .= "<Row ss:StyleID='s24'>";
@@ -1056,23 +911,13 @@ class Equipment_monitoring extends CI_Controller
             foreach ($records as $row) {
                 $data .= "<Row>";
                 $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$ctr.".</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->date."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->branchName."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->brand."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->model."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->serialNo."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->name."</Data></Cell>";
+                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->particular."</Data></Cell>";
                 $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->description."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->monitoredBy."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->remarks."</Data></Cell>";
                 if  ($row->status == 1) {
-                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Pending</Data></Cell>";
-                } else if  ($row->status == 2) {
-                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Confirmed</Data></Cell>";                
-                } else if  ($row->status == 0) {
-                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Cancelled</Data></Cell>";
-                } 
-
+                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Active</Data></Cell>";
+                } else {
+                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Inactive</Data></Cell>";
+                }
                 $data .= "</Row>";
     
                 $ctr++;
@@ -1083,59 +928,26 @@ class Equipment_monitoring extends CI_Controller
          
     
         //Final XML Blurb
-        $filename = "equipmenmt_monitoring";
+        $filename = "expense_particulars";
     
         header("Content-type: application/octet-stream");
         header("Content-Disposition: attachment; filename=$filename.xls;");
         header("Content-Type: application/ms-excel");
         header("Pragma: no-cache");
-        header("Expires: 0");         
-        echo $data;    
+        header("Expires: 0");
+         
+        echo $data;
+    
     }
     
     //Conditions and fields changes
     public function check_duplicate()
     {
-        $this->db->where('emID', trim($this->input->post('emID')));      
+        $this->db->where('particularID', trim($this->input->post('particularID')));      
         if ($this->db->count_all_results($this->table))
             echo "1"; // duplicate
         else 
             echo "0";
-    }
-
-    public function updateApprovedBy()
-    {
-        $emID = trim($this->input->post('emID'));   
-        require_once(APPPATH.'controllers/Generic_ajax.php');
-        //update approved by        
-        $approvedBy = Generic_ajax::updateApprovedBy($this->table, "emID", $emID, $this->session->userdata('current_user')->userID);
-        $response = [
-            'data' => [
-                'status' => 200,                
-                'approvedBy' => $approvedBy
-            ]
-        ];
-        echo json_encode($response);
-    }
-
-
-
-    public function updateCancelledBy()
-    {
-        $emID = trim($this->input->post('emID'));
-       
-        require_once(APPPATH.'controllers/Generic_ajax.php');
-        //update approved by
-        //updateApproveBy($table, $compareId, $id, $approvedBy)
-        $approvedBy = Generic_ajax::updateCancelledBy($this->table, "emID", $emID, $this->session->userdata('current_user')->userID);
-
-        $response = [
-            'data' => [
-                'status' => 200,                
-                'approvedBy' => $approvedBy
-            ]
-        ];
-        echo json_encode($response);
     }
 
 }

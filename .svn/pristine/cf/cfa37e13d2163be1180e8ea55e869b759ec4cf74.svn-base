@@ -703,48 +703,6 @@ class Stockcard extends CI_Controller {
 
     }
 
-    public function getFilterStockCard()
-    {
-        $itemID = trim($this->input->post('itemID'));
-        $branchID = trim($this->input->post('branchID'));
-        $from_date = trim($this->input->post('date_from'));
-        $date_to = trim($this->input->post('date_to'));
-
-        $response = [
-            'data' => $this->getStockCard($itemID, $branchID, $from_date, $date_to),
-        ];
-
-        echo json_encode($response);
-    }
-
-    public function getStockCard($itemID, $branchID, $from_date, $date_to)
-    {
-        $this->db->select($this->table.'.*');
-        $this->db->select('items.*');
-        $this->db->where('DATE('.$this->table.'.date) >= ', $from_date);
-        $this->db->where('DATE('.$this->table.'.date) <= ', $date_to);
-        $this->db->where('branchID', $branchID);
-        $this->db->where($this->table.'.itemID', $itemID);
-        $this->db->from($this->table);
-        $this->db->join('items', $this->table.'.itemID=items.itemID','left');
-        $results = $this->db->get()->result();
-
-        $data = [];
-        foreach($results as $result) {
-            $data[] = [
-                'date' => $result->date,
-                'begBal' => $result->begBal,
-                'debit' => $result->debit,
-                'credit' => $result->credit,
-                'endBal' => $result->endBal,
-                'particular' => $result->brand .' '.$result->item .' '. $result->decription,
-                'refNo' => $result->refNo
-            ];
-        }
-
-        return $data;
-    }
-
 
 
 }

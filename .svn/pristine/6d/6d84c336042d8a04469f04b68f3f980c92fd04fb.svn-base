@@ -57,9 +57,10 @@
 											$this->db->where('status',$this->session->userdata('current_user')->branchID);
 											$recs = $this->db->get()->result();
 											?>
-										<select class="form-control" id="branchID" name="branchID" data-live-search="true" livesearchnormalize="true" style="" title="Branch Head">											
+										<select class="form-control" id="branchID" name="branchID" data-live-search="true" livesearchnormalize="true" style="" title="Branch Head">
+											<option value="" selected>&nbsp;</option>
 											<?php foreach($recs as $rec) {?>
-											<option value="<?php echo $this->session->userdata('current_user')->branchID ?>" <?php if($this->session->userdata('current_user')->branchID == $rec->branchID) echo "selected" ?> ><?php echo $rec->branchName ?></option>
+											<option value="<?php echo $rec->branchID ?>" <?php if($this->session->userdata('current_user')->branchID == $rec->branchID) echo "selected" ?> ><?php echo $rec->branchName ?></option>
 											<?php } ?>
 											<!-- <option value="<?php echo $res->branchID ?>" <?php if ($res->branchID==$rec->branchID ) echo "selected"; ?>  ><?php echo $res->branchName ?></option> -->
 										</select>
