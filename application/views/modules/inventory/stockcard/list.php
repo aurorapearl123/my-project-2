@@ -26,7 +26,7 @@
 						<div class="card-head-tools">
 							<ul class="tools-list">
 								<li>
-									<button id="btn-apply" type="submit" class="btn btn-primary btn-xs pill collapse multi-collapse show">Apply Filter</button>
+									<button id="btn-apply"  class="btn btn-primary btn-xs pill collapse multi-collapse show">Apply Filter</button>
 								</li>
 								<!-- <li>
 									<button type="button" id="btn-filter" class="btn btn-outline-light bmd-btn-icon active" data-toggle="tooltip" data-placement="bottom" title="Filters" onclick="#"><i class="la la-sort-amount-asc"></i></button>
@@ -139,3 +139,11 @@
 		</div>
 	</div>
 </form>
+
+<script>
+    $(document).ready(function(){
+        $('#btn-apply').on("click", function(){
+            console.log("hello");
+        });
+    });
+</script>
