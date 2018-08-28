@@ -40,30 +40,29 @@
 				</div>
 				<div class="card-body">
 					<div class="data-view">
-						<table class="view-table">
-							<tbody>
-								<tr>
-									<td class="data-title w-10">Particular :</td>
-									<td class="data-input w-20"><?php echo $rec->particular; ?></td>
-									<td class="data-title w-10">Status :</td>
-									<td class="w-20">
-										<?php 
-											if ($rec->status == 1) {
-												echo "<span class='badge badge-pill badge-success'>Active</span>";
-											} else {
-												echo "<span class='badge badge-pill badge-danger'>Inactive</span>";
-											}
-										?>
-									</td>
-									<td  class="d-xxl-none"></td>
-								</tr>
-								<tr>
-									<td class="data-title">Description</td>
-									<td class="data-input"><?php echo $rec->description; ?></td>
-									<td class="d-xxl-none" colspan="3"></td>
-								</tr>
-							</tbody>
-						</table>
+                        <!-- start create header details -->
+                        <?php
+                        $table_str="<table class='table mt-20' id='table_physical_count'>";
+                        $table_str.='<thead class="thead-light"><tr>';
+                        $table_str.='<th>'.'Particular'.'</th>';
+                        $table_str.='<th>'.'Quantity'.'</th>';
+                        $table_str.='<th>'.'Amount'.'</th>';
+                        $table_str.='<tr></thead>';
+                        $i = 1;
+                        foreach ($details as $rows) {
+                            $table_str.='<tr>';
+                            $table_str.='<td>'.$rows->description.'</td>';
+
+                            //$table_str.='<td>'.'<input type="number" min="1" id="id_'.($i++).'" name="id_'.($i++).'">'.'</td>';
+                            $table_str.='<td>'.'<span>'.$rows->qty.'</span>'.'</td>';
+                            $table_str.='<td>'.'<span>'.$rows->amount.'</span>'.'</td>';
+                            $table_str.='</tr>';
+                        }
+                        $table_str.="</table>";
+
+                        echo $table_str;
+                        ?>
+                        <!-- end create header details -->
 					</div>
 				</div>
 			</div>

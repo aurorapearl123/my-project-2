@@ -115,7 +115,7 @@ class Expense_inventory extends CI_Controller
         //load submenu
         $this->submenu();
         $data = $this->data;
-        $table_fields = array('branchID','ttlAmount','remarks');
+        $table_fields = array('branchID','ttlAmount','remarks', 'createdBy');
 
         // check role
         if ($this->roles['create']) {
@@ -123,38 +123,32 @@ class Expense_inventory extends CI_Controller
             $this->record->fields = array();
             
             foreach($table_fields as $fld) {
-                $this->record->fields[$fld] = trim($this->input->post($fld));
-                var_dump($this->input->post);
-                die();
+                if($fld == 'createdBy') {
+                    $this->record->fields [$fld] = $this->session->userdata('current_user')->userID;
+                }
+                else {
+                    $this->record->fields [$fld] = trim ( $this->input->post ( $fld ) );
+                }
             }
-
-            //check branchID of current user
-            $userCurrentBranch      =   $this->session->userdata('current_user')->branchID;
-
-            $this->db->where('branchID', $userCurrentBranch);       
-            $expSeries= $this->db->get('seriesno')->row();
-            
-            $expNo = $expSeries->expNo + 1;
-            
-            require_once(APPPATH.'controllers/Generic_ajax.php');
-            $seriesNo = Generic_ajax::updateSeriesNo('expNo',$expNo,$userCurrentBranch);
-
-            $this->record->fields['expNo']          =   $expNo;
-            $this->record->fields['date']           =   date('Y-m-d');
-            $this->record->fields['createdBy']      =   $this->session->userdata('current_user')->userID;
-            $this->record->fields['dateCreated']    =   date('Y-m-d H:i:s');        
 
                 
                 
             if ($this->record->save()) {
                 $this->record->fields = array();
                 $expID = $this->record->where['expID'] = $this->db->insert_id();
-                $this->record->retrieve();  
+                $this->record->retrieve();
+
+
+                $particularIDs = $this->input->post('particularIDs');
+                $quantities = $this->input->post('quantities');
+                $amounts = $this->input->post('amounts');
+                //add details
+                $this->insert_expense_details($expID, $particularIDs, $quantities, $amounts);
 
 
                 // record logs
-                // $logs = "Record - ".trim($this->input->post($this->logfield));
-                // $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                $logs = "Record - ".trim($this->input->post($this->logfield));
+                $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $expID, 'Insert', $logs);
                 
                 // $logfield = $this->pfield;
                 // success msg
@@ -184,6 +178,53 @@ class Expense_inventory extends CI_Controller
             $this->load->view("footer");
         }
     }
+
+    public function insert_expense_details($expID, $particularIDs = array(), $quantities = array(), $amounts = array())
+    {
+        /*$result = array_merge($items_ids, $prices);*/
+        $size = count($particularIDs);
+        $size = $size - 1;
+
+        $keys = [];
+        foreach (range(0, $size) as $number) {
+            //echo $number;
+            $keys[] = $number;
+        }
+
+        $expIDs = [];
+        foreach (range(0, $size) as $number) {
+            //echo $number;
+            $expIDs[] = $expID;
+        }
+
+
+        $exp_details = $this->combine_keys_with_arrays($keys, array(
+            'expID' => $expIDs,
+            'particularID'  => $particularIDs,
+            'qty' => $quantities,
+            'amount'    => $amounts));
+
+
+        //echo json_encode($exp_details);
+        //return $exp_details;
+
+        //$this->db->insert_batch('exp_details', $exp_details);
+        return $this->db->insert_batch('exp_details', $exp_details);
+    }
+
+    function combine_keys_with_arrays($keys, $arrays) {
+        $results = array();
+
+        foreach ($arrays as $subKey => $arr)
+        {
+            foreach ($keys as $index => $key)
+            {
+                $results[$key][$subKey] = $arr[$index];
+            }
+        }
+
+        return $results;
+    }
     
     public function edit($id)
     {
@@ -203,6 +244,16 @@ class Expense_inventory extends CI_Controller
             $this->record->retrieve();
             // ----------------------------------------------------------------------------------
             $data['rec'] = $this->record->field;
+
+            $data['details'] = $this->getDetails('exp_details', 'expID', $id);
+
+            $this->db->select('expense_particulars.*');
+            $this->db->from('expense_particulars');
+            $this->db->where('status',1);
+            $recs = $this->db->get()->result();
+
+            $data['particulars'] = $recs;
+
 
             // load views
             $this->load->view('header', $data);
@@ -225,6 +276,9 @@ class Expense_inventory extends CI_Controller
         $this->submenu();
         $data = $this->data;
         $table_fields = array('particular','description','status');
+
+//        echo json_encode($_POST);
+//        die();
 
         // check roles
         if ($this->roles['edit']) {
@@ -382,16 +436,8 @@ class Expense_inventory extends CI_Controller
             $data['rec'] = $this->record->field;
             // var_dump($data['rec']);
 
-            //change start
-            //change end
-            
-            //$data['in_used'] = $this->_in_used($id);
-            // // record logs
-            // $pfield = $this->pfield;
-            // if ($this->config_model->getConfig('Log all record views') == '1') {
-            //     $logs = "Record - " . $this->records->field->name;
-            //     $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->records->field->$pfield, 'View', $logs);
-            // }
+            $data['details'] = $this->getDetails('exp_details', 'expID', $id);
+
             
             // // // load views
             $this->load->view('header', $data);
@@ -406,6 +452,20 @@ class Expense_inventory extends CI_Controller
             $this->load->view('message');
             $this->load->view('footer');
         }
+    }
+
+    public function getDetails($table, $compare, $value)
+    {
+
+        $this->db->select('expense_particulars.*');
+        $this->db->select($table.'.*');
+        $this->db->from($table);
+        $this->db->join ( 'expense_particulars', 'exp_details.particularID=expense_particulars.particularID', 'right' );
+
+        //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+        $this->db->where($compare, $value);
+        $details = $this->db->get()->result();
+        return $details;
     }
     
     public function show()

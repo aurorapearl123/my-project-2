@@ -40,23 +40,23 @@
 		                              	</td>
                                         <td class="form-label" style="width:13%" nowrap>Date : </td>
                                         <td class="form-group form-input" style="width:22%">
-                                            <input type="text" class="form-control datepicker" id="date" name="date" data-toggle="datetimepicker" value="" data-target="#date" title="Date" required>
+                                            <input type="text" class="form-control datepicker" id="date" name="date" data-toggle="datetimepicker" value="<?php echo date('Y-m-d')?>" readonly data-target="#date" title="Date" required>
                                         </td>
                                         <td class="d-xxl-none"></td>
                                     </tr>
-                                    <tr>
-
-                                        <td class="form-label"  nowrap>Reference No : </td>
-                                        <td class="form-group form-input" style="width:22%">
-											<?php												
-												$this->db->select('expNo');
-												$this->db->from('seriesno');												
-												$this->db->where('branchID',$this->session->userdata('current_user')->branchID);
-												$rec = $this->db->get()->row();
-											?>
-                                            <input type="text" class="form-control w-80" id="expNo" name="expNo"  value="<?php echo str_pad($rec->expNo + 1, 4,'0',STR_PAD_LEFT);?>"  title="Expense No" readonly>
-                                        </td>
-                                    </tr>                                
+<!--                                    <tr>-->
+<!---->
+<!--                                        <td class="form-label"  nowrap>Reference No : </td>-->
+<!--                                        <td class="form-group form-input" style="width:22%">-->
+<!--											--><?php	//
+//												$this->db->select('expNo');
+//												$this->db->from('seriesno');
+//												$this->db->where('branchID',$this->session->userdata('current_user')->branchID);
+//												$rec = $this->db->get()->row();
+//											?>
+<!--                                            <input type="text" class="form-control w-80" id="expNo" name="expNo"  value="--><?php //echo str_pad($rec->expNo + 1, 4,'0',STR_PAD_LEFT);?><!--"  title="Expense No" readonly>-->
+<!--                                        </td>-->
+<!--                                    </tr>                                -->
                                 </tbody>
                             </table>
                         </div>
@@ -225,22 +225,22 @@
             var amount = $('#amount').val();
             var total = 0;
 
-            if(quantity != "") {
+            if(quantity != "" && amount != "" && particular != "") {
 
                 //loop table to check duplicate
 
                 $('#ei_details').append($('<tr class="expense_inventory">')
                     .append($('<td id="item[]">').text(particular_text))
-                    .append($('<td style="display:none"><input type="hidden" name="branchIDs[]" value="'+particular+'" class="branch_id"  readonly>'))
-                    .append($('<td><input type="text" name="quantity[]" value="'+quantity+'" class="id border-0" readonly>'))
-                    .append($('<td><input type="text" name="amount[]" value="'+amount+'" class="id border-0" readonly>'))
+                    .append($('<td style="display:none"><input type="hidden" name="particularIDs[]" value="'+particular+'" class="branch_id"  readonly>'))
+                    .append($('<td><input type="text" name="quantities[]" value="'+quantity+'" class="border-0" readonly>'))
+                    .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id border-0" readonly>'))
                     .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><span class="icon la la-trash-o sm"></span></a>'))
                 );
                 
-                $('#particularID option').attr('selected', false);
+                //$('#particularID option').attr('selected', false);
                 $('#quantity').val('');
                 $('#amount').val('');
-                $(this).find('option:selected').remove();
+                //$(this).find('option:selected').remove();
 
                 //loop table to calculate the amount
                 $("tr.expense_inventory").each(function() {
@@ -265,9 +265,10 @@
             // }
             $(this).closest("tr").remove();
 
-            $("tr.item").each(function() {
+            $("tr.expense_inventory").each(function() {
                 var price = $(this).find("input.name").val(),
                     amount = $(this).find("input.id").val();
+                console.log("this is a total amount : ", amount);
                 total += parseInt(amount);
             });
 
