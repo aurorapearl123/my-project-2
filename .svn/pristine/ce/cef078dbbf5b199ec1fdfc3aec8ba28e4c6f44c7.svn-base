@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Complaint extends CI_Controller
+class Expense_inventory extends CI_Controller
 {
     //Default Variables
     var $menu;
@@ -19,12 +19,12 @@ class Complaint extends CI_Controller
     {
         parent::__construct();
         $this->load->model('generic_model','record');
-        $this->module       = 'Master Files';
-        $this->data['controller_page']  = $this->controller_page = site_url('complaint');// defines contoller link
-        $this->table        = 'complaints';                                                  // defines the default table
-        $this->pfield = $this->data['pfield'] = 'comID';                                                 // defines primary key
+        $this->module       = 'Inventory';
+        $this->data['controller_page']  = $this->controller_page = site_url('expense_inventory');// defines contoller link
+        $this->table        = 'exp_headers';                                                  // defines the default table
+        $this->pfield = $this->data['pfield'] = 'expID';                                                 // defines primary key
         // $this->logfield     = 'deptCode';
-        $this->module_path  = 'modules/'.strtolower(str_replace(" ","_",$this->module)).'/complaint';// defines module path / folder name
+        $this->module_path  = 'modules/'.strtolower(str_replace(" ","_",$this->module)).'/expense_inventory';// defines module path / folder name
         
         // check for maintenance period
         if ($this->config_model->getConfig('Maintenance Mode')=='1') {
@@ -51,7 +51,7 @@ class Complaint extends CI_Controller
 
         $this->data['modules']               = $this->modules;
         $this->data['current_main_module']   = $this->modules[$this->module]['main'];              // defines the current main module
-        $this->data['current_module']        = $this->modules[$this->module]['sub']['Complaints'];      // defines the current sub module
+        $this->data['current_module']        = $this->modules[$this->module]['sub']['Expense Inventory'];      // defines the current sub module
         // check roles
         $this->check_roles();
         $this->data['roles']   = $this->roles;
@@ -115,7 +115,7 @@ class Complaint extends CI_Controller
         //load submenu
         $this->submenu();
         $data = $this->data;
-        $table_fields = array('branchID','custID','orderID','complaint','contactNo','createdBy');
+        $table_fields = array('branchID','ttlAmount','remarks', 'createdBy');
 
         // check role
         if ($this->roles['create']) {
@@ -123,40 +123,38 @@ class Complaint extends CI_Controller
             $this->record->fields = array();
             
             foreach($table_fields as $fld) {
-                $this->record->fields[$fld] = trim($this->input->post($fld));
+                if($fld == 'createdBy') {
+                    $this->record->fields [$fld] = $this->session->userdata('current_user')->userID;
+                }
+                else {
+                    $this->record->fields [$fld] = trim ( $this->input->post ( $fld ) );
+                }
             }
 
-            //check branchID of current user
-            $userCurrentBranch      =   $this->session->userdata('current_user')->branchID;
-
-
-            $this->db->where('branchID', $userCurrentBranch);       
-            $comSeries= $this->db->get('seriesno')->row();
-            
-            $comSeriesNo = $comSeries->comNo + 1;
-            
-            require_once(APPPATH.'controllers/Generic_ajax.php');
-            $seriesNo = Generic_ajax::updateSeriesNo('comNo',$comSeriesNo,$userCurrentBranch);
-
-            $this->record->fields['comNo']          =   $comSeriesNo;
-            $this->record->fields['date']           =   date('Y-m-d');
-            $this->record->fields['createdBy']      =   $this->session->userdata('current_user')->userID;
-            $this->record->fields['dateCreated']    =   date('Y-m-d H:i:s');
-            
-            
+                
+                
             if ($this->record->save()) {
-            	$this->record->fields = array();
-                $comID = $this->record->where['comID'] = $this->db->insert_id();
-                $this->record->retrieve();  
+                $this->record->fields = array();
+                $expID = $this->record->where['expID'] = $this->db->insert_id();
+                $this->record->retrieve();
+
+
+                $particularIDs = $this->input->post('particularIDs');
+                $quantities = $this->input->post('quantities');
+                $amounts = $this->input->post('amounts');
+                //add details
+                $this->insert_expense_details($expID, $particularIDs, $quantities, $amounts);
+
+
                 // record logs
-                // $logs = "Record - ".trim($this->input->post($this->logfield));
-                // $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
+                $logs = "Record - ".trim($this->input->post($this->logfield));
+                $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $expID, 'Insert', $logs);
                 
                 // $logfield = $this->pfield;
                 // success msg
                 $data["class"]   = "success";
                 $data["msg"]     = $this->data['current_module']['module_label']." successfully saved.";
-                $data["urlredirect"] = $this->controller_page."/view/".$this->encrypter->encode($comID);
+                $data["urlredirect"] = $this->controller_page."/view/".$this->encrypter->encode($expID);
                 $this->load->view("header",$data);
                 $this->load->view("message");
                 $this->load->view("footer");
@@ -168,8 +166,8 @@ class Complaint extends CI_Controller
                 $data["urlredirect"] = "";
                 $this->load->view("header",$data);
                 $this->load->view("message");
-                $this->load->view("footer");
             }
+                $this->load->view("footer");
         } else {
             // error
             $data["class"]   = "danger";
@@ -179,6 +177,53 @@ class Complaint extends CI_Controller
             $this->load->view("message");
             $this->load->view("footer");
         }
+    }
+
+    public function insert_expense_details($expID, $particularIDs = array(), $quantities = array(), $amounts = array())
+    {
+        /*$result = array_merge($items_ids, $prices);*/
+        $size = count($particularIDs);
+        $size = $size - 1;
+
+        $keys = [];
+        foreach (range(0, $size) as $number) {
+            //echo $number;
+            $keys[] = $number;
+        }
+
+        $expIDs = [];
+        foreach (range(0, $size) as $number) {
+            //echo $number;
+            $expIDs[] = $expID;
+        }
+
+
+        $exp_details = $this->combine_keys_with_arrays($keys, array(
+            'expID' => $expIDs,
+            'particularID'  => $particularIDs,
+            'qty' => $quantities,
+            'amount'    => $amounts));
+
+
+        //echo json_encode($exp_details);
+        //return $exp_details;
+
+        //$this->db->insert_batch('exp_details', $exp_details);
+        return $this->db->insert_batch('exp_details', $exp_details);
+    }
+
+    function combine_keys_with_arrays($keys, $arrays) {
+        $results = array();
+
+        foreach ($arrays as $subKey => $arr)
+        {
+            foreach ($keys as $index => $key)
+            {
+                $results[$key][$subKey] = $arr[$index];
+            }
+        }
+
+        return $results;
     }
     
     public function edit($id)
@@ -193,24 +238,23 @@ class Complaint extends CI_Controller
             $this->record->table = $this->table;
             // set fields for the current table
             $this->record->setFields();
-            // extend fields - join tables	
-            
-            $this->record->fields[]	= 'branches.branchName';       
-            $this->record->fields[]	= 'customers.fname';       
-            $this->record->fields[]	= 'customers.mname';       
-            $this->record->fields[]	= 'customers.lname';   
-            $this->record->fields[] = 'service_types.serviceType';    
-       		// set joins
-       		$this->record->joins[]	= array('branches',$this->table.'.branchID=branches.branchID','left');
-       		$this->record->joins[]	= array('customers',$this->table.'.custID=customers.custID','left');
-       		$this->record->joins[]	= array('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-            $this->record->joins[]  = array('service_types','order_headers.serviceID=service_types.serviceID','left');
             // set where
             $this->record->where[$this->pfield] = $id;
             // execute retrieve
             $this->record->retrieve();
             // ----------------------------------------------------------------------------------
             $data['rec'] = $this->record->field;
+
+            $data['details'] = $this->getDetails('exp_details', 'expID', $id);
+
+            $this->db->select('expense_particulars.*');
+            $this->db->from('expense_particulars');
+            $this->db->where('status',1);
+            $recs = $this->db->get()->result();
+
+            $data['particulars'] = $recs;
+
+
             // load views
             $this->load->view('header', $data);
             $this->load->view($this->module_path.'/edit');
@@ -231,7 +275,10 @@ class Complaint extends CI_Controller
         // load submenu
         $this->submenu();
         $data = $this->data;
-        $table_fields = array('branchID	','custID','orderID','complaint','contactNo','createdBy','status');
+        $table_fields = array('particular','description','status');
+
+//        echo json_encode($_POST);
+//        die();
 
         // check roles
         if ($this->roles['edit']) {
@@ -281,7 +328,6 @@ class Complaint extends CI_Controller
             $this->load->view("footer");
         }
     }
-
 
     public function delete($id)
     {
@@ -377,38 +423,9 @@ class Complaint extends CI_Controller
             // set fields for the current table
             $this->record->setFields();
             
-            $this->record->fields[] = $this->table.'.dateCreated';
-            $this->record->fields[] = $this->table.'.dateApproved';
-            $this->record->fields[] = $this->table.'.dateCancelled';
-                            
-            $this->record->fields[]	= 'branches.branchName';   
-
-            $this->record->fields[]	= 'customers.fname';
-            $this->record->fields[]	= 'customers.mname';
-            $this->record->fields[]	= 'customers.lname';   
-
-            $this->record->fields[]	= 'service_types.serviceType';
-
-            $this->record->fields[] = 'createdByUser.firstName as createdByFirst';
-            $this->record->fields[] = 'createdByUser.middleName as createdByMiddle';
-            $this->record->fields[] = 'createdByUser.lastName as createdByLast';
-
-            $this->record->fields[] = 'confirmedByUser.firstName as confirmedByFirst';
-            $this->record->fields[] = 'confirmedByUser.middleName as confirmedByMiddle';
-            $this->record->fields[] = 'confirmedByUser.lastName as confirmedByLast';
-
-            $this->record->fields[] = 'cancelledByUser.firstName as cancelledByFirst';
-            $this->record->fields[] = 'cancelledByUser.middleName as cancelledByMiddle';
-            $this->record->fields[] = 'cancelledByUser.lastName as cancelledByLast';
-
-       		// set joins
-       		$this->record->joins[]	= array('branches',$this->table.'.branchID=branches.branchID','left');
-       		$this->record->joins[]	= array('customers',$this->table.'.custID=customers.custID','left');
-       		$this->record->joins[]	= array('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-       		$this->record->joins[]	= array('service_types','order_headers.serviceID=service_types.serviceID','left');
-            $this->record->joins[]  = array('users as createdByUser',$this->table.'.createdBy=createdByUser.userID','left');
-            $this->record->joins[]  = array('users as confirmedByUser',$this->table.'.approvedBy=confirmedByUser.userID','left');
-            $this->record->joins[]  = array('users as cancelledByUser',$this->table.'.cancelledBy=cancelledByUser.userID','left');
+            // extend fields - join tables
+            
+            // set joins
             
             // set where
             $this->record->where[$this->pfield] = $id;
@@ -418,19 +435,10 @@ class Complaint extends CI_Controller
             // ----------------------------------------------------------------------------------
             $data['rec'] = $this->record->field;
             // var_dump($data['rec']);
-            // die();
-            //change start
-            //change end
-            
-            //$data['in_used'] = $this->_in_used($id);
-            // // record logs
-            // $pfield = $this->pfield;
-            // if ($this->config_model->getConfig('Log all record views') == '1') {
-            //     $logs = "Record - " . $this->records->field->name;
-            //     $this->log_model->table_logs($this->module, $this->table, $this->pfield, $this->records->field->$pfield, 'View', $logs);
-            // }
-                        
 
+            $data['details'] = $this->getDetails('exp_details', 'expID', $id);
+
+            
             // // // load views
             $this->load->view('header', $data);
             $this->load->view($this->module_path.'/view');
@@ -445,6 +453,20 @@ class Complaint extends CI_Controller
             $this->load->view('footer');
         }
     }
+
+    public function getDetails($table, $compare, $value)
+    {
+
+        $this->db->select('expense_particulars.*');
+        $this->db->select($table.'.*');
+        $this->db->from($table);
+        $this->db->join ( 'expense_particulars', 'exp_details.particularID=expense_particulars.particularID', 'right' );
+
+        //$this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+        $this->db->where($compare, $value);
+        $details = $this->db->get()->result();
+        return $details;
+    }
     
     public function show()
     {
@@ -457,16 +479,13 @@ class Complaint extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter                
         $condition_fields = array(
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'lname', 'field'=>'customers.lname', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'complaint', 'field'=>$this->table.'.complaint', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'custID', 'field'=>$this->table.'.custID', 'default_value'=>'', 'operator'=>'where'),
-            array('variable'=>'serviceType', 'field'=>'service_types.serviceType', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'expNo', 'field'=>$this->table.'.expNo', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'ttlAmount', 'field'=>$this->table.'.ttlAmount', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'where'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
         
-        // sorting fields
-        $sorting_fields = array('date'=>'desc');
         
         $controller = $this->uri->segment(1);
         
@@ -547,32 +566,20 @@ class Complaint extends CI_Controller
         foreach($condition_fields as $key) {
             $data[$key['variable']] = $$key['variable'];
         }
+               
+        // select
+        $this->db->select($this->table.'.*');
+        $this->db->select('branches.branchName');
         
-    	// select
-    	$this->db->select($this->table.'.*');
-    	$this->db->select('branches.branchName');
-    	$this->db->select('customers.fname');
-    	$this->db->select('customers.mname');
-    	$this->db->select('customers.lname');    	
-    	$this->db->select('order_headers.serviceID');    	
-    	$this->db->select('service_types.serviceType');
-
-    	// from
-    	$this->db->from($this->table);
-    	
-    	// join   	
-
-    	$this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-    	$this->db->join('customers',$this->table.'.custID=customers.custID','left');
-    	$this->db->join('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-    	$this->db->join('service_types','order_headers.serviceID=service_types.serviceID','left');
-    	
-    	// where
-    	
-        //change end
-        //===================================
+        // from
+        $this->db->from($this->table);
         
-        // 
+        // join     
+
+        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
+          
+                
+        // where
         // set conditions here
         foreach($condition_fields as $key) {
             $operators = explode('_',$key['operator']);
@@ -596,29 +603,18 @@ class Complaint extends CI_Controller
         $config['per_page'] = $limit;
         $this->pagination->initialize($config);
         
-    	// select
-    	$this->db->select($this->table.'.*');
-    	$this->db->select('branches.branchName');
-    	$this->db->select('customers.fname');
-    	$this->db->select('customers.mname');
-    	$this->db->select('customers.lname');    	
-    	$this->db->select('order_headers.serviceID');    	
-    	$this->db->select('service_types.serviceType');
+        // select
+        $this->db->select($this->table.'.*');
+        $this->db->select('branches.branchName');
+        
+        // from
+        $this->db->from($this->table);
+        
+        // join     
 
-    	// from
-    	$this->db->from($this->table);
-    	
-    	// join   	
-
-    	$this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-    	$this->db->join('customers',$this->table.'.custID=customers.custID','left');
-    	$this->db->join('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-    	$this->db->join('service_types','order_headers.serviceID=service_types.serviceID','left');
-    	
-    	// where
-    	
-        //change end
-        //===================================
+        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
+          
+                
         // where
         // set conditions here
         foreach($condition_fields as $key) {
@@ -676,14 +672,14 @@ class Complaint extends CI_Controller
         
         // get
         $data['records'] = $this->db->get()->result();
-        // var_dump($data['records']);
+
         //load views
         $this->load->view('header', $data);
         $this->load->view($this->module_path.'/list');
         $this->load->view('footer');
     }
     
-    public function printlist() 
+    public function printlist()
     {
         // load submenu
         $this->submenu();
@@ -693,16 +689,12 @@ class Complaint extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter
         $condition_fields = array(
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'lname', 'field'=>'customers.lname', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'complaint', 'field'=>$this->table.'.complaint', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'custID', 'field'=>$this->table.'.custID', 'default_value'=>'', 'operator'=>'where'),
-            array('variable'=>'serviceType', 'field'=>'service_types.serviceType', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'expNo', 'field'=>$this->table.'.expNo', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'ttlAmount', 'field'=>$this->table.'.ttlAmount', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'where'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
-        
-        // sorting fields
-        $sorting_fields = array('date'=>'desc');
         
         $controller = $this->uri->segment(1);
         
@@ -715,27 +707,18 @@ class Complaint extends CI_Controller
         $sortby     = $this->session->userdata($controller.'_sortby');
         $sortorder  = $this->session->userdata($controller.'_sortorder');
         
-    	// select
-    	$this->db->select($this->table.'.*');
-    	$this->db->select('branches.branchName');
-    	$this->db->select('customers.fname');
-    	$this->db->select('customers.mname');
-    	$this->db->select('customers.lname');    	
-    	$this->db->select('order_headers.serviceID');    	
-    	$this->db->select('service_types.serviceType');
+        // select
+        $this->db->select($this->table.'.*');
+        $this->db->select('branches.branchName');
+        
+        // from
+        $this->db->from($this->table);
+        
+        // join     
 
-    	// from
-    	$this->db->from($this->table);
-    	
-    	// join   	
-
-    	$this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-    	$this->db->join('customers',$this->table.'.custID=customers.custID','left');
-    	$this->db->join('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-    	$this->db->join('service_types','order_headers.serviceID=service_types.serviceID','left');
-    	
-    	// where
-    	
+        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
+        
+        // where
         // set conditions here
         foreach($condition_fields as $key) {
             $operators = explode('_',$key['operator']);
@@ -793,7 +776,7 @@ class Complaint extends CI_Controller
         // get
         $data['records'] = $this->db->get()->result();
         
-        $data['title'] = "Complaints List";
+        $data['title'] = "Expense Inventory List";
 
         //load views
         $this->load->view('header_print', $data);
@@ -811,16 +794,12 @@ class Complaint extends CI_Controller
         // variable:field:default_value:operator
         // note: dont include the special query field filter
         $condition_fields = array(
-            array('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'lname', 'field'=>'customers.lname', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'complaint', 'field'=>$this->table.'.complaint', 'default_value'=>'', 'operator'=>'like_both'),
-            array('variable'=>'custID', 'field'=>$this->table.'.custID', 'default_value'=>'', 'operator'=>'where'),
-            array('variable'=>'serviceType', 'field'=>'service_types.serviceType', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'expNo', 'field'=>$this->table.'.expNo', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'date', 'field'=>$this->table.'.date', 'default_value'=>'', 'operator'=>'like_both'),
+            array('variable'=>'ttlAmount', 'field'=>$this->table.'.ttlAmount', 'default_value'=>'', 'operator'=>'where'),
+            array('variable'=>'remarks', 'field'=>$this->table.'.remarks', 'default_value'=>'', 'operator'=>'where'),
             array('variable'=>'status', 'field'=>$this->table.'.status', 'default_value'=>'', 'operator'=>'where'),
         );
-        
-        // sorting fields
-        $sorting_fields = array('date'=>'desc');
         
         $controller = $this->uri->segment(1);
         
@@ -833,25 +812,16 @@ class Complaint extends CI_Controller
         $sortby     = $this->session->userdata($controller.'_sortby');
         $sortorder  = $this->session->userdata($controller.'_sortorder');
         
-    	// select
-    	$this->db->select($this->table.'.*');
-    	$this->db->select('branches.branchName');
-    	$this->db->select('customers.fname');
-    	$this->db->select('customers.mname');
-    	$this->db->select('customers.lname');    	
-    	$this->db->select('order_headers.serviceID');    	
-    	$this->db->select('service_types.serviceType');
-
-    	// from
-    	$this->db->from($this->table);
-    	
-    	// join   	
-
-    	$this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
-    	$this->db->join('customers',$this->table.'.custID=customers.custID','left');
-    	$this->db->join('order_headers',$this->table.'.orderID=order_headers.orderID','left');
-    	$this->db->join('service_types','order_headers.serviceID=service_types.serviceID','left');
+        // select
+        $this->db->select($this->table.'.*');
+        $this->db->select('branches.branchName');
         
+        // from
+        $this->db->from($this->table);
+        
+        // join     
+
+        $this->db->join('branches',$this->table.'.branchID=branches.branchID','left');
         // where
         // set conditions here
         foreach($condition_fields as $key) {
@@ -911,7 +881,7 @@ class Complaint extends CI_Controller
         $records = $this->db->get()->result();
         
     
-        $title          = "Complaint List";
+        $title          = "Expense Inventory List";
         $companyName    = $this->config_model->getConfig('Company');
         $address        = $this->config_model->getConfig('Address');
          
@@ -995,34 +965,33 @@ class Complaint extends CI_Controller
     
         // header
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
     
         $data .= "<Row ss:StyleID='s20'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'>".$companyName."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'>".$companyName."</Data></Cell>";
         $data .= "</Row>";
         $data .= "<Row ss:StyleID='s24A'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'>".$address."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'>".$address."</Data></Cell>";
         $data .= "</Row>";
     
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
          
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'>".strtoupper($title)."</Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'>".strtoupper($title)."</Data></Cell>";
         $data .= "</Row>";
          
         $data .= "<Row ss:StyleID='s24'>";
-        $data .= "<Cell ss:MergeAcross='6'><Data ss:Type='String'></Data></Cell>";
+        $data .= "<Cell ss:MergeAcross='5'><Data ss:Type='String'></Data></Cell>";
         $data .= "</Row>";
     
-        $fields[]="  ";
-        $fields[]="BRANCH NAME";            
-        $fields[]="CUSTOMER";            
-        $fields[]="ORDER";            
-        $fields[]="COMPLAINT";            
-        $fields[]="CONTACT NO";            
+        $fields[]="  ";                 
+        $fields[]="REFERENCE NO";            
+        $fields[]="DATE";            
+        $fields[]="TOTAL AMOUNT";
+        $fields[]="REMARKS";
         $fields[]="STATUS";
     
         $data .= "<Row ss:StyleID='s24'>";
@@ -1033,25 +1002,24 @@ class Complaint extends CI_Controller
         $data .= "</Row>";
     
         if (count($records)) {
-            $ctr = 1;
+            
             foreach ($records as $row) {
                 $data .= "<Row>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$ctr.".</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->branchName."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->lname. ', '.$row->fname.' '.$row->mname."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->serviceType."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->complaint."</Data></Cell>";
-                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->contactNo."</Data></Cell>";                
-                if  ($row->status == 2) {
-                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Confirmed</Data></Cell>";
-                } else if($row->status == 1) {
-                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Pending</Data></Cell>";
-                } else {
+                
+                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->expNo."</Data></Cell>";
+                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->date."</Data></Cell>";
+                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->ttlAmount."</Data></Cell>";
+                $data .= "<Cell ss:StyleID='s27'><Data ss:Type='String'>".$row->remarks."</Data></Cell>";
+                if  ($row->status == 0) {
                     $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Cancelled</Data></Cell>";
+                } else if ($row->status == 1) {
+                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Pending</Data></Cell>";                
+                } else if ($row->status == 2) {
+                    $data .= "<Cell ss:StyleID='s24B'><Data ss:Type='String'>Confirmed</Data></Cell>";
                 }
                 $data .= "</Row>";
     
-                $ctr++;
+                
             }
         }
         $data .= "</Table></Worksheet>";
@@ -1059,7 +1027,7 @@ class Complaint extends CI_Controller
          
     
         //Final XML Blurb
-        $filename = "complaints";
+        $filename = "expense_inventory";
     
         header("Content-type: application/octet-stream");
         header("Content-Disposition: attachment; filename=$filename.xls;");
@@ -1074,47 +1042,11 @@ class Complaint extends CI_Controller
     //Conditions and fields changes
     public function check_duplicate()
     {
-        $this->db->where('branchID', trim($this->input->post('branchID')));      
-        $this->db->where('custID', trim($this->input->post('custID')));      
-        $this->db->where('orderID', trim($this->input->post('orderID')));      
+        $this->db->where('expID', trim($this->input->post('expID')));      
         if ($this->db->count_all_results($this->table))
             echo "1"; // duplicate
         else 
             echo "0";
-    }
-
-
-    public function updateApprovedBy()
-    {
-        $comID = trim($this->input->post('comID'));   
-        require_once(APPPATH.'controllers/Generic_ajax.php');
-        //update approved by        
-        $approvedBy = Generic_ajax::updateApprovedBy($this->table, "comID", $comID, $this->session->userdata('current_user')->userID);
-        $response = [
-            'data' => [
-                'status' => 200,                
-                'approvedBy' => $approvedBy
-            ]
-        ];
-        echo json_encode($response);
-    }
-
-    public function updateCancelledBy()
-    {
-        $comID = trim($this->input->post('comID'));
-       
-        require_once(APPPATH.'controllers/Generic_ajax.php');
-        //update approved by
-        //updateApproveBy($table, $compareId, $id, $approvedBy)
-        $cancelledBy = Generic_ajax::updateCancelledBy($this->table, "comID", $comID, $this->session->userdata('current_user')->userID);
-
-        $response = [
-            'data' => [
-                'status' => 200,                
-                'cancelledBy' => $cancelledBy
-            ]
-        ];
-        echo json_encode($response);
     }
 
 }

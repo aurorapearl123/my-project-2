@@ -57,6 +57,13 @@ $route['translate_uri_dashes'] = FALSE;
 $route['api/login'] = "api/ApiLogin/login";
 //customer
 $route['api/customer'] = 'api/ApiCustomer/customer';
+//province
+$route['api/province'] = 'api/ApiCustomer/province';
+//cities
+$route['api/cities/(:any)'] = 'api/ApiCustomer/cities';
+// barangay
+//province id : cities id
+$route['api/barangays/(:any)'] = 'api/ApiCustomer/barangays';
 //order
 $route['api/order'] = 'api/ApiOrder/order';
 //get order details

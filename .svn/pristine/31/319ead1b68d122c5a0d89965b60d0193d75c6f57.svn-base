@@ -32,10 +32,10 @@
 									<button type="button" id="btn-filter" class="btn btn-outline-light bmd-btn-icon active" data-toggle="tooltip" data-placement="bottom" title="Filters" onclick="#"><i class="la la-sort-amount-asc"></i></button>
 								</li>
 								<li>
-									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print" onclick="popUp('<?php echo site_url('branch/printlist') ?>', 800, 500)"><i class="la la-print"></i></button>
+									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Print" onclick="popUp('<?php echo site_url('order/printlist') ?>', 800, 500)"><i class="la la-print"></i></button>
 								</li>
 								<li>
-									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Export to Excel File" onclick="window.location='<?php echo site_url('branch/exportlist') ?>';"><i class="la la-file-excel-o"></i></button>
+									<button type="button" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" title="Export to Excel File" onclick="window.location='<?php echo site_url('order/exportlist') ?>';"><i class="la la-file-excel-o"></i></button>
 								</li>
 							</ul>
 						</div>
@@ -49,13 +49,12 @@
 										<tr class="thead-light">
 											<?php 
 												$headers = array(
-												    array('column_header'=>'Branch Code','column_field'=>'branchCode','width'=>'w-10','align'=>''),
-												    array('column_header'=>'Branch Name','column_field'=>'branchName','width'=>'w-10','align'=>''),
-												    array('column_header'=>'Company','column_field'=>'companyID','width'=>'w-10','align'=>''),
-												    array('column_header'=>'Email','column_field'=>'branchEmail','width'=>'w-10','align'=>''),
-												    array('column_header'=>'Address','column_field'=>'branchAddress','width'=>'w-15','align'=>''),
-												    array('column_header'=>'Head','column_field'=>'branchHeadID','width'=>'w-10','align'=>''),
-												    array('column_header'=>'Status','column_field'=>'status','width'=>'w-5','align'=>'center'),
+												    array('column_header'=>'Date','column_field'=>'date','width'=>'w-15','align'=>''),
+												    array('column_header'=>'Branch Name','column_field'=>'branchName','width'=>'w-20','align'=>''),
+												    array('column_header'=>'Supplier','column_field'=>'companyEmail','width'=>'w-20','align'=>''),
+												    array('column_header'=>'Total Amount','column_field'=>'companyAddress','width'=>'w-20','align'=>''),
+												    array('column_header'=>'Created By','column_field'=>'companyHeadID','width'=>'w-15','align'=>''),
+												    array('column_header'=>'Status','column_field'=>'status','width'=>'w-8','align'=>'center'),
 												);
 												
 												echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
@@ -63,48 +62,30 @@
 										</tr>
 										<tr id="filter-group" class="collapse multi-collapse show">
 											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id=branchCode name="branchCode" value="<?php echo $branchCode?>">
+												<input type="text" class="form-control w-80" id="lname" name="lname" value="<?php echo $date ?>">
 											</th>
 											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="branchName" name="branchName" value="<?php echo $branchName?>">
+												<input type="text" class="form-control w-80" id="companyName" name="companyName" value="<?php echo $companyName ?>">
 											</th>
 											<th class="form-group form-input">
-												<?php 
-													$this->db->where('status',1);
-													$companies = $this->db->get('companies')->result();
-													
-													$default_companyCode = $this->config_model->getConfig('Default Company Code');
-													?>
-												<select class="form-control w-80" id="companyID" name="companyID">
-													<option value="">&nbsp;</option>
-													<?php foreach($companies as $com) {?>
-													<option value="<?php echo $com->companyID ?>" <?php if ($com->companyID == $companyID) echo "selected"; ?>><?php echo $com->companyCode ?></option>
-													<?php } ?>
-												</select>
+												<input type="text" class="form-control w-80" id="companyEmail" name="companyEmail" value="<?php echo $companyEmail ?>">
 											</th>
 											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="branchEmail" name="branchEmail" value="">
+												<input type="text" class="form-control w-80" id="companyAddress" name="companyAddress" value="<?php echo $companyAddress ?>">
 											</th>
 											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="branchAddress" name="branchAddress" value="">
-											</th>
-											<th class="form-group form-input">
-												<?php 
-													$this->db->where('status',1);
-													$heads = $this->db->get('employees')->result();
-													?>
-												<select class="form-control w-80" id="branchHeadID" name="branchHeadID" data-live-search="true" livesearchnormalize="true" style="width:100px">
-													<option value="">&nbsp;</option>
-													<?php foreach($heads as $row) {?>
-													<option value="<?php echo $row->empID ?>" <?php if ($row->empID == $branchHeadID) echo "selected"; ?>><?php echo $row->lname.", ".$row->fname." ".$row->mname ?></option>
-													<?php } ?>
-												</select>
+                                                <select class="form-control w-80" id="isDiscounted" name="isDiscounted" style="width:100px">
+                                                    <option value="">&nbsp;</option>
+                                                    <option value="1" <?php if($status == "1") echo "selected"; ?>>Y</option>
+                                                    <option value="0" <?php if($status == "0") echo "selected"; ?>>N</option>
+                                                </select>
 											</th>
 											<th>
 												<select class="form-control" id="status" name="status">
 													<option value="">&nbsp;</option>
-													<option value="1" <?php if($status == "1") echo "selected"; ?>>Active</option>
-													<option value="0" <?php if($status == "0") echo "selected"; ?>>Inactive</option>
+													<option value="0" <?php if($status == "0") echo "selected"; ?>>Pending</option>
+													<option value="1" <?php if($status == "1") echo "selected"; ?>>Confirmed</option>
+													<option value="2" <?php if($status == "2") echo "selected"; ?>>Cancelled</option>
 												</select>
 											</th>
 										</tr>
@@ -114,27 +95,28 @@
 											if (count($records)) {
 											    foreach($records as $row) {
 											    ?>
-										<tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->branchID); ?>'">
-											<td><?php echo $row->branchCode ?></td>
+										<tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->rrID); ?>'">
+											<td><?php echo $row->date ?></td>
 											<td><?php echo $row->branchName ?></td>
-											<td><?php echo $row->companyCode ?></td>
-											<td><?php echo $row->branchEmail ?></td>
-											<td><?php echo $row->branchAddress ?></td>
-											<td nowrap><?php echo $row->lname." , ".$row->fname ?></td>
+											<td><?php echo $row->name ?></td>
+											<td><?php echo $row->ttlAmount ?></td>
+											<td><?php echo $row->firstName .' '.$row->middleName.' '.$row->lastName ?></td>
 											<td align="center">
 												<?php 
 													if ($row->status == 1) {
-														echo "<span class='badge badge-pill badge-success'>Active</span>";
-													} else {
-														echo "<span class='badge badge-pill badge-danger'>Inactive</span>";
+														echo "<span class='badge badge-pill badge-warning'>Pending</span>";
+													} else if ($row->status == 2 ) {
+														echo "<span class='badge badge-pill badge-success'>Confirmed</span>";
+													} else if ($row->status == 0) {
+														echo "<span class='badge badge-pill badge-danger'>Cancelled</span>";
 													}
-													?>
+												?>
 											</td>
 										</tr>
 										<?php }
 											} else {	?>
 										<tr>
-											<td colspan="7" align="center"> <i>No records found!</i></td>
+											<td colspan="6" align="center"> <i>No records found!</i></td>
 										</tr>
 										<?php } ?>
 									</tbody>
@@ -185,4 +167,3 @@
 		</div>
 	</div>
 </form>
-<!--test taler-->

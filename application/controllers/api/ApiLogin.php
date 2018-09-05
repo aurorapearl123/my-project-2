@@ -53,7 +53,7 @@ class ApiLogin extends REST_Controller
             elseif($user == 3) {
                 $response = [
                     'status' => FALSE,
-                    'message' => 'Only deliver can login.'
+                    'message' => 'Only deliver and cashier can login.'
                 ];
                 $this->response($response, 400);
             }
@@ -66,6 +66,7 @@ class ApiLogin extends REST_Controller
                 $token_data['userName'] = $user['userName'];
                 $token_data['firstName'] = $user['firstName'];
                 $token_data['branchID'] = $user['branchID'];
+                $token_data['groupName'] = $user['groupName'];
                 $token_data['time'] = time();
 
 
@@ -78,6 +79,7 @@ class ApiLogin extends REST_Controller
                     'middleName' => $user['middleName'],
                     'lastName' => $user['lastName'],
                     'branchID' => $user['branchID'],
+                    'groupName' => $user['groupName'],
                     'token' => $user_token
                 ];
 
@@ -105,13 +107,14 @@ class ApiLogin extends REST_Controller
         if($q->num_rows()) {
             $hashed_password = $q->row('userPswd');
             if(hash_equals($hashed_password, $password)) {
-                if($q->row('groupName') === 'Delivery') {
+                if($q->row('groupName') === 'Delivery' || $q->row('groupName') === 'Cashier') {
                     $data['userID'] = $q->row('userID');
                     $data['userName'] = $q->row('userName');
                     $data['firstName'] = $q->row('firstName');
                     $data['middleName'] = $q->row('middleName');
                     $data['lastName'] = $q->row('lastName');
                     $data['branchID'] = $q->row('branchID');
+                    $data['groupName'] = $q->row('groupName');
                     return $data;
                 }else {
                     return 3;

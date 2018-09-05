@@ -10,13 +10,13 @@ class Log_model extends CI_Model
 		parent::__construct();
 	}
 	
-	public function table_logs($module, $table, $pkey, $pid, $operation, $logs)
+	public function table_logs($module, $table, $pkey, $pid, $operation, $logs, $id = null)
 	{
 		$data = array();
-		$data['userID'] 	= $this->session->userdata('current_user')->userID;
+		$data['userID'] 	= ($this->session->userdata('current_user')->userID) ? $this->session->userdata('current_user')->userID : $id;
 		$data['host'] 		= $_SERVER['REMOTE_ADDR'];
 		$data['hostname'] 	= "";
-		$data['date'] 		= date('Y-m-d H:i:s');		
+		$data['date'] 		= date('Y-m-d H:i:s');
 		$data['module'] 	= $module;
 		$data['table'] 		= $table;
 		$data['pkey'] 		= $pkey;
