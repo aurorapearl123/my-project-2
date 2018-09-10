@@ -152,7 +152,7 @@ class Order extends CI_Controller {
             foreach ( $table_fields as $fld ) {
                 if($fld == 'isDiscounted') {
                     if(empty($this->input->post('isDiscounted'))) {
-                       // $this->records->fields [$fld] = trim ( $this->input->post ( $fld ) );
+                        // $this->records->fields [$fld] = trim ( $this->input->post ( $fld ) );
                         $this->records->fields [$fld] = 'N';
                     }
                     else {
@@ -618,7 +618,7 @@ class Order extends CI_Controller {
             array ('variable' => 'lname', 'field' =>'customers.lname', 'default_value' => '', 'operator' => 'like_both' ),
             array ('variable' => 'fname', 'field' =>'customers.fname', 'default_value' => '', 'operator' => 'like_both' ),
             array ('variable' => 'mname', 'field' =>'customers.mname', 'default_value' => '', 'operator' => 'like_both' ),
-            array ('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),            
+            array ('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),
             array ('variable' => 'serviceType', 'field' => 'service_types.serviceType', 'default_value' => '', 'operator' => 'like_both' ),
             array ('variable' => 'date', 'field' =>$this->table . '.date', 'default_value' => '', 'operator' => 'like_both' ),
             array ('variable' => 'isDiscounted', 'field' => $this->table .'.isDiscounted', 'default_value' => '', 'operator' => 'where' ),
@@ -889,7 +889,7 @@ class Order extends CI_Controller {
     public function insert_order_details($orderID, $clothes_qtys = array(), $clothes_ids = array())
     {
         //return $clothes_qtys;
-       // $result = array_combine($clothes_qtys, $clothes_ids);
+        // $result = array_combine($clothes_qtys, $clothes_ids);
         $result = array_combine($clothes_ids, $clothes_qtys);
 
         $data = [];
@@ -904,7 +904,7 @@ class Order extends CI_Controller {
 
         }
         //return $data;
-       $this->db->insert_batch('order_details', $data);
+        $this->db->insert_batch('order_details', $data);
     }
 
     public function delete_order_details($orderID)

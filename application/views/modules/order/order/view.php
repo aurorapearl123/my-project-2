@@ -1,234 +1,234 @@
 <div class="subheader">
-  <div class="d-flex align-items-center">
-    <div class="title mr-auto">
-      <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+    <div class="d-flex align-items-center">
+        <div class="title mr-auto">
+            <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+        </div>
+        <div class="subheader-tools">
+            <a href="<?php echo site_url('order/show') ?>" class="btn btn-primary btn-raised btn-sm pill"><i class="icon left ti-angle-left md"></i> Back to List</a>
+        </div>
     </div>
-    <div class="subheader-tools">
-      <a href="<?php echo site_url('order/show') ?>" class="btn btn-primary btn-raised btn-sm pill"><i class="icon left ti-angle-left md"></i> Back to List</a>
-    </div>
-  </div>
 </div>
 <div class="content">
-  <div class="row">
-    <div class="col-lg-8 col-xxl-9">
-      <div class="card-box">
-        <div class="card-head">
-          <div class="head-caption">
-            <div class="head-title">
-              <h4 class="head-text">View <?php echo $current_module['module_label'] ?>
-                  <?php if($rec->status != 6) : ?>
-                      <?php if($rec->dateWashed == '0000-00-00 00:00:00') : ?>
-                      <span id="span_wash">
+    <div class="row">
+        <div class="col-lg-8 col-xxl-9">
+            <div class="card-box">
+                <div class="card-head">
+                    <div class="head-caption">
+                        <div class="head-title">
+                            <h4 class="head-text">View <?php echo $current_module['module_label'] ?>
+                                <?php if($rec->status != 6) : ?>
+                                    <?php if($rec->dateWashed == '0000-00-00 00:00:00') : ?>
+                                        <span id="span_wash">
                            <button type="button" class="btn btn-primary btn-xs pill ml-15" id="wash">Wash</button>
                           <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
                       </span>
-                      <?php elseif($rec->dateReady == '0000-00-00 00:00:00'): ?>
-                          <span id="span_ready">
+                                    <?php elseif($rec->dateReady == '0000-00-00 00:00:00'): ?>
+                                        <span id="span_ready">
                               <button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>
                               <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
                           </span>
-                      <?php elseif($rec->dateReleased == '0000-00-00 00:00:00'): ?>
-                          <span id="span_released">
+                                    <?php elseif($rec->dateReleased == '0000-00-00 00:00:00'): ?>
+                                        <span id="span_released">
                               <button type="button" class="btn btn-outline-danger btn-xs pill ml-15" id="cancel">Cancel</button>
                           </span>
-                      <?php endif;?>
-                  <?php endif; ?>
-                  <span id="result-date"></span>
-              </h4>
+                                    <?php endif;?>
+                                <?php endif; ?>
+                                <span id="result-date"></span>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="card-head-tools">
+                        <ul class="tools-list">
+                            <?php if ($roles['edit']) { ?>
+                                <li>
+
+                                    <?php if ($rec->status == 6): ?>
+
+
+                                    <?php elseif ($rec->status == 5): ?>
+
+
+                                    <?php elseif ($rec->status == 4): ?>
+
+
+                                    <?php else: ?>
+
+                                        <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec->orderID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+
+                                    <?php endif; ?>
+
+
+
+                                </li>
+                            <?php } ?>
+                            <?php if ($roles['delete'] && !$in_used) { ?>
+                                <li>
+                                    <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->orderID); ?>');"><i class="la la-trash-o"></i></button>
+                                </li>
+                            <?php } ?>
+                            <?php if ($this->session->userdata('current_user')->isAdmin) { ?>
+                                <li>
+                                    <button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/order_headers/orderID/'.$this->encrypter->encode($rec->orderID).'/Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("order/save") ?>">
+                        <div class="data-view">
+                            <table class="view-table">
+                                <tbody>
+                                <tr>
+                                    <td class="data-title w-10">Branch :</td>
+                                    <td class="data-input w-20"><?php echo $rec->branchName;?></td>
+                                    <td class="data-title w-10">Date :</td>
+                                    <td class="data-input w-20"><?php echo date('F d, Y')?></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Customer Name :</td>
+                                    <td class="data-input"><?php echo $rec->fname .' '.$rec->mname. ' '.$rec->lname;?></td>
+                                    <td class="data-title">is discounted</td>
+                                    <td class="data-input border-0">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox" name="isDiscounted" id="isDiscounted" value="<?php if($rec->isDiscounted == 'Y'){
+                                                    echo "Y";
+                                                }
+                                                else {
+                                                    echo "N";
+                                                };?>" aria-label="..." <?php if($rec->isDiscounted == 'Y') echo "checked='checked'";?> onclick="return false;"> &nbsp;
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Service : </td>
+                                    <td class="data-input"><?php echo $rec->serviceType;?></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="datatables_wrapper mt-30">
+                            <div class="table-responsive-xl">
+                                <!-- start create header details -->
+                                <?php
+                                $table_str="<table class='table'>";
+                                $table_str.='<thead class="thead-light"><tr>';
+                                $table_str.='<th>'.'Quantity'.'</th>';
+                                $table_str.='<th>'.'Clothes Category'.'</th>';
+                                $table_str.='</tr></thead>';
+                                $i = 1;
+                                foreach ($clothes_categories as $rows) {
+                                    $table_str.='<tr>';
+                                    $table_str.='<td style="width: 100px" align="left">'.'<input type="number" min="1" name="clothes_qtys[]" value="'.$rows->qty.'" class="border-0" readonly >'.'</td>';
+                                    $table_str.='<td>'.$rows->category.'</td>';
+                                    $table_str.='</tr>';
+                                }
+                                $table_str.="</table>";
+
+                                echo $table_str;
+                                ?>
+                                <!-- end create header details -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
-          <div class="card-head-tools">
-            <ul class="tools-list">
-              <?php if ($roles['edit']) { ?>
-              <li>
-
-                  <?php if ($rec->status == 6): ?>
-
-
-                  <?php elseif ($rec->status == 5): ?>
-
-
-                  <?php elseif ($rec->status == 4): ?>
-
-
-                  <?php else: ?>
-
-                      <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec->orderID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
-
-                  <?php endif; ?>
-
-
-
-              </li>
-              <?php } ?>
-              <?php if ($roles['delete'] && !$in_used) { ?>
-              <li>
-                <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->orderID); ?>');"><i class="la la-trash-o"></i></button>
-              </li>
-              <?php } ?>
-              <?php if ($this->session->userdata('current_user')->isAdmin) { ?>
-              <li>
-                <button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/order_headers/orderID/'.$this->encrypter->encode($rec->orderID).'/Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
-              </li>
-              <?php } ?>
-            </ul>
-          </div>
         </div>
-        <div class="card-body">
-          <form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("order/save") ?>">
-            <div class="data-view">
-              <table class="view-table">
-                <tbody>
-                  <tr>
-                    <td class="data-title w-10">Branch :</td>
-                    <td class="data-input w-20"><?php echo $rec->branchName;?></td>
-                    <td class="data-title w-10">Date :</td>
-                    <td class="data-input w-20"><?php echo date('F d, Y')?></td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Customer Name :</td>
-                    <td class="data-input"><?php echo $rec->fname .' '.$rec->mname. ' '.$rec->lname;?></td>
-                    <td class="data-title">is discounted</td>
-                    <td class="data-input border-0">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" name="isDiscounted" id="isDiscounted" value="<?php if($rec->isDiscounted == 'Y'){
-                            echo "Y";
-                            }
-                            else {
-                            echo "N";
-                            };?>" aria-label="..." <?php if($rec->isDiscounted == 'Y') echo "checked='checked'";?> onclick="return false;"> &nbsp;
-                        </label>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Service : </td>
-                    <td class="data-input"><?php echo $rec->serviceType;?></td>
-                  </tr>
-                </tbody>
-              </table>
+        <div class="col-lg-4 col-xxl-3">
+            <div class="card-box">
+                <div class="card-head">
+                    <div class="head-caption">
+                        <div class="head-title">
+                            <h4 class="head-text">Details</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" name="frmEntry" id="frmEntry2" action="<?php echo site_url("order/save") ?>">
+                        <div class="data-view">
+                            <table class="view-table">
+                                <tbody>
+                                <tr>
+                                    <td class="data-title w-50">Rate :</td>
+                                    <td class="py-5"><input type="text" class="form-control" name="rate" id="rate" value="<?php echo $rec->rate;?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Quantity in kilos :</td>
+                                    <td class="py-5"><input type="number" class="form-control" name="qty" id="qty" min="0" value="<?php echo $rec->qty;?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Sub total:</td>
+                                    <td class="py-5"><input type="number" class="form-control" name="subtotal" id="subtotal" min="0" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Deliver Fee:</td>
+                                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec->deliveryFee;?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Amount :</td>
+                                    <td class="py-5"><input type="number" class="form-control" name="ttlAmount" id="ttlAmount" readonly></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-sepator solid mx-0"></div>
+                        <div class="data-view">
+                            <table class="view-table">
+                                <tbody>
+                                <tr>
+                                    <td>Prepared by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
+                                </tr>
+                                <?php if($rec->dateWashed != '0000-00-00 00:00:00') { ?>
+                                    <tr>
+                                        <td>Date washed : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateWashed)) ;?></span></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if($rec->dateReady != '0000-00-00 00:00:00') { ?>
+                                    <tr>
+                                        <td>Date Ready : &nbsp;&nbsp;<span><?php echo $rec->dateReady;?></span></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if($rec->cancelledBy != '') { ?>
+                                    <tr>
+                                        <td>Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->cancelledFirstName .' '.$rec->cancelledMiddleName.' '.$rec->cancelledLastName;?></span></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if($rec->dateFold != '0000-00-00 00:00:00') { ?>
+                                    <tr>
+                                        <td>Date Fold : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateFold)) ;?></span></td>
+                                    </tr>
+                                <?php } ?>
+                                <?php if($rec->dateReleased != '0000-00-00 00:00:00') { ?>
+                                    <tr>
+                                        <td>Date Released : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateReleased)) ;?></span></td>
+                                    </tr>
+                                <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-10">
+                            <?php if ($rec->custSign) { ?>
+                                <p>Signature : </p>
+                                <div style="max-height:200px">
+
+                                    <img src="<?php echo $rec->custSign; ?>" alt="Red dot" style="max-height: 200px; max-width: 100%;" />
+
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="datatables_wrapper mt-30">
-              <div class="table-responsive-xl">
-                <!-- start create header details -->
-                <?php
-                  $table_str="<table class='table'>";
-                  $table_str.='<thead class="thead-light"><tr>';
-                  $table_str.='<th>'.'Quantity'.'</th>';
-                  $table_str.='<th>'.'Clothes Category'.'</th>';
-                  $table_str.='</tr></thead>';
-                  $i = 1;
-                  foreach ($clothes_categories as $rows) {
-                      $table_str.='<tr>';
-                      $table_str.='<td style="width: 100px" align="left">'.'<input type="number" min="1" name="clothes_qtys[]" value="'.$rows->qty.'" class="border-0" readonly >'.'</td>';
-                      $table_str.='<td>'.$rows->category.'</td>';
-                      $table_str.='</tr>';
-                  }
-                  $table_str.="</table>";
-                  
-                  echo $table_str;
-                  ?>
-                <!-- end create header details -->
-              </div>
-            </div>
-          </form>
         </div>
-      </div>
     </div>
-    <div class="col-lg-4 col-xxl-3">
-      <div class="card-box">
-        <div class="card-head">
-          <div class="head-caption">
-            <div class="head-title">
-              <h4 class="head-text">Details</h4>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <form method="post" name="frmEntry" id="frmEntry2" action="<?php echo site_url("order/save") ?>">
-            <div class="data-view">
-              <table class="view-table">
-                <tbody>
-                  <tr>
-                    <td class="data-title w-50">Rate :</td>
-                    <td class="py-5"><input type="text" class="form-control" name="rate" id="rate" value="<?php echo $rec->rate;?>" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Quantity in kilos :</td>
-                    <td class="py-5"><input type="number" class="form-control" name="qty" id="qty" min="0" value="<?php echo $rec->qty;?>" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Sub total:</td>
-                    <td class="py-5"><input type="number" class="form-control" name="subtotal" id="subtotal" min="0" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Deliver Fee:</td>
-                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec->deliveryFee;?>" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="data-title">Amount :</td>
-                    <td class="py-5"><input type="number" class="form-control" name="ttlAmount" id="ttlAmount" readonly></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="form-sepator solid mx-0"></div>
-            <div class="data-view">
-              <table class="view-table">
-                <tbody>
-                  <tr>
-                    <td>Prepared by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
-                  </tr>
-                  <?php if($rec->dateWashed != '0000-00-00 00:00:00') { ?>
-                  <tr>
-                    <td>Date washed : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateWashed)) ;?></span></td>
-                  </tr>
-                  <?php } ?>
-                  <?php if($rec->dateReady != '0000-00-00 00:00:00') { ?>
-                  <tr>
-                    <td>Date Ready : &nbsp;&nbsp;<span><?php echo $rec->dateReady;?></span></td>
-                  </tr>
-                  <?php } ?>
-                  <?php if($rec->cancelledBy != '') { ?>
-                  <tr>
-                    <td>Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->cancelledFirstName .' '.$rec->cancelledMiddleName.' '.$rec->cancelledLastName;?></span></td>
-                  </tr>
-                  <?php } ?>
-                  <?php if($rec->dateFold != '0000-00-00 00:00:00') { ?>
-                  <tr>
-                    <td>Date Fold : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateFold)) ;?></span></td>
-                  </tr>
-                  <?php } ?>
-                  <?php if($rec->dateReleased != '0000-00-00 00:00:00') { ?>
-                  <tr>
-                    <td>Date Released : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateReleased)) ;?></span></td>
-                  </tr>
-                  <?php } ?>
-                </tbody>
-              </table>
-            </div>
-            <div class="mt-10">
-              <?php if ($rec->custSign) { ?>
-              <p>Signature : </p>
-              <div style="max-height:200px">
-                
-                 <img src="<?php echo $rec->custSign; ?>" alt="Red dot" style="max-height: 200px; max-width: 100%;" />
-                
-              </div>
-              <?php } ?>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- Modal -->
 <!-- <div class="modal fade" id="washModal" role="dialog">
     <div class="modal-dialog">
-        
+
         <div class="modal-content">
             <div class="modal-header">
 
@@ -248,7 +248,7 @@
 <!-- Modal -->
 <!-- <div class="modal fade" id="readyModal" role="dialog">
     <div class="modal-dialog">
-       
+
         <div class="modal-content">
             <div class="modal-header">
 
@@ -284,147 +284,149 @@
 </div>
 
 <script>
-  $(document).ready(function(){
-      var rate = parseInt($('#rate').val());
-      var quantity_kilo = parseInt($('#qty').val());
-      var total = quantity_kilo * rate;
-  
-      $('#subtotal').val(total);
-  
-      var subtotal = parseInt($('#subtotal').val());
-      var deliveryFee = parseInt($('#deliveryFee').val());
-      var total = subtotal + deliveryFee;
-  
-      $('#ttlAmount').val(total);
+    $(document).ready(function(){
+        var rate = parseInt($('#rate').val());
+        var quantity_kilo = parseInt($('#qty').val());
+        var total = quantity_kilo * rate;
 
-      var orderID = "<?php echo $rec->orderID; ?>";
+        $('#subtotal').val(total);
 
-      //button's actions
-      $('#wash').on('click', function(){
-          // $("#washModal").modal();
+        var subtotal = parseInt($('#subtotal').val());
+        var deliveryFee = parseInt($('#deliveryFee').val());
+        var total = subtotal + deliveryFee;
 
-         swal({
-            title: "You are performing 'WASH' action.",
-            text: "Do you still want to continue?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-          })
-          .then((willConfirm) => {
-            if (willConfirm.value) {
+        $('#ttlAmount').val(total);
 
-              updateDate(orderID, 'dateWashed');
-              $("#span_wash").hide();
+        var orderID = "<?php echo $rec->orderID; ?>";
 
-              var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
-                   listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
-              $("#result-date").append(listHTML);
+        //button's actions
+        $('#wash').on('click', function(){
+            // $("#washModal").modal();
 
-            }
-          });     
+            swal({
+                title: "You are performing 'WASH' action.",
+                text: "Do you still want to continue?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })
+                .then((willConfirm) => {
+                    if (willConfirm.value) {
 
-      });
- 
+                        updateDate(orderID, 'dateWashed');
+                        $("#span_wash").hide();
 
-      //modal button's
-      // $('#wash_proceed').on('click', function(){
+                        var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
+                        listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
+                        $("#result-date").append(listHTML);
 
-      //     //updateDate(orderID, 'dateWashed');
-      //     //update button to ready
-      //     updateDate(orderID, 'dateWashed');
-      //     $("#span_wash").hide();
+                    }
+                });
 
-      //     var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
-      //          listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
-      //     $("#result-date").append(listHTML);
-
-      // });
-
-      $('#ready').on('click', function(){
+        });
 
 
-         swal({
-            title: "You are performing 'READY' action.",
-            text: "Do you still want to continue?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-          })
-          .then((willConfirm) => {
-            if (willConfirm.value) {
-                    
-              updateDate(orderID, 'dateReady');
+        //modal button's
+        // $('#wash_proceed').on('click', function(){
 
-              $("#result-date").html('');
-              $("#span_ready").html('');
+        //     //updateDate(orderID, 'dateWashed');
+        //     //update button to ready
+        //     updateDate(orderID, 'dateWashed');
+        //     $("#span_wash").hide();
 
-              var listHTML = '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
-              $("#result-date").append(listHTML);
+        //     var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
+        //          listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
+        //     $("#result-date").append(listHTML);
 
-            }
-          });     
+        // });
+
+        $(document).on('click', '#ready', function(){
+
+
+            swal({
+                title: "You are performing 'READY' action.",
+                text: "Do you still want to continue?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })
+                .then((willConfirm) => {
+                    if (willConfirm.value) {
+
+                        updateDate(orderID, 'dateReady');
+
+                        $("#result-date").html('');
+                        $("#span_ready").html('');
+
+                        var listHTML = '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
+                        $("#result-date").append(listHTML);
+                        //window.location.reload();
+
+                    }
+                });
             //console.log("ready jprocedd");
-      });
+        });
 
-      $('#cancel').on('click', function(){
+        $(document).on('click', '#cancel', function(){
 
 
-         swal({
-            title: "You are performing 'CANCEL' action.",
-            text: "Do you still want to continue?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'No'
-          })
-          .then((willConfirm) => {
-            if (willConfirm.value) {
-                    
-              updateDate(orderID, 'dateCancelled');
-              $("#result-date").html('');
-              $("#span_wash").html('');
-              $("#span_ready").html('');
-              $("#span_released").html('');
+            swal({
+                title: "You are performing 'CANCEL' action.",
+                text: "Do you still want to continue?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })
+                .then((willConfirm) => {
+                    if (willConfirm.value) {
 
-            }
-          });     
+                        updateDate(orderID, 'dateCancelled');
+                        $("#result-date").html('');
+                        $("#span_wash").html('');
+                        $("#span_ready").html('');
+                        $("#span_released").html('');
+
+
+                    }
+                });
             //console.log("ready jprocedd");
-      });
+        });
 
-      // $(document).on('click', '#ready', function(e){
-      //     //alert("hello");
-      //     $("#readyModal").modal();
-      // });
+        // $(document).on('click', '#ready', function(e){
+        //     //alert("hello");
+        //     $("#readyModal").modal();
+        // });
 
-      // $(document).on('click', '#cancel', function(e){
-      //    // alert("ready");
-      //     $("#cancelModal").modal();
-      // });
+        // $(document).on('click', '#cancel', function(e){
+        //    // alert("ready");
+        //     $("#cancelModal").modal();
+        // });
 
-      // $(document).on('click', '#cancel_proceed', function(){
+        // $(document).on('click', '#cancel_proceed', function(){
 
-      //     updateDate(orderID, 'dateCancelled');
-      //     $("#result-date").html('');
-      //     $("#span_wash").html('');
-      //     $("#span_ready").html('');
-      //     $("#span_released").html('');
-      // });
-  });
+        //     updateDate(orderID, 'dateCancelled');
+        //     $("#result-date").html('');
+        //     $("#span_wash").html('');
+        //     $("#span_ready").html('');
+        //     $("#span_released").html('');
+        // });
+    });
 
-  function updateDate(orderID, date)
-  {
-      $.post("<?php echo $controller_page ?>/updateDate", { orID: orderID, date: date},
-          function(data, status){
-              console.log(data);
+    function updateDate(orderID, date)
+    {
+        $.post("<?php echo $controller_page ?>/updateDate", { orID: orderID, date: date},
+            function(data, status){
+                console.log(data);
 
-          });
-  }
+            });
+    }
 </script>

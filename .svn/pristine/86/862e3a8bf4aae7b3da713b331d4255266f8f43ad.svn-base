@@ -1,0 +1,320 @@
+<div class="subheader">
+    <div class="d-flex align-items-center">
+        <div class="title mr-auto">
+            <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+        </div>
+        <div class="subheader-tools"></div>
+    </div>
+</div>
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-box">
+                <div class="card-head">
+                    <div class="head-caption">
+                        <div class="head-title">
+                            <h4 class="head-text">Add <?php echo $current_module['module_label'] ?></h4>
+                        </div>
+                    </div>
+                    <div class="card-head-tools"></div>
+                </div>
+                <div class="card-body">
+                    <form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("order/save") ?>">
+                        <div class="table-row">
+                            <table class="table-form">
+                                <tbody>
+                                    <tr>
+                                        <td class="form-label" width="13%">
+                                            <label for="config">Branch : </label>
+                                        </td>
+                                        <td class="form-group form-input" width="22%">
+                                            <input type="text" class="form-control" name="branchName" id="branchName" title="Branch Name" value="<?php echo $branchName;?>" readonly>
+                                            <input type="hidden" class="form-control" name="branchID" id="branchID" title="Branch Id" value="<?php echo $branchID;?>" readonly>
+                                         <!--    <input type="hidden" id="cloth_category_size" name="cloth_category_size" value="<?php echo count($clothes_categories)?>"> -->
+                                        </td>
+                                        <td class="form-label" width="13%">Date : </td>
+                                        <td class="form-group form-input" width="22%">
+                                            <input type="text" class="form-control" name="date" id="date" title="Date" required value="<?php echo date('F d, Y')?>" readonly>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                    <tr>
+                                      <td class="form-label" style="width:13%" nowrap>Customer Name : </td>
+                                      <td class="form-group form-input" style="width:22%" nowrap>
+                                        <select class="form-control" id="custID" name="custID" data-live-search="true" livesearchnormalize="true" title="Customer Name" required>
+                                          <option value="" selected>&nbsp;</option>
+                                          <?php foreach($customers as $row) { ?>
+                                          <option value="<?php echo $row->custID ?>"><?php echo $row->fname .' '. $row->mname .' '.$row->lname ?></option>
+                                          <?php } ?>
+                                        </select>
+                                      </td>
+                                      <td class="form-label" style="width:13%">is discounted: </td>
+                                      <td class="form-input" style="width:22%">
+                                        <div class="checkbox">
+                                          <label>
+                                            <input type="checkbox" name="isDiscounted" id="isDiscounted" value="Y"> &nbsp;
+                                          </label>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-sepator solid mx-0"></div>
+                        <div class="table-row">
+                            <table class="table-form">
+                                <tbody>
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <!-- start create header details -->
+                            <table class="table" id="tb">
+                                <thead class="thead-light">
+                                    <tr class="tr-header">
+                                        <th>Clothes Category</th>
+                                       
+                                        <th>Price per kilo</th>
+                                          <th>No of pieces</th>
+                                      
+                                        <th>Weight in kg</th>
+                                          <th>Amount</th>
+                                        <th>Option</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="form-group form-input pl-5" width="10%">
+                                            <select class="form-control w-80" id="itemID" name="itemID" data-live-search="true" livesearchnormalize="true" title="Item" onchange="getPricePerKilo()" required>
+                                                <option value="" selected>&nbsp;</option>
+                                                <?php foreach($clothes_categories as $cloth) { ?>
+                                                    <option value="<?php echo $cloth->clothesCatID ?>" pricePerKilo="<?php echo $cloth->pricePerKilo?>"><?php echo $cloth->category?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td class="form-group form-input pl-5" width="5%">
+                                            <input type="number" class="form-control w-80" name="amount" id="amount" title="Amount" min="0" value="<?php echo $amount?>">
+                                        </td> 
+
+                                        <td class="form-group form-input pl-5" width="5%">
+                                            <input type="number" class="form-control w-80" name="qty" id="qty" title="QTY" min="0"  value="<?php echo $qty?>">
+                                        </td>
+                                        <td class="form-group form-input pl-5" width="5%">
+                                            <input type="number" class="form-control w-80" name="weightInKg" id="weightInKg" title="Weight in KG" min="0" value="<?php echo $weightInKg?>">
+                                        </td>
+
+                                        <td class="form-group form-input pl-5" width="5%">
+                                            <input type="number" class="form-control w-80" name="amtPerKilo" id="amtPerKilo" title="Amount per kilo" min="0" value="<?php echo $amtPerKilo?>">
+                                        </td>                                        
+                                        <td class="form-group form-input pl-5" width="10%"">
+                                            <button id="addMore" type="button" class="btn btn-primary btn-xs pill btn-raised">add</button>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <!-- end create header details -->
+                        </div>
+                        <div class="table-row mt-20">
+                            <table class="table-form">
+                                <tbody>
+
+                                    <tr>    
+                                        <td class="form-label" width="20%">&nbsp;</td>                                    
+                                                                    
+                                         
+                                        <td class="form-label" width="5%" nowrap>
+                                            <label for="config">Total no of pcs :  </label>
+                                        </td>
+                                        <td class="form-group form-input pl-5" width="19%">
+                                            <input type="text" class="form-control" name="ttlQty" id="ttlQty" title="totalQty"  value="<?php echo $rec->ttlQty; ?>" required readonly>
+                                        </td>
+                                        <td class="form-label" width="5%" nowrap>
+                                            <label for="config">Total Amount :  </label>
+                                        </td>
+                                        <td class="form-group form-input pl-5" width="19%">
+                                            <input type="text" class="form-control" name="ttlAmount" id="ttlAmount" title="totalAmt"  value="<?php echo $rec->ttlAmount; ?>" required readonly>
+                                        </td>
+                                        <td></td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-row mt-30">
+                          <table class="table-form">
+                            <tbody>
+                              <tr>
+                                <td class="form-group form-input " width="10%">
+                                  <label for="config">Default Description  </label>
+                                </td> 
+                                <td class="form-group form-input pl-5" width="10%"">
+                                    <input type="text" class="form-control" name="defDesc" id="defDesc" title="defDesc"  value="<?php echo $rec->defDesc; ?>" required readonly>
+                                </td>
+                                 <td class="d-xxl-none"></td>
+                                </tr>
+                              
+                            </tbody>
+                          </table>
+                        </div>
+                        <div class="form-sepator solid"></div>
+                        <div class="form-group mb-0">
+                            <button class="btn btn-primary btn-raised pill" type="button" name="cmdSave" id="cmdSave">
+                            Save
+                            </button>
+                            <input type="button" id="cmdCancel" class="btn btn-outline-danger btn-raised pill" value="Cancel"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#cmdSave').click(function(){
+        if (check_fields()) {
+            $('#cmdSave').attr('disabled','disabled');
+            $('#cmdSave').addClass('loader');
+            // $.post("<?php echo $controller_page ?>/check_duplicate", { branchID:$('#branchID').val(), suppID:$('#suppID').val(), referenceNo:$('#referenceNo').val()},
+            //   function(data){
+            //     if (parseInt(data)) {
+            //         $('#cmdSave').removeClass("loader");
+            //         $('#cmdSave').removeAttr('disabled');
+            //         // duplicate
+            //         swal("Duplicate","Record is already exist!","warning");
+            //     } else {
+                    // submit
+                    $('#frmEntry').submit();
+                    // alert($('#branchID').val());
+              //   }
+              // }, "text");
+        }
+    });
+   
+    function check_fields()
+    {
+         var valid = true;
+         var req_fields = "";
+         
+         $('#frmEntry [required]').each(function(){
+            if($(this).val()=='' ) {
+                req_fields += "<br/>" + $(this).attr('title');
+                valid = false;
+            } 
+         })
+         
+         if (!valid) {
+            swal("Required Fields",req_fields,"warning");
+         }
+         
+         return valid;
+    }
+    
+    $('#cmdCancel').click(function(){
+        swal({
+              title: "Are you sure?",
+              text: "",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes',
+              cancelButtonText: 'No'
+            })
+            .then((willDelete) => {
+              if (willDelete.value) {
+                  window.location = '<?php echo site_url('order/show') ?>';
+              }
+            });
+        
+    });
+
+    var priceperkilo = 0.00;
+    function getPricePerKilo(){
+       priceperkilo = $('#itemID option:selected').attr('priceperkilo');
+       $('#amount').val(priceperkilo);
+    }
+
+    $('#weightInKg').on('keyup', function(){
+      var amtPerKilo = 0;
+      amtPerKilo = $('#amount').val() * $('#weightInKg').val();
+      $('#amtPerKilo').val(parseFloat(amtPerKilo).toFixed(2));
+    });
+
+    $(function(){
+        $('#addMore').on('click', function() {
+            var item = $('#itemID').val();
+            var item_text = $('#itemID option:selected').text();
+            var amount = $('#amount').val();
+            var qty = $('#qty').val();
+            var amtPerKilo = $('#amtPerKilo').val();
+            var weightInKg = $('#weightInKg').val();
+            if(amount != "" && qty != "" && amtPerKilo != "" && weightInKg != "") {
+
+                //loop table to check duplicate
+                $('#tb').append($('<tr class="item">')
+                    .append($('<td id="item[]">').text(item_text))
+                    .append($('<td style="display:none"><input type="hidden" name="item_ids[]" value="'+item+'" class="item_id"  readonly>'))
+                       .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id form-control" >'))   
+                    .append($('<td><input type="text"  name="qtys[]" value="'+qty+'" class="name form-control" >'))
+                                  
+                    .append($('<td><input type="text" name="weightsInKg[]" value="'+weightInKg+'" class="weightInKg form-control" >'))
+                    .append($('<td><input type="text" name="amtsPerKilo[]" value="'+amtPerKilo+'" class="amtsPerKilo form-control" >'))
+                    .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><i class="icon la la-trash-o sm"></i></a>'))
+                );
+                //$table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$rows->clothesCatID.'">'.'</td>';
+                $('#itemID option').attr('selected', false);
+                $('#amount').val('');
+                $('#qty').val('');
+                $('#amtPerKilo').val('');
+                $('#weightInKg').val('');
+
+                var totalAmt = 0;
+                var totalQty = 0;
+                var totalAmtPerKilo = 0;
+
+                //loop table to calculate the amount
+                $("tr.item").each(function() {
+                    console.log($(this))
+                    var qty = $(this).find("input.name").val(),
+                        amount = $(this).find("input.id").val(),
+                        amountperkilo = $(this).find("input.amtsPerKilo").val();
+                    totalAmt += parseFloat(amountperkilo);
+                    totalQty += parseFloat(qty);
+                    totalAmtPerKilo += parseFloat(amountperkilo);                
+                });
+
+                $('#ttlAmount').val(parseFloat(totalAmt).toFixed(2));
+                $('#ttlQty').val(totalQty);
+          
+            }
+
+        });
+        $(document).on('click', '.remove', function() {
+            var totalAmt = 0;
+            var totalQty = 0;
+            // var trIndex = $(this).closest("tr").index();
+            // if(trIndex>1) {
+            //     $(this).closest("tr").remove();
+            // } else {
+            //     alert("Sorry!! Can't remove first row!");
+            // }
+            $(this).closest("tr").remove();
+
+            $("tr.item").each(function() {
+                var qty = $(this).find("input.name").val(),
+                    amount = $(this).find("input.id").val();
+                totalAmt += parseInt(amount);
+                totalQty += parseInt(qty);
+            });
+
+            $('#ttlAmount').val(totalAmt);
+            $('#ttlQty').val(totalQty);
+
+        });
+
+    });
+</script>
