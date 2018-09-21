@@ -58,6 +58,7 @@ $route['api/login'] = "api/ApiLogin/login";
 //customer
 $route['api/customer'] = 'api/ApiCustomer/customer';
 $route['api/customer-details/(:any)'] = 'api/ApiCustomer/customer_details';
+$route['api/customer-update/(:any)'] = 'api/ApiCustomer/customer_update';
 
 $route['api/customer-delete/(:any)'] = 'api/ApiCustomer/customer';
 //province
@@ -77,3 +78,8 @@ $route['api/order-details'] = 'api/ApiOrder/update_order_details';
 $route['api/order-date/(:any)'] = 'api/ApiOrder/order_by_date';
 //order get history details
 $route['api/order-history'] = 'api/ApiOrder/order_history';
+//add order
+$route['api/create-order'] = 'api/ApiOrder/create_order';
+//get services
+$route['api/services'] = 'api/ApiServiceType/services';
+$route['api/categories/(:any)'] = 'api/ApiServiceType/categories';

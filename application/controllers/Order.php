@@ -570,9 +570,9 @@ class Order extends CI_Controller {
 
             //order details
             $this->db->select('order_details.qty');
-            $this->db->select('clothes_categories.category');
+            //$this->db->select('clothes_categories.category');
             $this->db->from('order_details');
-            $this->db->join('clothes_categories', 'order_details.clothesCatID=clothes_categories.	clothesCatID', 'left');
+            //$this->db->join('clothes_categories', 'order_details.clothesCatID=clothes_categories.	clothesCatID', 'left');
             $this->db->where('orderID', $id);
             $clothes_categories = $this->db->get()->result();
 

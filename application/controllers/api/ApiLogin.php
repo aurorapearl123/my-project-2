@@ -80,6 +80,7 @@ class ApiLogin extends REST_Controller
                     'lastName' => $user['lastName'],
                     'branchID' => $user['branchID'],
                     'groupName' => $user['groupName'],
+                    'branchName' => $user['branchName'],
                     'token' => $user_token
                 ];
 
@@ -98,9 +99,11 @@ class ApiLogin extends REST_Controller
     {
         $this->db->select('users.*');
         $this->db->select('usergroups.*');
+        $this->db->select('branches.branchName');
         $this->db->where('userName', $username);
         $this->db->from($this->table);
         $this->db->join('usergroups', $this->table.'.groupID=usergroups.groupID', 'left');
+        $this->db->join('branches', $this->table.'.branchID=branches.branchID', 'left');
         $q = $this->db->get();
         //get the user groups
 
@@ -115,6 +118,7 @@ class ApiLogin extends REST_Controller
                     $data['lastName'] = $q->row('lastName');
                     $data['branchID'] = $q->row('branchID');
                     $data['groupName'] = $q->row('groupName');
+                    $data['branchName'] = $q->row('branchName');
                     return $data;
                 }else {
                     return 3;
