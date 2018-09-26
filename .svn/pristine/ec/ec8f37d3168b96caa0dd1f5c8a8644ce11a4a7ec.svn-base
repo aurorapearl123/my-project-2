@@ -290,11 +290,9 @@ class ApiCustomer extends REST_Controller
     }
 
     public function check_duplicate($first_name, $middle_name, $last_name, $id) {
-        //error_log("CHECK-DUPLICATE", $id);
         if($id != "" ){
             $row = $this->db->where ( 'fname', trim ($first_name ), 'mname', trim ($middle_name) ,  'lname', trim ($last_name) )->get($this->table)->row();
             if($id == $row->custID) {
-                error_log("DUPLICATE", $id .' = '.$row->custID);
                return false;
             }
             else {
@@ -304,13 +302,9 @@ class ApiCustomer extends REST_Controller
         else {
             $this->db->where ( 'fname', trim ($first_name ), 'mname', trim ($middle_name) ,  'lname', trim ($last_name) );
             if ($this->db->count_all_results ( $this->table ))
-            {
                 return true; // duplicate
-            }
             else
-            {
                 return false;
-            }
         }
 
     }
@@ -492,7 +486,6 @@ class ApiCustomer extends REST_Controller
                 else {
                     $response = [
                         'status' => FALSE,
-                        'id' => $id,
                         'message' => 'Customer already exists.',
                     ];
                     $this->response($response, 400);

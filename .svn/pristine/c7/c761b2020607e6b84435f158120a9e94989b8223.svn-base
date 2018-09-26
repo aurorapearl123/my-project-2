@@ -4,9 +4,6 @@ require APPPATH.'libraries/REST_Controller.php';
 class ApiOrder extends REST_Controller
 {
     protected $table = "order_headers";
-    var $pfield;
-    var $logfield;
-    var $data;
 
     public function __construct($config = 'rest')
     {
@@ -19,9 +16,6 @@ class ApiOrder extends REST_Controller
             die();
         }
         $this->load->library('form_validation');
-        $this->pfield = $this->data['pfield'] = 'orderID'; // defines primary key
-        $this->logfield = 'orderID';
-
     }
 
     public function order_get()
@@ -239,7 +233,6 @@ class ApiOrder extends REST_Controller
                 'branch_name' => $order->branchName,
                 'custsign' => $order->custSign,
                 'status' => $order->order_status,
-                'remarks' => $order->remarks,
                 'order_details' => $this->getDetails('order_details',$order->orderID),
                 //'order_categories' => $this->getOrderCategories('order_categories',$order->orderID)
             ];
@@ -315,15 +308,15 @@ class ApiOrder extends REST_Controller
                 //get from and to date
                 $from = $array_param[0];
                 $to = $array_param[1];
-//                if($from == "new") {
-//                    $status = $array_param[1];
-//                    $filterOrderByDate = $this->filterOrderByNew($branchID, $status);
-//                    $this->response([
-//                        'status' => true,
-//                        'data' => $filterOrderByDate,
-//                    ]);
-//                }
-//                else {
+                if($from == "new") {
+                    $status = $array_param[1];
+                    $filterOrderByDate = $this->filterOrderByNew($branchID, $status);
+                    $this->response([
+                        'status' => true,
+                        'data' => $filterOrderByDate,
+                    ]);
+                }
+                else {
 
                     $status = $array_param[2];
                     $filterOrderByDate = $this->filterOrderByDate($from, $to, $branchID, $status);
@@ -332,7 +325,7 @@ class ApiOrder extends REST_Controller
                         'data' => $filterOrderByDate,
                     ]);
 
-               // }
+                }
 
             }
         }
@@ -489,62 +482,6 @@ class ApiOrder extends REST_Controller
         return $data;
     }
 
-    public function update_order_details_data_post()
-    {
-        header("Access-Control-Allow-Origin: *");
-        $this->load->library('Authorization_Token');
-        //user token validation
-        $is_valid_token = $this->authorization_token->validateToken();
-        //get the id
-        //$is_valid_token['data']->id;
-        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
-            $user_id = $is_valid_token['data']->id;
-            $branch_id = $is_valid_token['data']->branchID;
-            $data = $this->input->post('data');
-            $customer_id = $this->input->post('customer_id');
-            $grand_total = $this->input->post('grand_total');
-            $remarks = $this->input->post('remarks');
-            $category_data = $this->input->post('category_data');
-            $order_id = $this->input->post('order_id');
-
-            //remove order first
-            //$this->deleteOrder($order_id);
-
-            //save order_header
-            $order_headers = [
-                'date' => date('Y-m-d'),
-                'custID' => $customer_id,
-                'branchID' => $branch_id,
-                'remarks' => $remarks,
-                'ttlAmount' => $grand_total
-            ];
-
-            $this->updateOrder($this->table, $order_headers, $order_id);
-            //$lastId = $this->db->insert_id();
-            $this->deleteOrder('order_details', $order_id);
-            $order_details = [];
-            foreach($data as $key => $value) {
-                $this->insertDetails($category_data, $order_id, $value['quantity'], $value['amount'], $value['rate'], $value['unit'], $value['service_id']);
-            }
-
-            $this->response([
-                'status' => true,
-//                'order_headers' => $order_headers,
-//                'order_id' => $order_id
-            ]);
-        }
-        else {
-            $this->response(
-                [
-                    'status' => FALSE,
-                    'message' => $is_valid_token['message']
-                ],
-                REST_Controller::HTTP_NOT_FOUND
-            );
-        }
-    }
-
-
     public function create_order_post()
     {
         header("Access-Control-Allow-Origin: *");
@@ -636,30 +573,4 @@ class ApiOrder extends REST_Controller
 
         return $data;
     }
-
-    public function deleteOrder($table, $orderID)
-    {
-        $this->db->where('orderID', $orderID);
-        $this->db->delete($table);
-        return true;
-    }
-
-    public function updateOrder($table, $data, $id) {
-        $this->db->where('orderID', $id);
-        $this->db->update($table, $data);
-        return true;
-    }
-
-    public function order_delete()
-    {
-        //$id = $this->delete('id');
-        $id = $this->uri->segment(3);
-        // set fields
-        $data = $this->deleteOrder('order_headers', $id);
-        $this->response([
-            'data' => $data
-        ]);
-
-    }
-
 }

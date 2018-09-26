@@ -72,18 +72,14 @@ $route['api/barangays/(:any)'] = 'api/ApiCustomer/barangays';
 $route['api/order'] = 'api/ApiOrder/order';
 //get order details
 $route['api/order-details/(:any)'] = 'api/ApiOrder/order_details';
-//update order details for signature
-$route['api/order-details'] = 'api/ApiOrder/update_order_details';
 //update order details
-$route['api/order-details-update'] = 'api/ApiOrder/update_order_details_data';
+$route['api/order-details'] = 'api/ApiOrder/update_order_details';
 //get order by date
 $route['api/order-date/(:any)'] = 'api/ApiOrder/order_by_date';
 //order get history details
 $route['api/order-history'] = 'api/ApiOrder/order_history';
 //add order
 $route['api/create-order'] = 'api/ApiOrder/create_order';
-//delete order
-$route['api/order-delete/(:any)'] = 'api/ApiOrder/order';
 //get services
 $route['api/services'] = 'api/ApiServiceType/services';
 $route['api/categories/(:any)'] = 'api/ApiServiceType/categories';
