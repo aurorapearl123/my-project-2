@@ -22,6 +22,8 @@ class ApiOrder extends REST_Controller
         $this->pfield = $this->data['pfield'] = 'orderID'; // defines primary key
         $this->logfield = 'orderID';
 
+
+
     }
 
     public function order_get()
@@ -163,14 +165,18 @@ class ApiOrder extends REST_Controller
 
     public function getCategoriesById($id)
     {
-        $this->db->select('clothes_categories.*');
-        //$this->db->select('clothes_categories.*');
-        $this->db->from('clothes_categories');
-        //$this->db->join ( 'clothes_categories', $table . '.clothesCatID=clothes_categories.clothesCatID', 'left' );
-        $this->db->where('clothes_categories.clothesCatID', $id);
-        $details = $this->db->get()->result();
+//        $this->db->select('clothes_categories.*');
+//        //$this->db->select('clothes_categories.*');
+//        $this->db->from('clothes_categories');
+//        //$this->db->join ( 'clothes_categories', $table . '.clothesCatID=clothes_categories.clothesCatID', 'left' );
+//        $this->db->where('clothes_categories.clothesCatID', $id);
+//        $details = $this->db->get()->result();
+//
+//        return $details;
 
-        return $details;
+        require_once(APPPATH.'controllers/ApiHelpers.php');
+
+        return  ApiHelpers::getCategoriesById($id);
     }
 
     public function order_details_get(){
@@ -573,6 +579,13 @@ class ApiOrder extends REST_Controller
 
             $this->db->insert($this->table, $order_headers);
             $lastId = $this->db->insert_id();
+
+            $logs = "Record - " . trim ( $_POST );
+
+            $this->log_model->table_logs ( 'order api', $this->table, $this->pfield, $lastId, 'Insert', $logs , $user_id);
+
+            $this->addSeriesNo($lastId, $branch_id);
+
             $order_details = [];
             foreach($data as $key => $value) {
                 $this->insertDetails($category_data, $lastId, $value['quantity'], $value['amount'], $value['rate'], $value['unit'], $value['service_id']);
@@ -659,6 +672,17 @@ class ApiOrder extends REST_Controller
         $this->response([
             'data' => $data
         ]);
+
+    }
+
+    public function addSeriesNo($id, $branchID)
+    {
+        require_once(APPPATH.'controllers/Generic_ajax.php');
+        $series = '0000'.$id;
+        $className = 'order';
+
+        $data = Generic_ajax::addSeriesNo($className, $series, $branchID);
+        return $data;
 
     }
 

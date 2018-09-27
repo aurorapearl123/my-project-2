@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="<?php echo base_url('assets/css/style.min.css') ?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo base_url('assets/css/main.min.css') ?>" rel="stylesheet" type="text/css" />
+      <link href="<?php echo base_url('assets/css/order-create.css') ?>" rel="stylesheet" type="text/css" />
     <link rel="shortcut icon" href="<?php echo base_url('assets/img/main/favicon.png') ?>" />
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>

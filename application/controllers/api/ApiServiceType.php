@@ -60,10 +60,10 @@ class ApiServiceType extends REST_Controller
         if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
             $user_id = $is_valid_token['data']->id;
             $service_id = $this->uri->segment(3);
-            $this->db->select('*');
-            $this->db->where('status', 1);
-            $this->db->where('serviceID', $service_id);
-            $categories = $this->db->get('clothes_categories')->result();
+
+            require_once(APPPATH.'controllers/ApiHelpers.php');
+            $categories = ApiHelpers::getCategories($service_id);
+
             $this->response([
                 'status' => true,
                 'user_id' => $user_id,

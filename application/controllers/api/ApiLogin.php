@@ -83,6 +83,8 @@ class ApiLogin extends REST_Controller
                     'branchName' => $user['branchName'],
                     'token' => $user_token
                 ];
+                //log
+                $this->login_logs('Login', $user['userID']);
 
                 $return_data = [
                     'status' => TRUE,
@@ -132,6 +134,21 @@ class ApiLogin extends REST_Controller
         else {
             return false;
         }
+    }
+
+    public function login_logs($operation, $id, $logs='Success')
+    {
+        $data = array();
+        $data['userID'] 	= $id;
+        $data['host'] 		= $_SERVER['REMOTE_ADDR'];
+        $data['hostname'] 	= "";
+        $data['date'] 		= date('Y-m-d H:i:s');
+        $data['operation'] 	= $operation;
+        $data['logs'] 		= $logs;
+
+        $this->db->insert('login_logs', $data);
+
+        return true;
     }
 
 }

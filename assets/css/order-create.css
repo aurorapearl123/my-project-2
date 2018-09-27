@@ -1,0 +1,17 @@
+
+
+.services {
+
+    margin: 0 1.5%;
+    width: 63%;
+}
+.categories {
+
+    margin: 0 1.5%;
+    width: 30%;
+}
+
+.box {
+    display: flex;
+    align-items: stretch;
+}

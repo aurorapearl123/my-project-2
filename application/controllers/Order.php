@@ -1,6 +1,7 @@
 <?php
 defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 
+
 class Order extends CI_Controller {
     //Default Variables
     var $menu;
@@ -104,8 +105,15 @@ class Order extends CI_Controller {
             $service_types = $this->db->get('service_types')->result();
             $data['service_types'] = $service_types;
             $data['service_types_json'] = json_encode($service_types);
-            //var_dump($service_types);
-            //die();
+
+            $services = [];
+            foreach($service_types as $service_type) {
+                $services [] = [
+                    $service_type->serviceID => $service_type->serviceType
+                ];
+            }
+
+            $data['services'] = $services;
             //get customers
             $this->db->select('fname');
             $this->db->select('mname');
@@ -943,6 +951,18 @@ class Order extends CI_Controller {
         $data = Generic_ajax::addSeriesNo($className, $series, $branchID);
         return $data;
 
+    }
+
+    public function getCategories()
+    {
+        require_once(APPPATH.'controllers/ApiHelpers.php');
+        $id = $this->input->post('service_id');
+        $data = ApiHelpers::getCategories($id);
+        $response = [
+            'status' => true,
+            'data' => $data
+        ];
+        echo json_encode($response);
     }
 
 }
