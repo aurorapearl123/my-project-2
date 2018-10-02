@@ -1,4 +1,4 @@
-<div class="subheader">
+    <div class="subheader">
     <div class="d-flex align-items-center">
         <div class="title mr-auto">
             <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
@@ -16,23 +16,31 @@
                     <div class="head-caption">
                         <div class="head-title">
                             <h4 class="head-text">View <?php echo $current_module['module_label'] ?>
-                                <?php if($rec->status != 6) : ?>
-                                    <?php if($rec->dateWashed == '0000-00-00 00:00:00') : ?>
-                                        <span id="span_wash">
-                           <button type="button" class="btn btn-primary btn-xs pill ml-15" id="wash">Wash</button>
-                          <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                      </span>
-                                    <?php elseif($rec->dateReady == '0000-00-00 00:00:00'): ?>
-                                        <span id="span_ready">
-                              <button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>
-                              <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
-                          </span>
-                                    <?php elseif($rec->dateReleased == '0000-00-00 00:00:00'): ?>
-                                        <span id="span_released">
-                              <button type="button" class="btn btn-outline-danger btn-xs pill ml-15" id="cancel">Cancel</button>
-                          </span>
-                                    <?php endif;?>
+
+                                <?php if ($rec[0]['status'] == 1): ?>
+                                    <span id="span_wash">
+                                           <button type="button" class="btn btn-primary btn-xs pill ml-15" id="wash">Wash</button>
+                                          <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
+                                      </span>
+
+                                <?php elseif ($rec[0]['status'] == 2): ?>
+                                    <span id="span_ready">
+                                      <button type="button" class="btn btn-primary btn-xs pill ml-15" id="fold">Fold</button>
+                                      <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
+                                  </span>
+                                <?php elseif ($rec[0]['status'] == 3): ?>
+                                    <span id="span_ready">
+                                      <button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>
+                                      <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
+                                  </span>
+
+                                <?php else: ?>
+
+                                    <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec[0]['orderID'])) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+
                                 <?php endif; ?>
+
+
                                 <span id="result-date"></span>
                             </h4>
                         </div>
@@ -42,18 +50,18 @@
                             <?php if ($roles['edit']) { ?>
                                 <li>
 
-                                    <?php if ($rec->status == 6): ?>
+                                    <?php if ($rec[0]['status'] == 6): ?>
 
 
-                                    <?php elseif ($rec->status == 5): ?>
+                                    <?php elseif ($rec[0]['status'] == 5): ?>
 
 
-                                    <?php elseif ($rec->status == 4): ?>
+                                    <?php elseif ($rec[0]['status'] == 4): ?>
 
 
                                     <?php else: ?>
 
-                                        <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec->orderID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+                                        <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec[0]['orderID'])) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
 
                                     <?php endif; ?>
 
@@ -63,12 +71,12 @@
                             <?php } ?>
                             <?php if ($roles['delete'] && !$in_used) { ?>
                                 <li>
-                                    <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->orderID); ?>');"><i class="la la-trash-o"></i></button>
+                                    <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec[0]['orderID']); ?>');"><i class="la la-trash-o"></i></button>
                                 </li>
                             <?php } ?>
                             <?php if ($this->session->userdata('current_user')->isAdmin) { ?>
                                 <li>
-                                    <button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/order_headers/orderID/'.$this->encrypter->encode($rec->orderID).'/Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
+                                    <button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/order_headers/orderID/'.$this->encrypter->encode($rec[0]['orderID']).'/Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
                                 </li>
                             <?php } ?>
                         </ul>
@@ -81,13 +89,13 @@
                                 <tbody>
                                 <tr>
                                     <td class="data-title w-10">Branch :</td>
-                                    <td class="data-input w-20"><?php echo $rec->branchName;?></td>
+                                    <td class="data-input w-20"><?php echo $rec[0]['branch_name'];?></td>
                                     <td class="data-title w-10">Date :</td>
                                     <td class="data-input w-20"><?php echo date('F d, Y')?></td>
                                 </tr>
                                 <tr>
                                     <td class="data-title">Customer Name :</td>
-                                    <td class="data-input"><?php echo $rec->fname .' '.$rec->mname. ' '.$rec->lname;?></td>
+                                    <td class="data-input"><?php echo $rec[0]['fname'] .' '.$rec[0]['mname']. ' '.$rec[0]['lname'];?></td>
                                     <td class="data-title">is discounted</td>
                                     <td class="data-input border-0">
                                         <div class="checkbox">
@@ -102,34 +110,68 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="data-title">Service : </td>
-                                    <td class="data-input"><?php echo $rec->serviceType;?></td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="datatables_wrapper mt-30">
-                            <div class="table-responsive-xl">
-                                <!-- start create header details -->
-                                <?php
-                                $table_str="<table class='table'>";
-                                $table_str.='<thead class="thead-light"><tr>';
-                                $table_str.='<th>'.'Quantity'.'</th>';
-                                $table_str.='<th>'.'Clothes Category'.'</th>';
-                                $table_str.='</tr></thead>';
-                                $i = 1;
-                                foreach ($clothes_categories as $rows) {
-                                    $table_str.='<tr>';
-                                    $table_str.='<td style="width: 100px" align="left">'.'<input type="number" min="1" name="clothes_qtys[]" value="'.$rows->qty.'" class="border-0" readonly >'.'</td>';
-                                    $table_str.='<td>'.$rows->category.'</td>';
-                                    $table_str.='</tr>';
-                                }
-                                $table_str.="</table>";
+                        <br>
+                        <div>
+                            <div class="row">
+                                <div class="col-md-8" id="services-container">
+                                    <!-- start create header details -->
+                                    <table class="table" id="tb">
+                                        <thead class="thead-light">
+                                        <tr class="tr-header">
+                                            <th>Item</th>
+                                            <th>QTY</th>
+                                            <th>UNIT</th>
+                                            <th>RATE</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php foreach($rec[0]['order_details'] as $detail) : ?>
+                                            <tr class="item">
+                                                <td><?php echo $detail['serviceType']?></td>
+                                                <td><?php echo $detail['qty']?></td>
+                                                <td><?php echo $detail['unit']?></td>
+                                                <td><?php echo $detail['rate']?></td>
+                                                <td><?php echo $detail['amount']?></td>
 
-                                echo $table_str;
-                                ?>
-                                <!-- end create header details -->
+                                            </tr>
+                                        <?php endforeach;?>
+                                        </tbody>
+                                        <tfoot>
+
+                                        </tfoot>
+                                    </table>
+                                    <!-- end create header details -->
+                                </div>
+                                <div class="col-md-4">
+                                    <!-- start create header details -->
+                                    <?php
+                                    $table_str="<table border='0' class='table table-sm'>";
+                                    $table_str.='<tr>';
+                                    $table_str.='<th>'.'Quantity'.'</th>';
+                                    $table_str.='<th>'.'Category'.'</th>';
+                                    $table_str.='<tr>';
+                                    $i = 1;
+                                    foreach ($rec[0]['order_details'] as $rows) {
+                                        foreach($rows['categories'] as $row) {
+                                            $table_str.='<tr class="categories">';
+                                            //$table_str.='<td>'.'<input type="number" min="1" id="id_'.($i++).'" name="id_'.($i++).'">'.'</td>';
+                                            $table_str.='<td style="width: 100px" align="left">'.'<input type="text" min="1" name="clothes_qtys[]" onkeypress="return isNumber(event)" value="'.$row->qty.'" class="form-control category-quantity" readonly>'.'</td>';
+                                            $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$row->clothesCatID.'" class="category-id">'.'</td>';
+                                            $table_str.='<td>'.$row->category.'</td>';
+                                            $table_str.='</tr>';
+                                        }
+
+                                    }
+                                    $table_str.="</table>";
+
+                                    echo $table_str;
+                                    ?>
+                                    <!-- end create header details -->
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -151,24 +193,20 @@
                             <table class="view-table">
                                 <tbody>
                                 <tr>
-                                    <td class="data-title w-50">Rate :</td>
-                                    <td class="py-5"><input type="text" class="form-control" name="rate" id="rate" value="<?php echo $rec->rate;?>" readonly></td>
-                                </tr>
-                                <tr>
-                                    <td class="data-title">Quantity in kilos :</td>
-                                    <td class="py-5"><input type="number" class="form-control" name="qty" id="qty" min="0" value="<?php echo $rec->qty;?>" readonly></td>
-                                </tr>
-                                <tr>
-                                    <td class="data-title">Sub total:</td>
-                                    <td class="py-5"><input type="number" class="form-control" name="subtotal" id="subtotal" min="0" readonly></td>
+                                    <td class="data-title">Order #:</td>
+                                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec[0]['osNo'];?>" readonly></td>
                                 </tr>
                                 <tr>
                                     <td class="data-title">Deliver Fee:</td>
-                                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec->deliveryFee;?>" readonly></td>
+                                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec[0]['deliveryFee'];?>" readonly></td>
                                 </tr>
                                 <tr>
                                     <td class="data-title">Amount :</td>
-                                    <td class="py-5"><input type="number" class="form-control" name="ttlAmount" id="ttlAmount" readonly></td>
+                                    <td class="py-5"><input type="number" class="form-control" name="ttlAmount" id="ttlAmount" value="<?php echo $rec[0]['ttlAmount'];?>"  readonly></td>
+                                </tr>
+                                <tr>
+                                    <td class="data-title">Remarks :</td>
+                                    <td class="py-5"><input type="text" class="form-control"  value="<?php echo $rec[0]['remarks'];?>"  readonly></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -176,44 +214,49 @@
                         <div class="form-sepator solid mx-0"></div>
                         <div class="data-view">
                             <table class="view-table">
-                                <tbody>
+                                <tbody id="tbody-display-date">
+
+
                                 <tr>
-                                    <td>Prepared by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
+                                    <td>Prepared by : &nbsp;&nbsp;<span><?php echo $rec[0]['user_first_name'] .' '.$rec[0]['user_middle_name'].' '.$rec[0]['user_last_name'];?></span></td>
                                 </tr>
-                                <?php if($rec->dateWashed != '0000-00-00 00:00:00') { ?>
-                                    <tr>
-                                        <td>Date washed : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateWashed)) ;?></span></td>
+
+                                <?php if ($rec[0]['status'] == 2): ?>
+                                    <span id="span_wash_button">
+                                           <tr>
+                                            <td>Date washed : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec[0]['dateWashed'])) ;?></span></td>
+                                           </tr>
+                                      </span>
+                                <?php elseif ($rec[0]['status'] == 3): ?>
+                                    <span id="span_ready_button">
+                                      <tr>
+                                        <td>Date Fold : &nbsp;&nbsp;<span><?php echo $rec[0]['dateFold'];?></span></td>
                                     </tr>
-                                <?php } ?>
-                                <?php if($rec->dateReady != '0000-00-00 00:00:00') { ?>
-                                    <tr>
-                                        <td>Date Ready : &nbsp;&nbsp;<span><?php echo $rec->dateReady;?></span></td>
+                                  </span>
+                                <?php elseif ($rec[0]['status'] == 4): ?>
+                                    <span id="span_ready_button">
+                                       <tr>
+                                        <td>Date Ready : &nbsp;&nbsp;<span><?php echo $rec[0]['dateReady'];?></span></td>
                                     </tr>
-                                <?php } ?>
-                                <?php if($rec->cancelledBy != '') { ?>
-                                    <tr>
-                                        <td>Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->cancelledFirstName .' '.$rec->cancelledMiddleName.' '.$rec->cancelledLastName;?></span></td>
-                                    </tr>
-                                <?php } ?>
-                                <?php if($rec->dateFold != '0000-00-00 00:00:00') { ?>
-                                    <tr>
-                                        <td>Date Fold : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateFold)) ;?></span></td>
-                                    </tr>
-                                <?php } ?>
-                                <?php if($rec->dateReleased != '0000-00-00 00:00:00') { ?>
-                                    <tr>
-                                        <td>Date Released : &nbsp;&nbsp;<span><?php echo date('M d, Y H:i:s',strtotime($rec->dateReleased)) ;?></span></td>
-                                    </tr>
-                                <?php } ?>
+                                    </span>
+                                <?php elseif ($rec[0]['status'] == 1): ?>
+                                <tr>
+                                    <td>
+                                        <span id="span_created_button"> Date Created : &nbsp;&nbsp; <?php echo $rec[0]['dateCreated'];?></span>
+                                    </td>
+                                </tr>
+                                        <?php endif; ?>
+
+
                                 </tbody>
                             </table>
                         </div>
                         <div class="mt-10">
-                            <?php if ($rec->custSign) { ?>
+                            <?php if ($rec[0]['custSign']) { ?>
                                 <p>Signature : </p>
                                 <div style="max-height:200px">
 
-                                    <img src="<?php echo $rec->custSign; ?>" alt="Red dot" style="max-height: 200px; max-width: 100%;" />
+                                    <img src="<?php echo $rec[0]['custSign']; ?>" alt="Red dot" style="max-height: 200px; max-width: 100%;" />
 
                                 </div>
                             <?php } ?>
@@ -285,19 +328,9 @@
 
 <script>
     $(document).ready(function(){
-        var rate = parseInt($('#rate').val());
-        var quantity_kilo = parseInt($('#qty').val());
-        var total = quantity_kilo * rate;
 
-        $('#subtotal').val(total);
 
-        var subtotal = parseInt($('#subtotal').val());
-        var deliveryFee = parseInt($('#deliveryFee').val());
-        var total = subtotal + deliveryFee;
-
-        $('#ttlAmount').val(total);
-
-        var orderID = "<?php echo $rec->orderID; ?>";
+        var orderID = "<?php echo $rec[0]['orderID']; ?>";
 
         //button's actions
         $('#wash').on('click', function(){
@@ -316,12 +349,19 @@
                 .then((willConfirm) => {
                     if (willConfirm.value) {
 
+                        var dateNow = '<?php echo date('Y-m-d')?>';
+
                         updateDate(orderID, 'dateWashed');
                         $("#span_wash").hide();
+                        $("#span_created_button").hide();
 
-                        var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
+                        var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="fold">Fold</button>';
                         listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
                         $("#result-date").append(listHTML);
+
+
+                        displayDate("Date Washed : ", dateNow);
+
 
                     }
                 });
@@ -368,6 +408,10 @@
                         $("#result-date").append(listHTML);
                         //window.location.reload();
 
+                        var dateNow = '<?php echo date('Y-m-d')?>';
+
+                        displayDate("Date Ready : ", dateNow);
+
                     }
                 });
             //console.log("ready jprocedd");
@@ -389,7 +433,7 @@
                 .then((willConfirm) => {
                     if (willConfirm.value) {
 
-                        updateDate(orderID, 'dateCancelled');
+                        //updateDate(orderID, 'dateCancelled');
                         $("#result-date").html('');
                         $("#span_wash").html('');
                         $("#span_ready").html('');
@@ -400,6 +444,42 @@
                 });
             //console.log("ready jprocedd");
         });
+
+        $(document).on('click', '#fold', function(){
+
+
+            swal({
+                title: "You are performing 'Fold' action.",
+                text: "Do you still want to continue?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })
+                .then((willConfirm) => {
+                    if (willConfirm.value) {
+
+                        updateDate(orderID, 'dateFold');
+
+                        $("#result-date").html('');
+                        $("#span_ready").html('');
+
+                        var listHTML = '<button type="button" class="btn btn-primary btn-xs pill ml-15" id="ready">Ready</button>';
+                        listHTML += '<button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>';
+                        $("#result-date").append(listHTML);
+                        //window.location.reload();
+
+                        var dateNow = '<?php echo date('Y-m-d')?>';
+
+                        displayDate("Date Fold : ", dateNow);
+
+                    }
+                });
+            //console.log("ready jprocedd");
+        });
+
 
         // $(document).on('click', '#ready', function(e){
         //     //alert("hello");
@@ -428,5 +508,12 @@
                 console.log(data);
 
             });
+    }
+    function displayDate(label, date)
+    {
+        var listDisplayDate = $('<tr>').append($('<td>')
+            .append(label+" "+date)
+        );
+        $('#tbody-display-date').append(listDisplayDate);
     }
 </script>

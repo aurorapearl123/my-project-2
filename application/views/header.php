@@ -16,6 +16,7 @@
     <![endif]-->
     <script src="<?php echo base_url('assets/js/jquery-3.2.1.min.js') ?>" type="text/javascript"></script>
     <script src="<?php echo base_url('assets/js/framework.js') ?>" type="text/javascript"></script>
+  <script src="<?php echo base_url('assets/js/dropzone.js') ?>" type="text/javascript"></script>
 
       <style>
           input[type=number]::-webkit-inner-spin-button,

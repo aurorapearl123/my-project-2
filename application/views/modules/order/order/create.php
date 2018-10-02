@@ -30,7 +30,7 @@
                                     <td class="form-group form-input">
                                         <input type="text" class="form-control" name="branchName" id="branchName" title="Branch Name" value="<?php echo $branchName;?>" readonly>
                                         <input type="hidden" class="form-control" name="branchID" id="branchID" title="Branch Id" value="<?php echo $branchID;?>" readonly>
-                                        <input type="hidden" id="cloth_category_size" name="cloth_category_size" value="<?php echo count($clothes_categories)?>">
+
                                     </td>
                                     <td class="form-label" style="width:13%">Date :</td>
                                     <td class="form-group form-input" style="width:22%">
@@ -57,70 +57,107 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
-<!--                                    <td class="form-label">Service :</td>-->
-<!--                                    <td class="form-group form-input select-service-type">-->
-<!--                                        <select class="form-control" id="serviceID" name="serviceID" data-live-search="true" livesearchnormalize="true" title="Service" required>-->
-<!--                                            <option value="" selected>&nbsp;</option>-->
-<!--                                            --><?php //foreach($service_types as $row) { ?>
-<!--                                                <option value="--><?php //echo $row->serviceID ?><!--">--><?php //echo $row->serviceType ?><!--</option>-->
-<!--                                            --><?php //} ?>
-<!--                                        </select>-->
-<!---->
-<!--                                    </td>-->
-                                    <td>
-                                        <button type="button" class="btn btn-primary" id="id-add-services">ADD SERVICES</button>
-                                    </td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <!-- end create header details -->
-<!--                        <div id="services-container">-->
-<!--                            <div class="row">-->
-<!--                                <div class="col-md-8">.col-md-8</div>-->
-<!--                                <div class="col-md-4">.col-md-4</div>-->
-<!--                            </div>-->
-<!--                        </div>-->
+                        <br>
+                        <div>
+                            <div class="row">
+                                <div class="col-md-8" id="services-container">
+                                    <!-- start create header details -->
+                                    <table class="table" id="tb">
+                                        <thead class="thead-light">
+                                        <tr class="tr-header">
+                                            <th>Item</th>
+                                            <th>QTY</th>
+                                            <th>UNIT</th>
+                                            <th>RATE</th>
+                                            <th>Amount</th>
+                                            <th>Option</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                        <tr class="item">
+                                            <td class="form-group form-input pl-5" width="15%">
+                                                <select class="form-control" id="serviceID" name="serviceID" data-live-search="true" livesearchnormalize="true" title="Service" required>
+                                                    <option value="" selected>&nbsp;</option>
+                                                    <?php foreach($service_types as $row) { ?>
+                                                        <option value="<?php echo $row->serviceID ?>"><?php echo $row->serviceType ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </td>
+                                            <td class="form-group form-input pl-5" width="15%">
+                                                <input type="number" class="form-control w-80" name="qty[]" id="qty" title="QTY" min="0"  value="<?php echo $qty?>">
+                                            </td>
+                                            <td class="form-group form-input pl-5" width="15%">
+                                                <input type="text" class="form-control w-80" name="unit[]" id="unit" title="UNIT" min="0"  readonly value="<?php echo $unit?>">
+                                            </td>
+                                            <td class="form-group form-input pl-5" width="15%">
+                                                <input type="number" class="form-control w-80" name="rate[]" id="rate" title="RATE" min="0"  readonly value="<?php echo $rate?>">
+                                            </td>
+                                            <td class="form-group form-input pl-5" width="15%">
+                                                <input type="number" class="id form-control w-80" name="amount[]" id="amount" title="Amount" min="0"  readonly value="<?php echo $amount?>">
+                                            </td>
+                                            <td class="form-group form-input pl-5" width="10%"">
+                                            <button id="addMore" type="button" class="btn btn-primary btn-xs pill btn-raised">add</button>
+                                            </td>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                    <!-- end create header details -->
+                                </div>
+                                <div class="col-md-4">
+                                    <!-- start create header details -->
+                                    <?php
+                                    $table_str="<table border='0' class='table table-sm'>";
+                                    $table_str.='<tr>';
+                                    $table_str.='<th>'.'Quantity'.'</th>';
+                                    $table_str.='<th>'.'Category'.'</th>';
+                                    $table_str.='<tr>';
+                                    $i = 1;
+                                    foreach ($clothes_categories as $rows) {
+                                        $table_str.='<tr class="categories">';
+                                        //$table_str.='<td>'.'<input type="number" min="1" id="id_'.($i++).'" name="id_'.($i++).'">'.'</td>';
+                                        $table_str.='<td style="width: 100px" align="left">'.'<input type="text" min="1" name="clothes_qtys[]" onkeypress="return isNumber(event)" class="form-control category-quantity">'.'</td>';
+                                        $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$rows->clothesCatID.'" class="category-id">'.'</td>';
+                                        $table_str.='<td style="display:none">'.'<input type="hidden" min="1"  value="'.$rows->serviceID.'" class="service-id">'.'</td>';
+                                        $table_str.='<td>'.$rows->category.'</td>';
+                                        $table_str.='</tr>';
+                                    }
+                                    $table_str.="</table>";
 
-                        <div id="service-container">
-
-
+                                    echo $table_str;
+                                    ?>
+                                    <!-- end create header details -->
+                                </div>
+                            </div>
                         </div>
+
 
                         <div class="table-row mt-30">
                             <table class="table-form">
                                 <tbody>
+
                                 <tr>
-                                    <td class="form-label">
-                                        <label for="config">Rate : <span class="asterisk">*</span></label>
-                                    </td>
-                                    <td class="form-group form-input">
-                                        <input type="text" class="form-control" name="rate" id="rate" title="Branch Name" readonly required>
-                                    </td>
-                                    <td class="form-label" style="width:13%">Quantity in kilos : </td>
+                                    <td class="form-label" style="width:13%">Amount:  <span class="asterisk">*</span></td>
                                     <td class="form-group form-input" style="width:22%">
-                                        <span id="span_error" style="color: red"></span>
-                                        <input type="number" class="form-control quantity" name="qty" id="qty" min="0" title="Quantity in kilos" required>
-                                    </td>
-                                    <td class="d-xxl-none"></td>
-                                </tr>
-                                <tr>
-                                    <td class="form-label" style="width:13%">Sub total:  <span class="asterisk">*</span></td>
-                                    <td class="form-group form-input" style="width:22%">
-                                        <input type="number" class="form-control" name="subtotal" id="subtotal" min="0" title="Company Abbr" readonly required>
-                                    </td>
-                                    <td class="form-label" style="width:13%">Deliver Fee:  <span class="asterisk">*</span></td>
-                                    <td class="form-group form-input" style="width:22%">
-                                        <input type="number" class="form-control" name="deliveryFee" id="deliveryFee" title="Delivery Fee" required>
-                                    </td>
-                                    <td class="d-xxl-none"></td>
-                                </tr>
-                                <tr>
-                                    <td class="form-label">Amount : </td>
-                                    <td class="form-group form-input">
                                         <input type="number" class="form-control" name="ttlAmount" id="ttlAmount" title="Total Amount" readonly required>
+                                    </td>
+                                    <td class="form-label" style="width:13%">Deliver Fee: </td>
+                                    <td class="form-group form-input" style="width:22%">
+                                        <input type="number" class="form-control" name="deliveryFee" id="deliveryFee" title="Delivery Fee">
+                                    </td>
+                                    <td class="d-xxl-none"></td>
+                                </tr>
+                                <tr>
+                                    <td class="form-label" style="width:13%">Remarks:  </td>
+                                    <td class="form-group form-input" >
+                                        <textarea id="remarks" name="remarks" style="width:300%"></textarea>
+                                        <input type="hidden" id="services_data" name="services_data">
+                                        <input type="hidden" id="categories_data" name="categories_data">
                                     </td>
                                 </tr>
                                 </tbody>
@@ -153,7 +190,66 @@
                         swal("Duplicate","Record is already exist!","warning");
                     } else {
                         // submit
-                        $('#frmEntry').submit();
+
+                        var amounts = [];
+                        $("tr.item").each(function() {
+                            var amount = $(this).find("input.id").val();
+                            var unit = $(this).find("input.unit").val();
+                            var rate = $(this).find("input.rate").val();
+                            var qty = $(this).find("input.name").val();
+                            var service_id = $(this).find("input.item_id").val();
+
+                            //$("tr td:first-child").val();
+                            // console.log("first child", rate);
+
+                            // service_id : data_bind,
+                               /* amount: amount,
+                                unit : unit,
+                                rate : rate,
+                                quantity: quantity,*/
+
+                            if(amount != "") {
+                                amounts.push({
+                                    amount: amount,
+                                    rate: rate,
+                                    unit: unit,
+                                    quantity: qty,
+                                    service_id : service_id
+                                });
+                            }
+
+                            // total_amount += +amount;
+                        });
+                        var amounts = JSON.stringify(amounts);
+
+                        var categories = [];
+                        $("tr.categories").each(function(){
+                            var category_quantity = $(this).find("input.category-quantity").val();
+                            var category_id = $(this).find("input.category-id").val();
+                            var service_id = $(this).find("input.service-id").val();
+                            console.log("the service id");
+                            console.log(service_id);
+
+                           /* category_data.push({
+                                service_id : data_bind_table,
+                                category_quantity: category_quantity,
+                                category_id : category_id
+                            });*/
+
+                            if(category_quantity != "") {
+                                categories.push({
+                                    service_id: service_id,
+                                    category_quantity: category_quantity,
+                                    category_id: category_id
+                                });
+                            }
+                            //console.log("category quantity ", category_quantity);
+                        });
+
+                        var categories_data = JSON.stringify(categories);
+                        $('#services_data').val(amounts);
+                        $('#categories_data').val(categories_data);
+                        //$('#frmEntry').submit();
                     }
                 }, "text");
         }
@@ -200,298 +296,193 @@
     $(document).ready(function() {
         //set initial state.
 
-        $("#id-add-services").on("click",function () {
-            createTableContainer();
+        localStorage.clear();
+       console.log("local storage clear");
+
+        $('#addMore').on('click', function() {
+            var item = $('#serviceID').val();
+            console.log("the service id");
+            console.log(item);
+            var item_text = $('#serviceID option:selected').text();
+            var amount = $('#amount').val();
+            var qty = $('#qty').val();
+            var rate = $('#rate').val();
+            var unit = $('#unit').val();
+            if(amount != "" && qty != "") {
+
+                var ids = [];
+                var service_ids = localStorage.getItem("service_ids");
+                console.log("the storage", service_ids);
+                if(service_ids) {
+                    //save local storage
+                    var new_service_ids = localStorage.getItem("service_ids");
+                    var new_service_ids = JSON.parse(service_ids);
+                    for(i = 0; i < new_service_ids.length; i++) {
+                        if(new_service_ids[i] === item) {
+                            //alert("service already exist");
+                            swal("Already Exist ",item_text,"warning");
+                            console.log("exits");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("service_ids");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(item);
+
+                            var service_ids = JSON.stringify(new_ids);
+                            //console.log("ADD SERVICE ID");
+                            //console.log(ids);
+                            localStorage.setItem("service_ids", service_ids);
+                        }
+                    }
+
+                }
+                else {
+                    ids.push(item);
+                    var service_ids = JSON.stringify(ids);
+                    localStorage.setItem("service_ids", service_ids);
+                }
+
+
+               // console.log("THE AMOUNT", qty);
+
+                //loop table to check duplicate
+
+                $('#tb').append($('<tr class="item">')
+                    .append($('<td id="item[]">').text(item_text))
+                    .append($('<td style="display:none"><input type="hidden" name="service_ids[]" value="'+item+'" class="item_id" id="new_service_id" readonly>'))
+                        .append($('<td><input type="number" name="qtys[]" value="'+qty+'" class="name form-control new-quantity" >'))
+                    .append($('<td><input type="text"  name="unit[]" value="'+unit+'" class="unit form-control" readonly>'))
+                    .append($('<td><input type="number"  name="rate[]" value="'+rate+'" class="rate form-control" readonly>'))
+                    .append($('<td><input type="number" name="amounts[]" value="'+amount+'" class="id form-control" readonly >'))
+                    .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><i class="icon la la-trash-o sm"></i></a>'))
+                );
+                //$table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$rows->clothesCatID.'">'.'</td>';
+                $('#itemID option').attr('selected', false);
+
+
+               // calculateAmountForTotal();
+                //clear all field
+                $('#amount').val('');
+                //var qty = $('.new-quantity').val('');
+                $('#rate').val('');
+                $('#unit').val('');
+                $(this).closest('td').prev().prev().prev().prev().find('input').val('');
+            }
         });
+
     });
 
-    function waitForCloseClick(serviceID) {
-        console.log(serviceID);
-        console.log("close select");
-        $.post("<?php echo $controller_page ?>/getCategories", { service_id: serviceID },
-           function(data, status){
-               if(data != 0)  {
+    $(document).on('change', '#serviceID', function(){
+        //var optionSelected = $("option:selected", this);
+        var valueSelected = this.value;
 
-                   console.log("response");
-                   //console.log(data);
+        var services = '<?php echo json_encode($service_types); ?>';
+        var services = JSON.parse(services);
+
+        //console.log(services);
+        //console.log(valueSelected);
+        for( x in services) {
+            //console.log(services[x]);
+            //console.log(services[x]['serviceID']);
+            if(services[x]['serviceID'] == valueSelected) {
+                // console.log(services[x]['serviceID']);
+                // console.log(services[x]['serviceType']);
+                // console.log(services[x]['regRate']);
+                // console.log(services[x]['discountedRate']);
+                // console.log(services[x]['unit']);
+                $(this).closest('td').next('td').next().find('input').val(services[x]['unit']);
+                $(this).closest('td').next('td').next().next().find('input').val(services[x]['regRate']);
+
+                var value = $(this).closest('td').next('td').find('input').val();
+                calculateAmountSelect(this, value);
+                calculateAmountForTotal();
+            }
+        }
 
 
+    });
 
-                   createTableContainer();
-                   data = $.parseJSON(data);
-                   $.each(data, function(k,v){
-                       console.log(v);
-                   });
+    function calculateAmountSelect(_this, value)
+    {
+        if(value !== "") {
+            var rate = $(_this).closest('td').next('td').next('td').next('td').find('input').val();
+            var product = rate * value;
+            $(_this).closest('td').next('td').next('td').next('td').next('td').find('input').val(product);
+        }
 
-
-
-               }
-
-           });
-        return false;
     }
 
-    function createTableContainer()
+    $(document).on('keyup', '#qty', function(){
+        var value = $(this).val();
+        calculateAmount(this, value);
+        calculateAmountForTotal();
+    });
+
+    function calculateAmount(_this, value)
     {
-
-        var value = 3;
-        var id_container = 3;
-        var text = "Sample";
-        var remove_more_id = "test";
-        var the_id = "test";
-        var ul_id = "test"
-        var qty = 34;
-        var class_quantity = "test";
-        var UNIT = "fds";
-        var REGULAR_RATE = "23";
-        var amount = 234;
-        var table = $('<div data-service-id="'+value+'">').attr('class', "data-table data-table-init card").attr('id', id_container)
-            .append($('<div>').attr('class', "card-header")
-                .append($('<span>').text("Type : "+text.capitalize()).attr('name',value))
-                .append($('<div>').append($('<i>').attr('class', "la la-trash-o")))
-            )
-            .append($('<div>').attr('class', "card-content")
-                .append($('<table>').attr('id', 'order-table'+the_id)
-                    .append($('<tr>').attr('id', 'tr-head'+the_id))
-                    .append($('<tbody>'))
-                )
-            )
-            //quantity
-            .append($('<ul>').attr('id', ul_id)
-                .append($('<li>')
-                    .append($('<div>').attr('class','item-title label').text("Quantity")
-                            .append($('<input>').attr('placeholder', "Please input Quantity").attr('type', 'number').attr('value', qty).attr('style', 'border:none').attr('class', class_quantity)
-                        )
-                    )
-                )
-                //unit
-                .append($('<li>')
-                    .append($('<div>').attr('class','item-title label').text("UNIT")
-                        .append($('<input>').attr('placeholder', "Unit").attr('value', UNIT).attr('readonly', true).attr('style', 'border:none'))
-                    )
-                )
-                //rate
-                .append($('<li>')
-                    .append($('<div>').attr('class','item-title label').text("RATE")
-                        .append($('<input>').attr('placeholder', "Rate").attr('value', REGULAR_RATE).attr('readonly', true).attr('style', 'border:none'))
-                    )
-                )
-                //amount
-                .append($('<li>')
-                    .append($('<div>').attr('class','item-title label').text("AMOUNT")
-                        .append($('<input>').attr('placeholder', "Amount").attr('readonly', true).attr('style','border:none').attr('class', 'my-amount').attr('value', amount))
-                    )
-
-                )
-            );
-
-
-        var select_container = $('<select data-live-search="true" livesearchnormalize="true" title="Service">').attr('class', 'form-control');
-
-        var selectValues = '<?php echo json_encode($services); ?>';
-        //var test = JSON.parse(test);
-        //console.log(test);
-
-        var selectValues = $.parseJSON(selectValues);
-        console.log("THE RESULT");
-        console.log(selectValues);
-        // var obj = selectValues;
-        // Object.keys(obj).forEach(key => {
-        //     console.log(obj[key]);
-        // });
-        $.each(selectValues, function(key, value) {
-            // console.log("KEY");
-            // console.log(key);
-            // console.log('VALUE');
-            //console.log(value);
-            $.each(value, function(k, v){
-                //console.log(v);
-                console.log("KEY");
-                console.log(k);
-                console.log('VALUE');
-                console.log(v);
-                select_container
-                        .append($("<option></option>")
-                            .attr("value",k)
-                            .text(v));
-
-            });
+        var rate = $(_this).closest('td').next('td').next('td').find('input').val();
+        var product = rate * value;
+        $(_this).closest('td').next('td').next('td').next('td').find('input').val(product);
+    }
+    // loop the table to get the amount
+    function calculateAmountForTotal()
+    {
+        //console.log("calculate total");
+        var total_amount = 0;
+        $("tr.item").each(function() {
+            var amount = $(this).find("input.id").val();
+            console.log("the amount to sum", amount);
+            total_amount += +amount;
         });
 
-        //var selectValues = { "1": "test 1", "2": "test 2" };
+        console.log("the amount", total_amount);
+        $('#ttlAmount').val(total_amount);
 
-        // $.each(selectValues, function(key, value) {
-        //     // console.log("THE KEY");
-        //     // console.log(key);
-        //     // console.log("THE VALUE");
-        //     //console.log(value);
-        //     select_container
-        //         .append($("<option></option>")
-        //             .attr("value",key)
-        //             .text(value));
-        // });
-
-        var container = $('<div>').attr('class', 'services-container')
-                .append($('<div>').attr('class', 'row')
-                .append($('<div>').attr('class', 'col-md-8').append(select_container))
-                .append($('<div>').attr('class', 'col-md-4').append(table).append($('<br>'))
-            )
-        );
-        $('#service-container').append(container);
     }
 
-    String.prototype.capitalize = function() {
-        return this.charAt(0).toUpperCase() + this.slice(1);
-    }
+    $(document).on('click', '.remove', function() {
+        var totalAmt = 0;
+        //$(this).closest("tr").remove();
+
+        var service_id = $(this).closest("tr").find('input').val();
+        //console.log("the service id");
+        //console.log(service_id);
+
+        //remove the ids from service ids
+        var new_ids = localStorage.getItem("service_ids");
+        var new_ids = JSON.parse(new_ids);
+        for(x = 0 ;x < new_ids.length; x ++){
+            if(new_ids[x] == service_id) {
+                //console.log("remove me");
+                //console.log(new_ids[x]);
+                delete new_ids[x];
+
+                //new_ids.splice(0, service_id);
+                //return false;
+            }
+        }
+        //console.log("the id");
+        //console.log(new_ids);
+        var the_ids = JSON.stringify(new_ids);
+        localStorage.setItem("service_ids", the_ids);
+        //new_ids.push(item);
+
+        $(this).closest("tr").remove();
+
+        $("tr.item").each(function() {
+            var amount = $(this).find("input.id").val();
+            //var amount = $(this).find("input.id").val();
+            var qty = $(this).find("input.name").val();
+            //console.log("the amount");
+            //console.log(amount);
+            totalAmt += parseInt(amount);
 
 
-    //    $("#deliveryFee").prop('disabled', true);
-    //
-    //    $(".select-service-type").change(function(){
-    //        //$("#span_error").html("");
-    //        var service_id = $('#serviceID').val();
-    //        if(service_id.length != 0) {
-    //            $("#qty").prop('disabled', false);
-    //            //
-    //        }
-    //
-    //    });
-    //
-    //    $('#isDiscounted').change(function() {
-    //        //$('#textbox1').val($(this).is(':checked'));
-    //        //alert("hello");
-    //        if($(this).is(':checked')) {
-    //            $('#rate').val('');
-    //            var service_id = $('#serviceID').val();
-    //            check_service_discount(1, service_id);
-    //        }
-    //        else {
-    //            $('#rate').val('');
-    //            $('isDiscounted').attr('value','Y');
-    //            var service_id = $('#serviceID').val();
-    //            check_service_discount(0, service_id);
-    //        }
-    //    });
-    //
-    //    $('#serviceID').on('change', function(){
-    //        $('#rate').val('');
-    //        var isDiscounted = 0;
-    //        if ($("#isDiscounted").is(":checked")) {
-    //            isDiscounted = 1;
-    //            $('isDiscounted').attr('value','Y');
-    //        }
-    //        else {
-    //            $('isDiscounted').attr('value','N');
-    //        }
-    //
-    //        var service_id = $('#serviceID').val();
-    //        check_service_discount(isDiscounted, service_id);
-    //
-    //    });
-    //    //event for quantity in kilos
-    //
-    //    /* var service_id = $('#serviceID').val();
-    //     if(service_id.length == 0) {
-    //         $("#qty").prop('disabled', true);
-    //         $("#deliveryFee").prop('disabled', true);
-    //         console.log("disable me");
-    //     }*/
-    //    //check service
-    //    checkService();
-    //    $('#qty').keyup(function(){
-    //        //alert('Hello');
-    //        $("#deliveryFee").prop('disabled', false);
-    //        var qty = $("#qty").val();
-    //        //console.log(qty);
-    //        // if(isNaN(qty)) {
-    //        //     $("#deliveryFee").prop('disabled', true);
-    //        //
-    //        // }
-    //
-    //
-    //        if($('#rate').val() == "") {
-    //            //alert("please input rate");
-    //            // message = "Please select service type.";
-    //
-    //        }
-    //        else {
-    //            var rate = parseInt($('#rate').val());
-    //            var quantity_kilo = parseInt($('#qty').val());
-    //            var total = quantity_kilo * rate;
-    //
-    //            $('#subtotal').val(total);
-    //        }
-    //
-    //        calculate_data();
-    //    });
-    //    //$("#span_error").append(message);
-    //
-    //    $('#deliveryFee').keyup(function(){
-    //        //alert('Hello');
-    //        if($('#subtotal').val() == "") {
-    //            alert("please input subtotal");
-    //        }
-    //        else {
-    //            var subtotal = parseInt($('#subtotal').val());
-    //            var deliveryFee = parseInt($('#deliveryFee').val());
-    //            var total = subtotal + deliveryFee;
-    //
-    //            $('#ttlAmount').val(total);
-    //        }
-    //    });
-    //
-    //
-    //});
-    //
-    //function check_service_discount(isDescounted,service_id)
-    //{
-    //    if ($("#isDiscounted").is(":checked")) {
-    //        isDiscounted = 1;
-    //    }
-    //    $.post("<?php //echo $controller_page ?>///check_service_discount", { service_id: service_id, is_discounted: isDescounted },
-    //        function(data, status){
-    //            if(data != 0)  {
-    //                $('#rate').val(data);
-    //
-    //                var rate = parseInt($('#rate').val());
-    //                var quantity_kilo = parseInt($('#qty').val());
-    //                var total = quantity_kilo * rate;
-    //                $('#subtotal').val(total);
-    //                //initial total amount
-    //                var subtotal = parseInt($('#subtotal').val());
-    //                var deliveryFee = parseInt($('#deliveryFee').val());
-    //                var totalAmount = subtotal + deliveryFee;
-    //
-    //                $('#ttlAmount').val(totalAmount);
-    //
-    //            }
-    //
-    //        });
-    //}
-    //
-    //function checkService()
-    //{
-    //    var service_id = $('#serviceID').val();
-    //    if(service_id.length == 0) {
-    //        $("#qty").prop('disabled', true);
-    //        $("#deliveryFee").prop('disabled', true);
-    //        console.log("disable me");
-    //    }
-    //}
-    //
-    //
-    //function calculate_data()
-    //{
-    //    var total = $('#ttlAmount').val();
-    //    var sub_total = $('#subtotal').val();
-    //    var deliveryFee = $('#deliveryFee').val();
-    //
-    //    var amount = +sub_total + +deliveryFee;
-    //    console.log("delivery fee", deliveryFee);
-    //    console.log("sub total",sub_total);
-    //    console.log("total",total);
-    //    console.log("amount", amount);
-    //    $('#ttlAmount').val(amount);
-    //}
+        });
+        $('#ttlAmount').val(totalAmt);
+
+    });
+
 
 </script>

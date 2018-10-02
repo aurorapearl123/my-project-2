@@ -51,7 +51,6 @@
                                         $headers = array(
                                             array('column_header'=>'Customer Name','column_field'=>'lname','width'=>'w-20','align'=>''),
                                             array('column_header'=>'Branch Name','column_field'=>'branchName','width'=>'w-20','align'=>''),
-                                            array('column_header'=>'Service','column_field'=>'serviceID','width'=>'w-20','align'=>''),
                                             array('column_header'=>'Date','column_field'=>'date','width'=>'w-10','align'=>''),
                                             array('column_header'=>'Discounted','column_field'=>'isDiscounted','width'=>'w-8','align'=>''),
                                             array('column_header'=>'Status','column_field'=>'status','width'=>'w-8','align'=>'center'),
@@ -66,9 +65,6 @@
                                         </th>
                                         <th class="form-group form-input">
                                             <input type="text" class="form-control w-80" id="companyName" name="companyName" value="<?php echo $companyName ?>">
-                                        </th>
-                                        <th class="form-group form-input">
-                                            <input type="text" class="form-control w-80" id="serviceType" name="serviceType" value="<?php echo $serviceType ?>">
                                         </th>
                                         <th class="form-group form-input">
                                             <input type="text" class="form-control datepicker w-80" id="date" name="date" title="Date" data-toggle="datetimepicker" data-target="#date" >
@@ -104,7 +100,6 @@
                                             <tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->orderID); ?>'">
                                                 <td><?php echo $row->fname.' '.$row->mname.' '.$row->lname ?></td>
                                                 <td><?php echo $row->branchName ?></td>
-                                                <td><?php echo $row->serviceType ?></td>
                                                 <td><?php echo date('F d, Y', strtotime($row->date))   ?></td>
                                                 <td align="center">
 
