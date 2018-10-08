@@ -1,85 +1,5 @@
 <style type="text/css">
 
-.highcharts-container{
-	height:520px !important;
-}
-
-.highcharts-container svg{
-	height:520px;
-}
-
-.highcharts-container svg > text{
-	display:none;
-}
-
-.mtooltip {
-	position: relative;
-	display: inline-block;
-	border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
-}
-
-/* Tooltip text */
-.mtooltip .mtooltiptext {
-	visibility: hidden;
-	width: auto;
-	min-width: 20px;
-	min-height: 20px;
-	line-height: 20px !important;
-	font-weight: 400 !important;
-	padding: 0 10px !important;
-	font-size: 75%;
-	text-align: center;
-	vertical-align: baseline;
-	border-radius: .125rem;
-	color:#212529;
-	background-clip:padding-box;
-	box-shadow:0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
-	position:absolute;
-	z-index:5;
-	border-radius: 10rem;
-	background-color:#EAF2F8;
-	border-color:#ccc;
-	top: -23px;
-	left: 50%;
-	/* Position the tooltip text - see examples below! */
-}
-
-.mtooltip:hover .mtooltiptext {
-	visibility: visible;
-}
-.m-highchart-title {
-	font-family:'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;
-	font-size:16px;
-	color:#274b6d;
-	fill:#274b6d;
-	text-align: "center";
-}
-.mcell {
-	border-left:1px solid #EAF2F8;
-}
-.mcell-end {
-	border-left:1px solid #EAF2F8;
-	border-right:1px solid #EAF2F8;
-}
-.mcell-footer {
-	background-color: #ffffff;
-	border-left:1px solid #EAF2F8;
-	border-right:1px solid #EAF2F8;
-}
-.mtext-overflow {
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.card-body-div{
-	position: relative;
-}
-.card-body-row{
-
-	position: absolute;
-	width: 500px;
-	right: 40px;
-}
-
 </style>
 
 <div class="subheader">
@@ -114,7 +34,7 @@
 
 								<div class="col-md-6 inline">	
 
-                                    <select class="form-control" id="branchID" name="branchID" data-live-search="true" livesearchnormalize="true" title="Branch" required onchange="changeBranch()">
+                                    <select class="form-control" id="branchID" name="branchID" data-live-search="true" livesearchnormalize="true" title="Branch" required ">
                                         <option value="" selected>&nbsp;</option>
                                         <?php
                                         	if($branches){                                        		
@@ -140,9 +60,21 @@
                                     </select>
 								</div>
 							</div>
-							<div class="col-md-12 pt-40">
-								<div id="salesReportChart" style="min-width: 310px; height:500px"></div>
-							</div>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-sm">
+                                    <canvas id="myChart" width="400" height="400"></canvas>
+                                </div>
+                                <div class="col-sm">
+                                    <canvas id="myChart2" width="400" height="400"></canvas>
+                                </div>
+                                <div class="col-sm">
+
+                                </div>
+                            </div>
+                        </div>
+
 
 						
 					</div>
@@ -155,38 +87,87 @@
 
 <script type="text/javascript">
 
-	changeBranch();
+    var ctx = document.getElementById("myChart");
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
 
-	function changeBranch(){
-		
-		var branchID = $('#branchID').val();
-	
-		$.ajax({
-			method: 'POST',
-			url: '<?php echo base_url("dashboard/getChart") ?>',
-			data: { branchID: branchID },
-			dataType: 'json',
-			success: function(data) {
-				console.log(data);
-				console.log('sss');
-				salesReport(data);
-			}
-		});		
-	}
+    var ctx2 = document.getElementById("myChart2");
+    var myDoughnutChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [10, 20, 30]
+            }],
+
+            // These labels appear in the legend and in the tooltips when hovering different arcs
+            labels: [
+                'Red',
+                'Yellow',
+                'Blue'
+            ]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+
+	/*changeBranch();
+
+
 
 	function salesReport(total){
 		$('#salesReportChart').highcharts({
 
 			chart: {
 				type: 'column'
-			},      	
+			},
 			title: {
 				text: ''
 			},
 			subtitle: {
 				text: ''
 			},
-			colors: ['rgb(76, 186, 209, 0.75)'],		
+			colors: ['rgb(76, 186, 209, 0.75)'],
 			xAxis: {
 				gridLineWidth: 0,
 				categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May' , 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -194,7 +175,7 @@
 			},
 			yAxis: {
 				gridLineWidth: 0,
-				min: 0,				
+				min: 0,
 				title: {
 					text: 'Sales'
 				}
@@ -227,10 +208,10 @@
 			},
 			series: [{
 				name: 'Monthly Sales',
-				data: total				
+				data: total
 			}]
 		});
-	}
+	}*/
 	
 </script>
 

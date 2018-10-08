@@ -132,6 +132,12 @@ class Order extends CI_Controller {
             $clothes_categories = $this->db->get('clothes_categories')->result();
             $data['clothes_categories'] = $clothes_categories;
 
+            $this->db->select('DISTINCT(category), price, serviceID, clothesCatID, status');
+            $this->db->group_by('category');
+            $clothes_categories = $this->db->get('clothes_categories')->result();
+            $data['clothes_categories'] = $clothes_categories;
+            //$this->db->from ('clothes_categories');
+
 
             //get service_types
             $this->db->select(' *');
