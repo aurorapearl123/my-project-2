@@ -1,0 +1,236 @@
+<style type="text/css">
+
+.highcharts-container{
+	height:520px !important;
+}
+
+.highcharts-container svg{
+	height:520px;
+}
+
+.highcharts-container svg > text{
+	display:none;
+}
+
+.mtooltip {
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.mtooltip .mtooltiptext {
+	visibility: hidden;
+	width: auto;
+	min-width: 20px;
+	min-height: 20px;
+	line-height: 20px !important;
+	font-weight: 400 !important;
+	padding: 0 10px !important;
+	font-size: 75%;
+	text-align: center;
+	vertical-align: baseline;
+	border-radius: .125rem;
+	color:#212529;
+	background-clip:padding-box;
+	box-shadow:0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
+	position:absolute;
+	z-index:5;
+	border-radius: 10rem;
+	background-color:#EAF2F8;
+	border-color:#ccc;
+	top: -23px;
+	left: 50%;
+	/* Position the tooltip text - see examples below! */
+}
+
+.mtooltip:hover .mtooltiptext {
+	visibility: visible;
+}
+.m-highchart-title {
+	font-family:'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;
+	font-size:16px;
+	color:#274b6d;
+	fill:#274b6d;
+	text-align: "center";
+}
+.mcell {
+	border-left:1px solid #EAF2F8;
+}
+.mcell-end {
+	border-left:1px solid #EAF2F8;
+	border-right:1px solid #EAF2F8;
+}
+.mcell-footer {
+	background-color: #ffffff;
+	border-left:1px solid #EAF2F8;
+	border-right:1px solid #EAF2F8;
+}
+.mtext-overflow {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.card-body-div{
+	position: relative;
+}
+.card-body-row{
+
+	position: absolute;
+	width: 500px;
+	right: 40px;
+}
+
+</style>
+
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<div class="row">
+								<div class="col-md-12 inline" >
+
+									<h4 class="head-text">Sales Report</h4>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+				<!-- <div class="card-body"> -->
+					<!-- Tab 1 start -->
+					<div class="card-body card-body-div ">
+						
+							<div class="row card-body-row ">
+
+								<div class="col-md-6 inline">	
+
+                                    <select class="form-control" id="branchID" name="branchID" data-live-search="true" livesearchnormalize="true" title="Branch" required onchange="changeBranch()">
+                                        <option value="" selected>&nbsp;</option>
+                                        <?php
+                                        	if($branches){                                        		
+	                                        	foreach($branches as $branch) {	 ?>
+		                                            <option value="<?php echo $branch->branchID ?>" 
+		                                            	<?php if($branch->branchID == $this->session->userdata('current_user')->branchID ) 
+		                                            	echo "selected"?> ><?php echo $branch->branchName ?>
+		                                        	</option>
+                                          <?php }
+                                        	}else{ ?>
+		                                            <option value="<?php echo $branch->branchID ?>" 
+		                                            	<?php if($branch->branchID == $this->session->userdata('current_user')->branchID ) 
+		                                            	echo "selected"?> ><?php echo $branch->branchName ?>
+		                                        	</option>
+                                           <?php } ?>
+                                    </select>
+								</div>
+
+								<div class="col-md-6 inline">								
+                                    <select class="form-control" id="configID" name="configID" data-live-search="true" livesearchnormalize="true" title="Config" required>
+                                        <option value="" selected>&nbsp;</option>                                        	
+                                            <option value="<?php echo $config->configID ?>" selected><?php echo $config->value ?></option>
+                                    </select>
+								</div>
+							</div>
+							<div class="col-md-12 pt-40">
+								<div id="salesReportChart" style="min-width: 310px; height:500px"></div>
+							</div>
+
+						
+					</div>
+					<!-- Tab 1 End -->
+				<!-- </div> -->
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	changeBranch();
+
+	function changeBranch(){
+		
+		var branchID = $('#branchID').val();
+	
+		$.ajax({
+			method: 'POST',
+			url: '<?php echo base_url("dashboard/getChart") ?>',
+			data: { branchID: branchID },
+			dataType: 'json',
+			success: function(data) {
+				console.log(data);
+				console.log('sss');
+				salesReport(data);
+			}
+		});		
+	}
+
+	function salesReport(total){
+		$('#salesReportChart').highcharts({
+
+			chart: {
+				type: 'column'
+			},      	
+			title: {
+				text: ''
+			},
+			subtitle: {
+				text: ''
+			},
+			colors: ['rgb(76, 186, 209, 0.75)'],		
+			xAxis: {
+				gridLineWidth: 0,
+				categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May' , 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+				allowDecimals: false,
+			},
+			yAxis: {
+				gridLineWidth: 0,
+				min: 0,				
+				title: {
+					text: 'Sales'
+				}
+			},
+			tooltip: {
+				width: 200,
+				pointFormat: '<span class="text-primary"> <b>{series.name}</b></span>: {point.y:,.0f}<br>',
+				crosshairs: true,
+				shared: true
+			},
+			legend: false,
+			plotOptions: {
+				series: {
+					lineWidth: 1,
+					radius: 0,
+					symbol: 'square'
+				},
+				area: {
+					pointStart: 0,
+					marker: {
+						enabled: false,
+						radius: 0,
+						states: {
+							hover: {
+								enabled: true
+							}
+						}
+					}
+				}
+			},
+			series: [{
+				name: 'Monthly Sales',
+				data: total				
+			}]
+		});
+	}
+	
+</script>
+

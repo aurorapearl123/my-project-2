@@ -8,17 +8,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="<?php echo base_url('assets/css/style.min.css') ?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo base_url('assets/css/main.min.css') ?>" rel="stylesheet" type="text/css" />
+      <link href="<?php echo base_url('assets/css/order-create.css') ?>" rel="stylesheet" type="text/css" />
     <link rel="shortcut icon" href="<?php echo base_url('assets/img/main/favicon.png') ?>" />
+
+      <link href="<?php echo base_url('assets/css/dropzone.css') ?>" rel="stylesheet" type="text/css" />
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <script src="<?php echo base_url('assets/js/jquery-3.2.1.min.js') ?>" type="text/javascript"></script>
     <script src="<?php echo base_url('assets/js/framework.js') ?>" type="text/javascript"></script>
-    <script src="<?php echo base_url('assets/plugins/highcharts/js/highcharts.js'); ?>"></script>
-    <script src="<?php echo base_url('assets/plugins/highcharts/js/modules/data.js') ?>"></script>
-    <script src="<?php echo base_url('assets/plugins/highcharts/js/modules/drilldown.js') ?>"></script>
-    <script src="<?php echo base_url('assets/plugins/ckeditor/ckeditor.js'); ?>"></script>
+      <script src="<?php echo base_url('assets/js/Chart.js') ?>" type="text/javascript"></script>
+
+
+      <style>
+          input[type=number]::-webkit-inner-spin-button,
+          input[type=number]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              -moz-appearance: none;
+              appearance: none;
+              margin: 0;
+          }
+      </style>
 
     
     <?php 
@@ -73,7 +84,7 @@
             <div class="d-flex">
               <div class="brand-logo">
                 <a href="#" class="logo">
-                  <img alt="" src="<?php echo base_url('assets/img/main/iwash.png') ?>"/>
+                  <img alt="" src="<?php echo base_url('assets/img/main/logo.png') ?>"/>
                 </a>
               </div>
               <div class="brand-tools">
@@ -104,8 +115,6 @@
               </div>
             </div> <!-- <div id="header-menu" class="header-menu"> -->
             
-            
-            
             <div id="header-topbar" class="header-topbar">
               <div class="nav-wrapper navbar-collapse">
                 <ul class="navbar-nav icons">
@@ -120,7 +129,7 @@
                       <div class="dropdown-body">
                         <div class="scrollable-wrap">
                           <ul class="timeline-list">
-                            
+                            <li class="text-center">No Notification</li>
                           </ul>
                         </div>
                       </div>
@@ -166,7 +175,7 @@
                         </ul>
                       </div>
                       <div class="dropdown-footer">
-                        <a class="btn btn-sm pill btn-outline-primary btn-raised" href="<?php echo site_url('logout') ?>">Logout</a>
+                        <a class="btn btn-sm pill btn-outline-secondary" href="<?php echo site_url('logout') ?>">Logout</a>
                       </div>
                     </div>
                   </li>
@@ -260,22 +269,31 @@
                 <?php } ?>
              <?php } ?>
              
+             <?php 
+
+                  $prefereces = $this->session->userdata('current_user')->preferences;
+                  $exploded_preferences = explode(',',$prefereces);
+                  // var_dump(in_array('Master Files',$exploded_preferences));
+                  
+                  // die();
+
+             ?>
 
              <?php foreach ($modules as $mod) {?>
               <!-- First set the section title -->
               <?php 
                     $with_master_files = false;
-                    if ($mod['main']['title'] == 'Master Files') { 
+                    if ($mod['main']['title'] == 'Master Files' ) { 
                         $with_master_files = true;
                         break;
                      } 
                   }
-                  
-                  if ($with_master_files) {
+
+                  if ($with_master_files && in_array('Master Files',$exploded_preferences) ) {
                       ?>
                           <li class="menu-section">
                             <span class="menu-section-text">
-                              Master Files
+                              Master Files 
                             </span>
                             <i class="icon flaticon-more-v3"></i>
                           </li>
@@ -283,10 +301,11 @@
                   } 
               ?>
              
-			 <?php foreach ($modules as $mod) {?>
-
+			 <?php foreach ($modules as $mod) {
+        ?>
+            
               <!-- First set the section title -->
-              <?php if ($mod['main']['title'] == 'Master Files') { ?>
+              <?php if ($mod['main']['title'] == 'Master Files' && in_array('Master Files',$exploded_preferences))   { ?>
                   <!-- Second loop the modules -->
                   <li class="nav-item item-submenu <?php if (strtoupper($mod['main']['title']) == strtoupper($current_main_module['title'])) echo "active"; ?>">
                             <a  href="#" class="nav-link nav-toggle" aria-expanded="true">

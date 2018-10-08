@@ -1,0 +1,364 @@
+<?php
+require APPPATH.'libraries/REST_Controller.php';
+
+class ApiOrder extends REST_Controller
+{
+    protected $table = "order_headers";
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->library('form_validation');
+    }
+
+    public function order_get()
+    {
+
+        header("Access-Control-Allow-Origin: *");
+        //Load Authorization Token Library
+        $this->load->library('Authorization_Token');
+        //user token validation
+        $is_valid_token = $this->authorization_token->validateToken();
+        //get the id
+        //$is_valid_token['data']->id;
+        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
+            $user_id = $is_valid_token['data']->id;
+            $id = $this->uri->segment(3);
+
+            $branchID = $is_valid_token['data']->branchID;
+
+            $orders = $this->getOrders($id, $branchID);
+
+
+            $this->response([
+                    'status' => true,
+                    'data' => $orders,
+                ]);
+        }
+        else {
+            $this->response(
+                [
+                    'status' => FALSE,
+                    'message' => $is_valid_token['message']
+                ],
+                REST_Controller::HTTP_NOT_FOUND
+            );
+        }
+    }
+
+    public function getOrders($cusID, $branchID)
+    {
+
+        $this->db->select('order_headers.*');
+        $this->db->select('service_types.*');
+        $this->db->select('customers.*');
+        $this->db->select('branches.branchName');
+        $this->db->from('order_headers');
+        $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
+        $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
+        $this->db->where('order_headers.status',4);
+
+        $this->db->where('DATE(order_headers.dateReady) >= ', Date('Y-m-d'));
+        $this->db->where('DATE(order_headers.dateReady) <= ', Date('Y-m-d'));
+        $this->db->where('order_headers.branchID', $branchID);
+        $orders = $this->db->get()->result();
+        $data = [];
+       foreach($orders as $order) {
+           $data[] = [
+               'order_id' => $order->orderID,
+               'custID' => $order->custID,
+               'suffix' => $order->suffix,
+               'fname' => $order->fname,
+               'mname' => $order->mname,
+               'lname' => $order->lname,
+               'date' => $order->date,
+               'service_id' => $order->serviceID,
+               'service_type' => $order->serviceType,
+               'branch_id' => $order->branchID,
+               'branch_name' => $order->branchName,
+               'order_details' => $this->getDetails('order_details',$order->orderID)
+           ];
+       }
+
+       return $data;
+    }
+
+    public function getDetails($table, $orderID)
+    {
+        //join item
+        $this->db->select('order_details.*');
+        $this->db->select('clothes_categories.*');
+        $this->db->from('order_details');
+        $this->db->join ( 'clothes_categories', $table . '.clothesCatID=clothes_categories.clothesCatID', 'left' );
+        $this->db->where('order_details.orderID', $orderID);
+        $details = $this->db->get()->result();
+        return $details;
+    }
+
+    public function order_details_get(){
+        header("Access-Control-Allow-Origin: *");
+        //Load Authorization Token Library
+        $this->load->library('Authorization_Token');
+        //user token validation
+        $is_valid_token = $this->authorization_token->validateToken();
+        //get the id
+        //$is_valid_token['data']->id;
+        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
+            $user_id = $is_valid_token['data']->id;
+            $id = $this->uri->segment(3);
+
+            $orders = $this->getOrdersDetailsById($id);
+
+
+            $this->response([
+                'status' => true,
+                'data' => $orders,
+            ]);
+        }
+        else {
+            $this->response(
+                [
+                    'status' => FALSE,
+                    'message' => $is_valid_token['message']
+                ],
+                REST_Controller::HTTP_NOT_FOUND
+            );
+        }
+    }
+
+    public function getOrdersDetailsById($orderID)
+    {
+
+        $this->db->select('order_headers.*');
+        $this->db->select('service_types.*');
+        $this->db->select('customers.*');
+        $this->db->select('branches.branchName');
+        $this->db->from('order_headers');
+        $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
+        $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
+        //$this->db->where('order_headers.status',4);
+        $this->db->where('order_headers.orderID', $orderID);
+        $orders = $this->db->get()->result();
+        $data = [];
+        foreach($orders as $order) {
+            $data[] = [
+                'order_id' => $order->orderID,
+                'custID' => $order->custID,
+                'suffix' => $order->suffix,
+                'fname' => $order->fname,
+                'mname' => $order->mname,
+                'lname' => $order->lname,
+                'rate' => $order->rate,
+                'deliveryFee' => $order->deliveryFee,
+                'amount' => $order->amount,
+                'ttlAmount' => $order->ttlAmount,
+                'discounted' => $order->isDiscounted,
+                'date' => $order->date,
+                'service_id' => $order->serviceID,
+                'service_type' => $order->serviceType,
+                'branch_id' => $order->branchID,
+                'branch_name' => $order->branchName,
+                'custsign' => $order->custSign,
+                'order_details' => $this->getDetails('order_details',$order->orderID)
+            ];
+        }
+
+        return $data;
+    }
+
+    public function update_order_details_post()
+    {
+        header("Access-Control-Allow-Origin: *");
+        //$_POST = $this->security->xss_clean($_POST);
+
+        //validation
+        $this->form_validation->set_rules('order_id', 'order_id', 'trim|required');
+        $this->form_validation->set_rules('signature', 'signature', 'trim|required');
+        $this->load->library('form_validation');
+        if ($this->form_validation->run() == FALSE)
+        {
+            //validation message
+            $message = array(
+                'status' => false,
+                'error' => $this->form_validation->error_array(),
+                'message' => validation_errors()
+            );
+
+            $this->response($message, REST_Controller::HTTP_NOT_FOUND);
+
+        }else {
+
+            $order_id = $this->input->post('order_id', TRUE);
+            $signature = $this->input->post('signature');
+            $added = $this->update_order_header($order_id, $signature);
+
+            $message = array(
+                'status' => $added,
+                'message' => "Successfully Added",
+
+            );
+
+            $this->response($message, 200);
+        }
+
+    }
+
+    public function update_order_header($id, $blob)
+    {
+        $data = [
+            'custSign' => $blob,
+            'dateReleased' => date('Y-m-d h:i:s'),
+            'status' => 5,
+        ];
+        $this->db->where('orderID', $id);
+        return $this->db->update($this->table, $data);
+    }
+
+    public function order_by_date_get()
+    {
+        header("Access-Control-Allow-Origin: *");
+        //Load Authorization Token Library
+        $this->load->library('Authorization_Token');
+        //user token validation
+        $is_valid_token = $this->authorization_token->validateToken();
+        //get the id
+        //$is_valid_token['data']->id;
+        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
+            $user_id = $is_valid_token['data']->id;
+            $branchID = $is_valid_token['data']->branchID;
+            $param = $this->uri->segment(3);
+            $array_param = explode(':', $param);
+
+            if(!empty($array_param)) {
+                //get from and to date
+                $from = $array_param[0];
+                $to = $array_param[1];
+                $status = $array_param[2];
+                $filterOrderByDate = $this->filterOrderByDate($from, $to, $branchID, $status);
+                $this->response([
+                    'status' => true,
+                    'data' => $filterOrderByDate,
+                ]);
+            }
+        }
+        else {
+            $this->response(
+                [
+                    'status' => FALSE,
+                    'message' => $is_valid_token['message']
+                ],
+                REST_Controller::HTTP_NOT_FOUND
+            );
+        }
+    }
+
+    public function filterOrderByDate($from, $to, $branchID, $status)
+    {
+        $this->db->select('order_headers.*');
+        $this->db->select('service_types.*');
+        $this->db->select('customers.*');
+        $this->db->select('branches.branchName');
+        $this->db->from('order_headers');
+        $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
+        $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
+        $this->db->where('order_headers.status',$status);
+        $this->db->where('DATE(order_headers.date) >= ', $from);
+        $this->db->where('DATE(order_headers.date) <= ', $to);
+        $this->db->where('order_headers.branchID', $branchID);
+        $orders = $this->db->get()->result();
+        $data = [];
+        foreach($orders as $order) {
+            $data[] = [
+                'order_id' => $order->orderID,
+                'custID' => $order->custID,
+                'suffix' => $order->suffix,
+                'fname' => $order->fname,
+                'mname' => $order->mname,
+                'lname' => $order->lname,
+                'date' => $order->date,
+                'service_id' => $order->serviceID,
+                'service_type' => $order->serviceType,
+                'branch_id' => $order->branchID,
+                'branch_name' => $order->branchName,
+                'order_details' => $this->getDetails('order_details',$order->orderID)
+            ];
+        }
+
+        return $data;
+    }
+
+    public function order_history_get()
+    {
+
+        header("Access-Control-Allow-Origin: *");
+        //Load Authorization Token Library
+        $this->load->library('Authorization_Token');
+        //user token validation
+        $is_valid_token = $this->authorization_token->validateToken();
+        //get the id
+        //$is_valid_token['data']->id;
+        if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
+            $user_id = $is_valid_token['data']->id;
+            $id = $this->uri->segment(3);
+
+            $branchID = $is_valid_token['data']->branchID;
+
+
+            $orders = $this->getOrdersHistory($id, $branchID);
+
+            $this->response([
+                'status' => true,
+                'data' => $orders,
+                'date' => date('Y-m-d')
+            ]);
+        }
+        else {
+            $this->response(
+                [
+                    'status' => FALSE,
+                    'message' => $is_valid_token['message']
+                ],
+                REST_Controller::HTTP_NOT_FOUND
+            );
+        }
+    }
+
+    public function getOrdersHistory($cusID, $branchID)
+    {
+
+        $this->db->select('order_headers.*');
+        $this->db->select('service_types.*');
+        $this->db->select('customers.*');
+        $this->db->select('branches.branchName');
+        $this->db->from('order_headers');
+        $this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        $this->db->join('branches', 'order_headers.branchID=branches.branchID', 'left');
+        $this->db->join('customers', 'order_headers.custID=customers.custID', 'left');
+        $this->db->where('order_headers.status',5);
+        $this->db->where('DATE(order_headers.dateReleased)', date('Y-m-d'));
+        $this->db->where('order_headers.branchID', $branchID);
+        $orders = $this->db->get()->result();
+        $data = [];
+        foreach($orders as $order) {
+            $data[] = [
+                'order_id' => $order->orderID,
+                'custID' => $order->custID,
+                'suffix' => $order->suffix,
+                'fname' => $order->fname,
+                'mname' => $order->mname,
+                'lname' => $order->lname,
+                'date' => $order->date,
+                'service_id' => $order->serviceID,
+                'service_type' => $order->serviceType,
+                'branch_id' => $order->branchID,
+                'branch_name' => $order->branchName,
+                'order_details' => $this->getDetails('order_details',$order->orderID)
+            ];
+        }
+
+        return $data;
+    }
+}

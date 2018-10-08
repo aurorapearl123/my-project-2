@@ -1,0 +1,293 @@
+<div class="subheader">
+	<div class="d-flex align-items-center">
+		<div class="title mr-auto">
+			<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+		</div>
+		<div class="subheader-tools">
+			<a href="<?php echo site_url('receiving_report/show') ?>" class="btn btn-primary btn-raised btn-sm pill"><i class="icon left ti-angle-left md"></i> Back to List</a>
+		</div>
+	</div>
+</div>
+<div class="content">
+	<div class="row">
+		<div class="col-12">
+			<div class="card-box">
+				<div class="card-head">
+					<div class="head-caption">
+						<div class="head-title">
+							<h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
+						</div>
+					</div>
+					<div class="card-head-tools">
+						<ul class="tools-list">
+                            
+							<?php if ($roles['edit']) { ?>
+							<li>
+								<a href="<?php echo site_url('receiving_report/edit/'.$this->encrypter->encode($rec->rrID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+							</li>
+							<?php } ?>
+							<?php if ($roles['delete'] && !$in_used) { ?>
+							<li>
+								<button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->rrID); ?>');"><i class="la la-trash-o"></i></button>
+							</li>
+							<?php } ?>
+							<?php if ($this->session->userdata('current_user')->isAdmin) { ?>
+							<li>
+								<button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/receiving_report/rrID/'.$this->encrypter->encode($rec->rrID).'/Receiving Report') ?>', 1000, 500)"><i class="la la-server"></i></button>
+							</li>
+							<?php } ?>
+                            <?php if($rec->dateApproved == '0000-00-00 00:00:00' && $rec->dateCancelled == '0000-00-00 00:00:00' ) : ?>
+                                <button type="button" class="btn btn-primary btn-xs pill ml-15" id="confirm">Confirm</button>
+                                <button type="button" class="btn btn-outline-danger btn-xs pill" id="cancel">Cancel</button>
+                            <?php endif;?>
+						</ul>
+					</div>
+				</div>
+                <div class="card-body">
+                    <form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("receiving_report/save") ?>">
+                        <div class="data-view">
+                            <table class="view-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="data-title w-10">
+                                            <label for="config">Branch : <span class="asterisk">*</span></label>
+                                        </td>
+                                        <td class="data-input w-20">
+                                            <input type="text" class="border-0" name="branchName" id="branchName" title="Branch Name" value="<?php echo $rec->branchName;?>" readonly>
+                                            <input type="hidden" class="form-control" name="branchID" id="branchID" title="Branch Id" value="<?php echo $rec->branchID;?>" readonly>
+                                        </td>
+                                        <td class="data-title w-10">Date : </td>
+                                        <td class="data-input w-20">
+                                            <input type="text" class="border-0" name="date" id="date" title="Date" required value="<?php echo $rec->date?>" readonly>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="data-title">Supplier : </td>
+                                        <td class="data-input">
+                                           <span><?php echo $rec->name;?></span>
+                                        </td>
+                                        <td class="data-title">Reference No : <span class="asterisk">*</span></td>
+                                        <td class="data-input">
+                                            <span><?php echo $rec->referenceNo?></span>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- start create header details -->
+                        <table class="table mt-30" id="tb">
+                            <thead class="thead-light">
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Amount</th>
+                            </thead>
+                            <tbody>
+                                <?php foreach($rr_details as $detail) : ?>
+                                    <tr class="item">
+                                        <td><?php echo $detail->brand?></td>
+                                        <td><?php echo $detail->price?></td>
+                                        <td style="display:none"><?php echo $detail->itemID; ?></td>
+                                        <td style="display:none"><?php echo $detail->inventory_qty;?></td>
+                                        <td class="id">
+                                            <input type="text" class="id border-0" value="<?php echo $detail->amount?>" readonly>
+                                        </td>
+                                    </tr>
+                                <?php endforeach;?>    
+                            </tbody>
+                        </table>
+                        <!-- end create header details -->
+                        <div class="table-form mt-30">
+                            <table class="table-form">
+                                <tbody>
+                                    <tr>
+                                        <td class="form-label" width="13%" nowrap>
+                                            <label for="config">Total Amount : <span class="asterisk">*</span></label>
+                                        </td>
+                                        <td class="form-group form-input" width="22%">
+                                            <input type="text" class="form-control" name="ttlAmount" id="ttlAmount" title="Branch Name" required readonly>
+                                        </td>
+                                        <td></td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-sepator solid"></div>
+                        <div class="data-view">
+                            <table class="view-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="data-title w-10">Created by : </td>
+                                        <td class="data-input w-20">
+                                            <span><?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?></span>
+                                        </td>
+                                        <td class="data-title w-10">Date Created : </td>
+                                        <td class="data-input w-20">
+                                            <span><?php echo $rec->dateCreated; ?></span>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="data-title">Approved by : </td>
+                                        <td class="data-input">
+                                            <span id="id_approvedBy"><?php echo $rec->approvedFirstName .' '.$rec->approvedMiddleName .' '.$rec->approvedLastName;?></span>
+                                        </td>
+                                        <td class="data-title">Approved date : </td>
+                                        <td class="data-input">
+                                            <span id="id_approved_date"><?php echo $rec->dateApproved?></span>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="data-title">Cancelled by :  </td>
+                                        <td class="data-input">
+                                            <span id="id_cancel_by"><?php echo $rec->cancelledFirstName .' '.$rec->cancelledMiddleName .' '.$rec->cancelledLastName;?></span>
+                                        </td>
+                                        <td class="data-title">Cancelled date : </td>
+                                        <td class="data-input">
+                                            <span id="id_date_cancelled"><?php echo $rec->dateCancelled?></span>
+                                        </td>
+                                        <td class="d-xxl-none"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="cancelModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title">Are you sure you want to cancel this item?</h4>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary pill btn-raised" data-dismiss="modal" id="cancel_proceed">Proceed</button>
+                <button type="button" class="btn btn-outline-danger pill btn-raised" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title">Are you sure you want to confirm this item?</h4>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary pill btn-raised" data-dismiss="modal" id="confirm_proceed">Proceed</button>
+                <button type="button" class="btn btn-outline-danger pill btn-raised" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+        var total = 0;
+         $("tr.item").each(function() {
+            var price = $(this).find("input.name").val(),
+                amount = $(this).find("input.id").val();
+            total += parseFloat(amount);
+         });
+
+        $('#ttlAmount').val(total);
+
+        $('#confirm').on('click', function(){
+            $("#confirmModal").modal();
+        });
+        $('#cancel').on('click', function(){
+            $("#cancelModal").modal();
+        });
+
+        $("#confirm_proceed").on('click', function(){
+            //add stock card
+            //var url = "<?php //echo site_url('generic_ajax/addStockCard'); ?>//";
+            //var reffNo = "<?php //echo $this->router->fetch_class().'_'.rand(); ?>//";
+            //$.post(url, { reffNo: reffNo },
+            //    function(data, status){
+            //    console.log(data);
+            //        if(status == "success") {
+            //
+            //        }
+            //    });
+
+            var table = $("#tb");
+            table.find('tr').each(function(i){
+                var $tds = $(this).find('td');
+                var item_id = $tds.eq(2).text();
+                var inventory_qty = $tds.eq(3).text();
+                if(inventory_qty != "") {
+                    console.log("inventory quantity : "+inventory_qty);
+                    console.log(item_id);
+                    var variance = 0;
+                    var debit = inventory_qty;
+                    var credit = 0;
+                    var begBal = inventory_qty;
+                    var endBal = inventory_qty;
+                    var rrID = "<?php echo $rec->rrID; ?>";
+                    addStockCard(item_id,inventory_qty, debit, credit, begBal, endBal, rrID, 0);
+                }
+
+            });
+        });
+
+        $('#cancel_proceed').on('click', function(){
+            updateCancel();
+        });
+    });
+
+    function addStockCard(item_id, variance, debit, credit, begBal, endBal, rrID, prID)
+    {
+
+        $.post("<?php echo $controller_page ?>/addStockCard", { reffNo: rrID, item_id: item_id, variance: variance, debit: debit, credit: credit, begBal: begBal, endBal: endBal, rrID: rrID },
+            function(data, status){
+                console.log(data);
+                if(status == "success") {
+                    $('#confirm').hide();
+                    $('#cancel').hide();
+                    var approved_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                    $("#id_approvedBy").text(approved_by);
+                    $("#id_approved_date").text("<?php echo date('Y-m-d h:is')?>");
+                }
+            });
+    }
+
+    function updateCancel()
+    {
+        var rrID = "<?php echo $rec->rrID; ?>";
+        //updateCanceledBy
+        //updateCanceledBy
+
+
+        $.post("<?php echo $controller_page ?>/updateCanceledBy", { rrID: rrID },
+            function(data, status){
+                console.log(data);
+                if(status == "success") {
+                    $('#confirm').hide();
+                    $('#cancel').hide();
+                    var approved_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                    $("#id_cancel_by").text(approved_by);
+                    $("#id_date_cancelled").text("<?php echo date('Y-m-d h:is')?>");
+                }
+            });
+    }
+
+</script>

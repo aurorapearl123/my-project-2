@@ -1,0 +1,84 @@
+export db
+1 mysql
+2 show databases;
+3 mysqldump -uroot -hlocalhost iwash2 > C:\xampp\htdocs\iwash\iwash2.sql
+
+08-17-18
+
+ALTER TABLE `complaints` ADD `comNo` VARCHAR(10) NOT NULL AFTER `comID`;
+
+ALTER TABLE `complaints` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1' COMMENT '0:cancelled, 1:pending, 2:confirmed';
+
+UPDATE `iwash2`.`companies` SET `companyAddress` = 'iWash' WHERE `companies`.`companyID` = 1;
+
+--change companies data from LH PRIME TO iWash
+
+UPDATE `iwash2`.`config` SET `value` = 'Gov. Cuenco Talamban' WHERE `config`.`configID` = 31;
+
+UPDATE `iwash2`.`config` SET `value` = 'Tel No. (032) 344-1924' WHERE `config`.`configID` = 9;
+
+ALTER TABLE `equipments` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `equipment_inventory` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `equipment_monitoring` ADD `emNo` VARCHAR(10) NOT NULL AFTER `emID`;
+
+ALTER TABLE `equipment_monitoring` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `expense_particulars` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `exp_headers` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `inventory_adjustments` ADD `adjNo` VARCHAR(10) NOT NULL AFTER `adjID`;
+
+ALTER TABLE `inventory_adjustments` CHANGE `status` `status` TINYINT(1) NOT NULL DEFAULT '1';
+
+ALTER TABLE `order_headers` ADD `osNo` VARCHAR(10) NOT NULL AFTER `orderID`;
+
+ALTER TABLE `pc_headers` ADD `pcNo` VARCHAR(10) NOT NULL AFTER `pcID`;
+
+ALTER TABLE `rr_headers` ADD `rrNo` VARCHAR(10) NOT NULL AFTER `rrID`;
+
+ALTER TABLE `ws_headers` ADD `wsNo` VARCHAR(10) NOT NULL AFTER `wsID`;
+
+ALTER TABLE `exp_headers` ADD `expNo` VARCHAR(10) NOT NULL AFTER `expID`;
+
+---------------------------------------------
+08-28-18
+
+ALTER TABLE `customers` ADD `address` VARCHAR(100) NOT NULL AFTER `barangayID`;
+
+ALTER TABLE `customers` ADD `agreeTerms` ENUM('Y','N') NOT NULL AFTER `isRegular`;
+
+08-29-18
+
+ALTER TABLE `clothes_categories` ADD `pricePerKilo` DECIMAL(10,2) NOT NULL AFTER `category`;
+
+ALTER TABLE `equipments` ADD `datePurchased` DATE NOT NULL AFTER `description`;
+
+ALTER TABLE `equipments` ADD `dateFirstUsed` DATE NOT NULL AFTER `datePurchased`;
+
+ALTER TABLE `order_headers` ADD `adminComment` TEXT NOT NULL AFTER `ttlAmount`, ADD `custComment` TEXT NOT NULL AFTER `adminComment`;
+
+ALTER TABLE `order_headers` ADD `adminCommentBy` VARCHAR(36) NOT NULL AFTER `custComment`;
+
+ALTER TABLE `order_headers` ADD `dateAdminCommented` DATETIME NOT NULL AFTER `adminCommentBy`;
+
+ALTER TABLE `rr_headers` ADD `ttlQty` INT NOT NULL AFTER `suppID`;
+
+ALTER TABLE `order_details` ADD `pcPerKilo` DECIMAL(10,2) NOT NULL ;
+
+9/7/18
+ALTER TABLE `order_headers` ADD `dateDry` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00 ' AFTER `dateWashed`;
+
+9/10/18
+ALTER TABLE `clothes_categories` ADD `serviceID` INT(11) NOT NULL AFTER `clothesCatID`;
+
+ALTER TABLE `clothes_categories` CHANGE `pricePerKilo` `price` DECIMAL(10,2) NOT NULL;
+
+9/11/18
+ALTER TABLE `customers` ADD `profile` BLOB NOT NULL AFTER `custID`;
+
+9/18/18
+ALTER TABLE `service_types` ADD `desc` TEXT NOT NULL AFTER `discountedRate`;
+ALTER TABLE `service_types` ADD `unit` CHAR(2) NOT NULL AFTER `discountedRate`;

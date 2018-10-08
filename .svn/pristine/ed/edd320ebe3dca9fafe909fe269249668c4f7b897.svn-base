@@ -1,0 +1,166 @@
+<?php 
+/**
+ * File: metadata.php
+ * Description: Defination of this module and its roles and sub-modules
+ * 
+ * Example of sub module
+ * 
+ * $module['sub'][] = array(
+        'title'=>'Item Category',
+        'description'=>'Manage all order categories in the commissary',
+        'icon'=>'category.png',
+        'roles'=>array('Add','View','Edit','Delete')
+    );
+ */
+ 
+$submenu = array();
+
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Item Inventory')) {
+    $submenu[] = array('label'=>'Item Inventory','url'=>site_url('item_inventory/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Receiving Report')) {
+    $submenu[] = array('label'=>'Receiving Report','url'=>site_url('receiving_report/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Physical Count')) {
+    $submenu[] = array('label'=>'Physical Count','url'=>site_url('physical_count/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Inventory Adjustment')) {
+    $submenu[] = array('label'=>'Inventory Adjustment','url'=>site_url('inventory_adjustment/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Withdrawal Slip')) {
+    $submenu[] = array('label'=>'Withdrawal Slip','url'=>site_url('withdrawal_slip/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Stock Card')) {
+    $submenu[] = array('label'=>'Stock Card','url'=>site_url('stockcard/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Equipment Inventory')) {
+    $submenu[] = array('label'=>'Equipment Inventory','url'=>site_url('equipment_inventory/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Equipment Monitoring')) {
+    $submenu[] = array('label'=>'Equipment Monitoring','url'=>site_url('equipment_monitoring/show'),'icon'=>'bullet','subitem'=>array());
+}
+if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'View Expense Inventory')) {
+    $submenu[] = array('label'=>'Expense Inventory','url'=>site_url('expense_inventory/show'),'icon'=>'bullet','subitem'=>array());
+}
+// main module
+$module = array();
+$module['main']['title']        = 'Inventory';
+$module['main']['controller']   = 'inventory';
+$module['main']['description']  = 'Manage all Inventory';
+$module['main']['icon']         = 'la-archive';
+$module['main']['roles']        = array();
+// sub module
+$module['sub']['Item Inventory'] = array(
+        'title'=>'Item Inventory',
+        'module_label'=>'Item Inventory',
+        'controller'=>'item_inventory',
+        'description'=>'Manage all Item Inventory',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Item Inventory',
+                          'Edit Existing Item Inventory',
+                          'Delete Existing Item Inventory',
+                          'View Item Inventory',
+                        )
+);
+$module['sub']['Receiving Report'] = array(
+        'title'=>'Receiving Report',
+        'module_label'=>'Receiving Report',
+        'controller'=>'receiving_report',
+        'description'=>'Manage all Receiving Report',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Receiving Report',
+                          'Edit Receiving Report',
+                          'Delete Receiving Report',
+                          'View Receiving Report',
+                        )
+);
+$module['sub']['Physical count'] = array(
+        'title'=>'Physical count',
+        'module_label'=>'Physical count',
+        'controller'=>'physical_count',
+        'description'=>'Manage all Physical count',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Physical count',
+                          'Edit Physical count',
+                          'Delete Physical count',
+                          'View Physical count',
+                        )
+);
+$module['sub']['Inventory Adjustment'] = array(
+        'title'=>'Inventory Adjustment',
+        'module_label'=>'Inventory Adjustment',
+        'controller'=>'inventory_adjustment',
+        'description'=>'Manage all Inventory Adjustment',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Inventory Adjustment',
+                          'Edit Inventory Adjustment',
+                          'Delete Inventory Adjustment',
+                          'View Inventory Adjustment',
+                        )
+);
+$module['sub']['Withdrawal slip'] = array(
+        'title'=>'Withdrawal slip',
+        'module_label'=>'Withdrawal slip',
+        'controller'=>'withdrawal_slip',
+        'description'=>'Manage all Withdrawal',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Withdrawal slip',
+                          'Edit Withdrawal slip',
+                          'Delete Withdrawal slip',
+                          'View Withdrawal slip',
+                        )
+);
+
+$module['sub']['Stockcard'] = array(
+        'title'=>'Stockcard',
+        'module_label'=>'stockcard',
+        'controller'=>'Stockcard',
+        'description'=>'Manage Stockcard',
+        'icon'=>'la-archive',
+        'roles'=>array(   'Add Stockcard',
+                          'Edit Stockcard',
+                          'Delete Stockcard',
+                          'View Stockcard',
+                        )
+);
+$module['sub']['Equipment Inventory'] = array(
+    'title'=>'Equipment Inventory',
+    'module_label'=>'Equipment Inventory',
+    'controller'=>'equipment_inventory',
+    'description'=>'Manage all Equipment Inventory',
+    'icon'=>'la-archive',
+    'roles'=>array(   'Add Equipment Inventory',
+                      'Edit Equipment Inventory',
+                      'Delete Equipment Inventory',
+              'View Equipment Inventory',
+            )
+);
+
+$module['sub']['Equipment Monitoring'] = array(
+    'title'=>'Equipment Monitoring',
+    'module_label'=>'Equipment Monitoring',
+    'controller'=>'equipment_monitoring',
+    'description'=>'Manage all Equipment Monitoring',
+    'icon'=>'la-archive',
+    'roles'=>array(   'Add Equipment Monitoring',
+                      'Edit Equipment Monitoring',
+                      'Delete Equipment Monitoring',
+              'View Equipment Monitoring',
+            )
+);
+
+$module['sub']['Expense Inventory'] = array(
+    'title'=>'Expense Inventory',
+    'module_label'=>'Expense Inventory',
+    'controller'=>'expense_inventory',
+    'description'=>'Manage all Expense Inventory',
+    'icon'=>'la-archive',
+    'roles'=>array(   'Add Expense Inventory',
+                      'Edit Expense Inventory',
+                      'Delete Expense Inventory',
+                      'View Expense Inventory',
+            )
+);
+$module['main']['menu'] = $submenu;
+$this->modules['Inventory']  = $module;
+?>

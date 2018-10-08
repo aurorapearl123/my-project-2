@@ -20,7 +20,7 @@
             <div class="login-page">
                <div class="login-wrapper">
                   <div class="col-12 logo mt-auto">
-                     <img src="<?php echo base_url('assets/img/main/iwash.png')?>">
+                     <img src="<?php echo base_url('assets/img/main/logo-shadow.png')?>">
                      <span class="text-white d-block mt-20">Login to Your Account</span>
                   </div>
                   <div class="login-form">

@@ -1,0 +1,185 @@
+<div class="subheader">
+  <div class="d-flex align-items-center">
+    <div class="title mr-auto">
+      <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></h3>
+    </div>
+    <div class="subheader-tools">
+      <a href="<?php echo site_url('order/show') ?>" class="btn btn-primary btn-raised btn-sm pill"><i class="icon left ti-angle-left md"></i> Back to List</a>
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div class="row">
+    <div class="col-lg-8 col-xxl-9">
+      <div class="card-box">
+        <div class="card-head">
+          <div class="head-caption">
+            <div class="head-title">
+              <h4 class="head-text">View <?php echo $current_module['module_label'] ?></h4>
+            </div>
+          </div>
+          <div class="card-head-tools">
+            <ul class="tools-list">
+              <?php if ($roles['edit']) { ?>
+              <li>
+                <a href="<?php echo site_url('order/edit/'.$this->encrypter->encode($rec->orderID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
+              </li>
+              <?php } ?>
+              <?php if ($roles['delete'] && !$in_used) { ?>
+              <li>
+                <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->orderID); ?>');"><i class="la la-trash-o"></i></button>
+              </li>
+              <?php } ?>
+              <?php if ($this->session->userdata('current_user')->isAdmin) { ?>
+              <li>
+                <button type="button" id="recordlog" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Record Logs" onclick="popUp('<?php echo site_url('logs/record_log/order_headers/orderID/'.$this->encrypter->encode($rec->orderID).'/Order') ?>', 1000, 500)"><i class="la la-server"></i></button>
+              </li>
+              <?php } ?>
+            </ul>
+          </div>
+        </div>
+        <div class="card-body">
+          <form method="post" name="frmEntry" id="frmEntry" action="<?php echo site_url("order/save") ?>">
+            <div class="data-view">
+              <table class="view-table">
+                <tbody>
+                  <tr>
+                    <td class="data-title w-10">Branch :</td>
+                    <td class="data-input w-20"><?php echo $rec->branchName;?></td>
+                    <td class="data-title w-10">Date :</td>
+                    <td class="data-input w-20"><?php echo date('Y-m-d')?></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Customer Name :</td>
+                    <td class="data-input"><?php echo $rec->fname .' '.$rec->mname. ' '.$rec->lname;?></td>
+                    <td class="data-title">is discounted</td>
+                    <td class="data-input border-0">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" name="isDiscounted" id="isDiscounted" value="<?php if($rec->isDiscounted == 'Y'){
+                            echo "Y";
+                            }
+                            else {
+                            echo "N";
+                            };?>" aria-label="..." <?php if($rec->isDiscounted == 'Y') echo "checked='checked'";?> onclick="return false;"> &nbsp;
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Service : </td>
+                    <td class="data-input"><?php echo $rec->serviceType;?></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="datatables_wrapper mt-30">
+              <div class="table-responsive-xl">
+                <!-- start create header details -->
+                <?php
+                  $table_str="<table class='table'>";
+                  $table_str.='<thead class="thead-light"><tr>';
+                  $table_str.='<th>'.'Quantity'.'</th>';
+                  $table_str.='<th>'.'Clothes Category'.'</th>';
+                  $table_str.='</tr></thead>';
+                  $i = 1;
+                  foreach ($clothes_categories as $rows) {
+                      $table_str.='<tr>';
+                      $table_str.='<td style="width: 100px" align="left">'.'<input type="number" min="1" name="clothes_qtys[]" value="'.$rows->qty.'" class="border-0" readonly >'.'</td>';
+                      $table_str.='<td>'.$rows->category.'</td>';
+                      $table_str.='</tr>';
+                  }
+                  $table_str.="</table>";
+                  
+                  echo $table_str;
+                  ?>
+                <!-- end create header details -->
+              </div>
+            </div>
+            <div class="mt-30">
+              <p>Signature : </p>
+              <?php if ($rec->custSign) { ?>
+               <img src="<?php echo $rec->custSign; ?>" alt="Red dot" />
+              <?php } ?>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-xxl-3">
+      <div class="card-box">
+        <div class="card-body">
+          <form method="post" name="frmEntry" id="frmEntry2" action="<?php echo site_url("order/save") ?>">
+            <div class="data-view">
+              <table class="view-table">
+                <tbody>
+                  <tr>
+                    <td class="data-title w-50">Rate :</td>
+                    <td class="py-5"><input type="text" class="form-control" name="rate" id="rate" value="<?php echo $rec->rate;?>" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Quantity in kilos :</td>
+                    <td class="py-5"><input type="number" class="form-control" name="qty" id="qty" min="0" value="<?php echo $rec->qty;?>" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Sub total:</td>
+                    <td class="py-5"><input type="number" class="form-control" name="subtotal" id="subtotal" min="0" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Deliver Fee:</td>
+                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec->deliveryFee;?>" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Amount :</td>
+                    <td class="py-5"><input type="number" class="form-control" name="ttlAmount" id="ttlAmount" readonly></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="form-sepator solid"></div>
+            <div class="data-view">
+              <table class="view-table">
+                <tbody>
+                  <tr>
+                    <td class="data-title">Prepared by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Date washed : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Date Ready : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Cancelled by : &nbsp;&nbsp;<span><?php echo $rec->firstName .' '.$rec->middleName.' '.$rec->lastName;?></span></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Date Fold : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
+                  </tr>
+                  <tr>
+                    <td class="data-title">Date Released : &nbsp;&nbsp;<span><?php echo $rec->dateCreated;?></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function(){
+      var rate = parseInt($('#rate').val());
+      var quantity_kilo = parseInt($('#qty').val());
+      var total = quantity_kilo + rate;
+  
+      $('#subtotal').val(total);
+  
+      var subtotal = parseInt($('#subtotal').val());
+      var deliveryFee = parseInt($('#deliveryFee').val());
+      var total = subtotal + deliveryFee;
+  
+      $('#ttlAmount').val(total);
+  });
+  
+</script>
