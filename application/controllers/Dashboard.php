@@ -91,30 +91,20 @@ class Dashboard extends CI_Controller
 
 
         //order headers total amount
-        for($i=1;$i<=12;$i++){
-            if($i<=9){
-                $i='0'.$i;
-            }   
-            $this->db->select('order_headers.*');
-            $this->db->from('order_headers');  
-            $this->db->where('branchID', $this->session->userdata('current_user')->branchID);  
-            $this->db->like('date', date('Y-'.$i));  
-            $orders = $this->db->get()->result();
 
-            $total=0;
-            foreach ($orders as $order) {
-                $total += $order->ttlAmount;
-                // echo $order->ttlAmount.","; 
-            }
-            $data['grandTotal'] = $total .',';
-        }
-
-        $this->db->select('configID');
+        /*$this->db->select('configID');
         $this->db->select('name');
         $this->db->select('value');
         $this->db->from('config');
         $this->db->where('name', 'Start Year' );
-        $data['config'] = $this->db->get()->row();
+        $data['config'] = $this->db->get()->row();*/
+
+        //echo json_encode($data['config']);
+        //die();
+
+        $years = range(date("Y"), 1910);
+
+        $data['years'] = $years;
 
        // load views
         $this->load->view('header', $data);
@@ -146,31 +136,112 @@ class Dashboard extends CI_Controller
         $this->load->view('footer_print');
     }
 
-    public function getChart()
+    public function getChartOrderSales()
     {
 
         $branchID = $this->input->post('branchID');
+        $year = $this->input->post('year');
 
-        $total_arr = array();
-        for($i=1;$i<=12;$i++){
-            if($i<=9){
-                $i='0'.$i;
-            }   
-            $this->db->select('order_headers.*');
-            $this->db->from('order_headers');  
-            $this->db->where('branchID', $branchID);  
-            $this->db->like('date', date('Y-'.$i));  
-            $orders = $this->db->get()->result();
+        $total_arr = [
+            $this->getSalesOrder($this->formatDateFirstDay($year, '01'), $this->formatDateLastDay($year, '01'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '02'), $this->formatDateLastDay($year, '02'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '03'), $this->formatDateLastDay($year, '03'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '04'), $this->formatDateLastDay($year, '04'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '05'), $this->formatDateLastDay($year, '05'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '06'), $this->formatDateLastDay($year, '06'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '07'), $this->formatDateLastDay($year, '07'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '08'), $this->formatDateLastDay($year, '08'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '09'), $this->formatDateLastDay($year, '09'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '10'), $this->formatDateLastDay($year, '10'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '11'), $this->formatDateLastDay($year, '11'), $branchID),
+            $this->getSalesOrder($this->formatDateFirstDay($year, '12'), $this->formatDateLastDay($year, '12'), $branchID),
 
-
-
-            $total=0;
-            foreach ($orders as $order) {
-                $total += $order->ttlAmount;                                
-            }
-            array_push($total_arr, $total);
-        }
+        ];
         echo json_encode($total_arr);
+
+    }
+
+    public function getChartExpense()
+    {
+        $branchID = $this->input->post('branchID');
+        $year = $this->input->post('year');
+
+        $total_arr = [
+            $this->getSales($this->formatDateFirstDay($year, '01'), $this->formatDateLastDay($year, '01'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '02'), $this->formatDateLastDay($year, '02'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '03'), $this->formatDateLastDay($year, '03'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '04'), $this->formatDateLastDay($year, '04'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '05'), $this->formatDateLastDay($year, '05'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '06'), $this->formatDateLastDay($year, '06'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '07'), $this->formatDateLastDay($year, '07'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '08'), $this->formatDateLastDay($year, '08'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '09'), $this->formatDateLastDay($year, '09'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '10'), $this->formatDateLastDay($year, '10'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '11'), $this->formatDateLastDay($year, '11'), $branchID),
+            $this->getSales($this->formatDateFirstDay($year, '12'), $this->formatDateLastDay($year, '12'), $branchID),
+
+        ];
+        echo json_encode($total_arr);
+    }
+
+    public function formatDateFirstDay($year, $month)
+    {
+        $d = new DateTime($year.'-'.$month.'-19');
+        $d->modify('first day of this month');
+        $firstDay = $d->format('Y-m-d');
+
+        return $firstDay;
+    }
+
+    public function formatDateLastDay($year, $month)
+    {
+
+        $d = new DateTime($year.'-'.$month.'-19');
+        $d->modify('last day of this month');
+        $lastDay = $d->format('Y-m-d');
+
+        return $lastDay;
+    }
+
+    public function getSalesOrder($from, $to, $branchID){
+        //$this->db->where('DATE(order_headers.dateReady) >= ', Date('Y-m-d'));
+        $this->db->select("SUM(order_headers.ttlAmount) AS totalAmount");
+        $this->db->from("order_headers");
+        //$this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        //$this->db->where('DATE(order_headers.date) >= ', $date);
+        $this->db->where('DATE(order_headers.date) >= ', $from);
+        $this->db->where('DATE(order_headers.date) <= ', $to);
+        $this->db->where('branchID', $branchID);
+
+        $query = $this->db->get();
+        if($query->num_rows() > 0) {
+            $res = $query->row_array();
+            return (int)$res['totalAmount'];
+        }
+        else {
+            return 0;
+        }
+    }
+
+    public function getSales($from, $to, $branchID){
+        //$this->db->where('DATE(order_headers.dateReady) >= ', Date('Y-m-d'));
+        $this->db->select("SUM(exp_details.amount) AS totalAmount");
+        $this->db->from("exp_headers");
+        $this->db->join("exp_details", "exp_headers.expID =  exp_details.expID", "left");
+        //$this->db->join('service_types', 'order_headers.serviceID=service_types.serviceID', 'left');
+        //$this->db->where('DATE(exp_headers.date) >= ', $date);
+        $this->db->where('DATE(exp_headers.date) >= ', $from);
+        $this->db->where('DATE(exp_headers.date) <= ', $to);
+        $this->db->where('exp_headers.branchID', $branchID);
+
+        $query = $this->db->get();
+        if($query->num_rows() > 0) {
+            $res = $query->row_array();
+            return (int)$res['totalAmount'];
+        }
+        else {
+            return 0;
+        }
     }
 
 }

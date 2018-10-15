@@ -74,14 +74,14 @@
                                     <tr class="item">
                                         <td class="id"><?php echo $detail->brand?></>
                                         <td style="display:none">
-                                            <input type="hidden" id="item_ids[]" name="item_ids[]" value="<?php echo $detail->itemID;?>" class="item_id" readonly>
+                                            <input type="hidden"   name="item_ids[]" value="<?php echo $detail->itemID;?>" class="item_id" readonly>
                                         </td>
                                         <td>
-                                            <input type="text"  name="qtyss[]" value="<?php echo $detail->qty; ?>" class="name border-0" readonly>
+                                            <input type="text"  name="qtys[]" value="<?php echo $detail->qty; ?>" class="name form-control" >
 
                                         </td>
                                         <td class="id">
-                                            <input type="text" class="id border-0" name="amounts[]" value="<?php echo $detail->amount?>" readonly>
+                                            <input type="text" class="id form-control" name="amounts[]" value="<?php echo $detail->amount?>" >
                                         </td>
                                         <td>
                                             <a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove" title="Delete"><i class="icon la la-trash-o sm"></i></a>
@@ -147,6 +147,7 @@
 </div>
 <script>
 	$('#cmdSave').click(function(){
+	    //add localstorage
         if (check_fields()) {
             $('#cmdSave').attr('disabled','disabled');
             $('#cmdSave').addClass('loader');
@@ -179,6 +180,7 @@
             //     $('#cmdSave').removeAttr('disabled');
             //     alert("Sorry!! Can't save empty items details!");
             // }
+            localStorage.clear();
             $('#frmEntry').submit();
         }
     });
@@ -220,6 +222,19 @@
             });
     });
     $(function(){
+        //console.log("add local storage");
+        var items = '<?php echo json_encode($rr_details);?>';
+        //console.log("items", items);
+        var items = JSON.parse(items);
+        var ids = [];
+        $.each(items, function(k,v){
+            //console.log("item id", v['itemID']);
+            ids.push(v['itemID']);
+        });
+        var new_items = JSON.stringify(ids);
+        localStorage.setItem("ITEM-ID", new_items);
+
+
         $('#addMore').on('click', function() {
             var item = $('#itemID').val();
             var item_text = $('#itemID option:selected').text();
@@ -227,18 +242,43 @@
             var qty = $('#qty').val();
             if(amount != "" && qty != "") {
                 //check item for duplicate
+                var item_ids = localStorage.getItem("ITEM-ID");
+                var ids = [];
+                if(item_ids) {
+                    var ids_new = localStorage.getItem("ITEM-ID");
+                    var ids_new = JSON.parse(ids_new);
+                    for(var i = 0; i < ids_new.length; i++) {
+                        if(ids_new[i] ===  item) {
+                            swal("Already Exist ",item_text,"warning");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("ITEM-ID");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(item);
+                            var store_ids = JSON.stringify(new_ids);
+                            localStorage.setItem("ITEM-ID", store_ids);
+                        }
+                    }
+                }
+                else {
+                    ids.push(item);
+                    var item_id = JSON.stringify(ids);
+                    localStorage.setItem("ITEM-ID", item_id);
+                }
+
                 $("tr.item").each(function() {
                     var item_id = $(this).find("input.item_id").val();
-                    console.log("item id");
-                    console.log($('#itemID').val());
-                    console.log(item_id);
+                    //console.log("item id");
+                    //console.log($('#itemID').val());
+                    //console.log(item_id);
                 });
 
                 $('#tb').append($('<tr class="item">')
                     .append($('<td id="item[]">').text(item_text))
                     .append($('<td style="display:none"><input type="hidden" id="item_ids[]" name="item_ids[]" value="'+item+'"  readonly>'))
-                    .append($('<td><input type="text"  name="qtys[]" value="'+qty+'" class="name border-0" readonly>'))
-                    .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id border-0" readonly>'))
+                    .append($('<td><input type="text"  name="qtys[]" value="'+qty+'" class="name form-control" >'))
+                    .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id form-control" >'))
                     .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove" title="Delete"><i class="icon la la-trash-o sm"></i></a>'))
                 );
                 //$table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$rows->clothesCatID.'">'.'</td>';
@@ -261,8 +301,23 @@
         $(document).on('click', '.remove', function() {
             var total = 0;
             var trIndex = $(this).closest("tr").index();
-            if(trIndex>1) {
-                $(this).closest("tr").remove();
+
+
+
+            //if(trIndex>1) {
+            $(this).closest("tr").remove();
+            var item_id = $(this).closest("tr").find('input').val();
+            //remove local storage
+            var new_ids = localStorage.getItem("ITEM-ID");
+            var new_ids = JSON.parse(new_ids);
+            for(var x = 0; x < new_ids.length; x++) {
+                if(new_ids[x] === item_id) {
+                    delete new_ids[x];
+                }
+            }
+
+            var ids = JSON.stringify(new_ids);
+            localStorage.setItem("ITEM-ID", ids);
 
                 $("tr.item").each(function() {
                     var qty = $(this).find("input.name").val(),
@@ -271,9 +326,9 @@
                 });
 
                 $('#ttlAmount').val(total);
-            } else {
-                alert("Sorry!! Can't remove first row!");
-            }
+            // } else {
+            //     alert("Sorry!! Can't remove first row!");
+            // }
         });
     });
 </script>

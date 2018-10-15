@@ -64,10 +64,10 @@
                                     <tr class="item">
                                         <td class="id"><?php echo $detail->description?></>
                                         <td style="display:none">
-                                            <input type="hidden" id="item_ids[]" name="item_ids[]" value="<?php echo $detail->particularID;?>" class="item_id" readonly>
+                                            <input type="hidden"  name="item_ids[]" value="<?php echo $detail->particularID;?>" class="item_id" readonly>
                                         </td>
                                         <td>
-                                            <input type="text"  name="prices[]" id="prices" value="<?php echo $detail->qty; ?>" class="name form-control" >
+                                            <input type="text"  name="prices[]" value="<?php echo $detail->qty; ?>" class="name form-control" >
 
                                         </td>
                                         <td class="id">
@@ -172,6 +172,8 @@
             //     alert("Sorry!! Can't save empty items details!");
             // }
             $('#frmEntry').submit();
+
+            localStorage.removeItem('particular_ids');
         }
     });
 
@@ -212,12 +214,59 @@
             });
     });
     $(function(){
+        var items = '<?php echo json_encode($details);?>';
+        //console.log("items", items);
+        var items = JSON.parse(items);
+        var ids = [];
+        $.each(items, function(k,v){
+            //console.log("item id", v['itemID']);
+            ids.push(v['particularID']);
+        });
+        var new_items = JSON.stringify(ids);
+        localStorage.setItem("particular_ids", new_items);
+
         $('#addMore').on('click', function() {
-            var item = $('#itemID').val();
-            var item_text = $('#itemID option:selected').text();
+            //loop table to check duplicate
+            var particular = $('#itemID').val();
+            var particular_text = $('#itemID option:selected').text();
+
+            var ids = [];
+            var service_ids = localStorage.getItem("particular_ids");
+            console.log("the storage", service_ids);
+            if(service_ids) {
+                //save local storage
+                var new_service_ids = localStorage.getItem("particular_ids");
+                var new_service_ids = JSON.parse(service_ids);
+                for(i = 0; i < new_service_ids.length; i++) {
+                    if(new_service_ids[i] === particular) {
+                        //alert("service already exist");
+                        swal("Already Exist ",particular_text,"warning");
+                        console.log("exits");
+                        return false;
+                    }
+                    else {
+                        var new_ids = localStorage.getItem("particular_ids");
+                        var new_ids = JSON.parse(new_ids);
+                        new_ids.push(particular);
+
+                        var service_ids = JSON.stringify(new_ids);
+                        //console.log("ADD SERVICE ID");
+                        //console.log(ids);
+                        localStorage.setItem("particular_ids", service_ids);
+                    }
+                }
+
+            }
+            else {
+                ids.push(particular);
+                var service_ids = JSON.stringify(ids);
+                localStorage.setItem("particular_ids", service_ids);
+            }
+
+
             var amount = $('#amount').val();
             var price = $('#price').val();
-            if(amount != "" && price != "" && item != "") {
+            if(amount != "" && price != "" && particular != "") {
                 //check item for duplicate
                 $("tr.item").each(function() {
                     var item_id = $(this).find("input.item_id").val();
@@ -227,8 +276,8 @@
                 });
 
                 $('#tb').append($('<tr class="item">')
-                    .append($('<td id="item[]">').text(item_text))
-                    .append($('<td style="display:none"><input type="hidden" id="item_ids[]" name="item_ids[]" value="'+item+'"  readonly>'))
+                    .append($('<td id="item[]">').text(particular_text))
+                    .append($('<td style="display:none"><input type="hidden" id="item_ids[]" name="item_ids[]" value="'+particular+'"  readonly>'))
                     .append($('<td><input type="text"  name="prices[]" value="'+price+'" class="name form-control" >'))
                     .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id form-control" >'))
                     .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove" title="Delete"><i class="icon la la-trash-o sm"></i></a>'))
@@ -252,8 +301,28 @@
         });
         $(document).on('click', '.remove', function() {
             var total = 0;
-            var trIndex = $(this).closest("tr").index();
-            if(trIndex>1) {
+            //var trIndex = $(this).closest("tr").index();
+            //if(trIndex>1) {
+
+            var service_id = $(this).closest("tr").find('input').val();
+            //remove the ids from service ids
+            var new_ids = localStorage.getItem("particular_ids");
+            var new_ids = JSON.parse(new_ids);
+            for(x = 0 ;x < new_ids.length; x ++){
+                if(new_ids[x] == service_id) {
+                    //console.log("remove me");
+                    //console.log(new_ids[x]);
+                    delete new_ids[x];
+
+                    //new_ids.splice(0, service_id);
+                    //return false;
+                }
+            }
+            //console.log("the id");
+            //console.log(new_ids);
+            var the_ids = JSON.stringify(new_ids);
+            localStorage.setItem("particular_ids", the_ids);
+
                 $(this).closest("tr").remove();
 
                 $("tr.item").each(function() {
@@ -263,10 +332,42 @@
                 });
 
                 $('#ttlAmount').val(total);
-            } else {
-                alert("Sorry!! Can't remove first row!");
-            }
+            // } else {
+            //     alert("Sorry!! Can't remove first row!");
+            // }
         });
+
+        $(document).on('keyup', '.id',  function(){
+
+            var rowCount = $('#ei_details tr').length;
+            var total_qty = 0;
+            if(rowCount == 3) {
+                //console.log("equal value");
+
+                var amount = $(this).val();
+                $('#ttlAmount').val(amount);
+            }
+            else {
+
+                calculateAmount();
+            }
+
+
+        });
+
+        function calculateAmount() {
+            var total = 0;
+
+            //loop table to calculate the amount
+            $("tr.item").each(function() {
+                var price = $(this).find("input.name").val(),
+                    amount = $(this).find("input.id").val();
+                total += parseFloat(amount);
+            });
+
+            $('#ttlAmount').val(total);
+        }
+
     });
 </script>
 

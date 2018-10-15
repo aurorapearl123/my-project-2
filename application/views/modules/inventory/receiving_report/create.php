@@ -234,12 +234,40 @@
         
     });
     $(function(){
+        localStorage.clear();
+        //console.log("clear local storage");
         $('#addMore').on('click', function() {
+            //clear local storage
             var item = $('#itemID').val();
             var item_text = $('#itemID option:selected').text();
             var amount = $('#amount').val();
             var qty = $('#qty').val();
             if(amount != "" && qty != "") {
+                //check local storage data
+                var item_ids = localStorage.getItem("ITEM-ID");
+                var ids = [];
+                if(item_ids) {
+                    var ids_new = localStorage.getItem("ITEM-ID");
+                    var ids_new = JSON.parse(ids_new);
+                    for(var i = 0; i < ids_new.length; i++) {
+                        if(ids_new[i] ===  item) {
+                            swal("Already Exist ",item_text,"warning");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("ITEM-ID");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(item);
+                            var store_ids = JSON.stringify(new_ids);
+                            localStorage.setItem("ITEM-ID", store_ids);
+                        }
+                    }
+                }
+                else {
+                    ids.push(item);
+                    var item_id = JSON.stringify(ids);
+                    localStorage.setItem("ITEM-ID", item_id);
+                }
 
                 //loop table to check duplicate
 
@@ -259,13 +287,13 @@
 
                 //loop table to calculate the amount
                 $("tr.item").each(function() {
-                    console.log($(this))
+                    //console.log($(this))
                     var qty = $(this).find("input.name").val(),
                         amount = $(this).find("input.id").val();
                     totalAmt += parseFloat(amount);
                     totalQty += parseFloat(qty);
-                    console.log('amount',amount)
-                    console.log('qty',qty)
+                    //console.log('amount',amount)
+                    //console.log('qty',qty)
 
                 });
 
@@ -285,6 +313,22 @@
             //     alert("Sorry!! Can't remove first row!");
             // }
             $(this).closest("tr").remove();
+            var item_id = $(this).closest("tr").find('input').val();
+            //console.log("this item id", item_id);
+
+            //remove local storage
+            var new_ids = localStorage.getItem("ITEM-ID");
+            var new_ids = JSON.parse(new_ids);
+            for(var x = 0; x < new_ids.length; x++) {
+                if(new_ids[x] === item_id) {
+                    delete new_ids[x];
+                }
+            }
+
+            var ids = JSON.stringify(new_ids);
+            localStorage.setItem("ITEM-ID", ids);
+
+
 
             $("tr.item").each(function() {
                 var qty = $(this).find("input.name").val(),
@@ -297,6 +341,67 @@
             $('#ttlQty').val(totalQty);
 
         });
+
+        $(document).on('keyup', '.name', function(){
+            //console.log("the value");
+            var data = (this).value;
+            //console.log(data);
+            var rowCount = $('#tb tr').length;
+            var total_qty = 0;
+            if(rowCount == 3) {
+                //console.log("equal value");
+                $('#ttlQty').val(data);
+            }
+            else {
+                // console.log("calculate me");
+                // var qty = $('#ttlQty').val();
+                // total_qty += +qty;
+                // $('#ttlQty').val(total_qty);
+                calculateAmountAndTotal();
+            }
+
+            //console.log("table row count", rowCount);
+
+        });
+
+
+        $(document).on('keyup', '.id', function(){
+            //console.log("the value");
+            var data = (this).value;
+            //console.log(data);
+            var rowCount = $('#tb tr').length;
+            var total_qty = 0;
+            if(rowCount == 3) {
+                //console.log("equal value");
+                $('#ttlAmount').val(data);
+            }
+            else {
+                // console.log("calculate me");
+                // var qty = $('#ttlQty').val();
+                // total_qty += +qty;
+                // $('#ttlQty').val(total_qty);
+                calculateAmountAndTotal();
+            }
+
+            //console.log("table row count", rowCount);
+
+        });
+
+
+        function calculateAmountAndTotal()
+        {
+            var totalAmt = 0;
+            var totalQty = 0;
+            $("tr.item").each(function() {
+                var qty = $(this).find("input.name").val(),
+                    amount = $(this).find("input.id").val();
+                totalAmt += parseInt(amount);
+                totalQty += parseInt(qty);
+            });
+
+            $('#ttlAmount').val(totalAmt);
+            $('#ttlQty').val(totalQty);
+        }
 
     });
 </script>

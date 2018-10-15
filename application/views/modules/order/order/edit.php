@@ -435,6 +435,14 @@
 
     });
 
+    $(document).on('keyup', '.name', function(){
+        var value = $(this).val();
+        //console.log("the value - ", value);
+        calculateAmount(this, value);
+        calculateAmountForTotal();
+    });
+
+
     function calculateAmountSelect(_this, value)
     {
         if(value !== "") {

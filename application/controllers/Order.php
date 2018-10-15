@@ -833,19 +833,21 @@ class Order extends CI_Controller {
         // load submenu
         $this->submenu ();
         $data = $this->data;
-        
-        // **************************************************
+
+        //echo json_encode($_POST);
+        //die();
+        // 1**************************************************
         // variable:field:default_value:operator
         // note: dont include the special query field filter                
         $condition_fields = array (
             
             array ('variable' => 'osNo', 'field' =>$this->table .'.osNo', 'default_value' => '', 'operator' => 'like_both' ),            
-            array ('variable' => 'lname', 'field' =>'customers.lname', 'default_value' => '', 'operator' => 'like_both' ),            
+            array ('variable' => 'fname', 'field' =>'customers.fname', 'default_value' => '', 'operator' => 'like_both' ),
             array ('variable'=>'branchName', 'field'=>'branches.branchName', 'default_value'=>'', 'operator'=>'like_both'),            
-            array ('variable' => 'serviceType', 'field' => 'service_types.serviceType', 'default_value' => '', 'operator' => 'like_both' ),
+            array ('variable' => 'date', 'field' => $this->table.'.date', 'default_value' => '', 'operator' => 'like_both' ),
             // array ('variable' => 'date', 'field' =>$this->table . '.date', 'default_value' => '', 'operator' => 'like_both' ),
-            array ('variable' => 'isDiscounted', 'field' => $this->table .'.isDiscounted', 'default_value' => '', 'operator' => 'where' ),
-            array ('variable' => 'status', 'field' => $this->table . '.status', 'default_value' => '', 'operator' => 'where' )
+            array ('variable' => 'isDiscounted', 'field' => $this->table .'.isDiscounted', 'default_value' => '', 'operator' => 'like_both' ),
+            array ('variable' => 'status', 'field' => $this->table . '.status', 'default_value' => '', 'operator' => 'like_both' )
         );
         
         // // sorting fields
@@ -879,6 +881,7 @@ class Order extends CI_Controller {
                 }
             }
         }
+
         
         switch ($filter_source) {
             case 1 :
@@ -968,7 +971,8 @@ class Order extends CI_Controller {
                     $this->db->$operator ( $key ['field'], $$key ['variable'] );
             }
         }
-        
+
+
         if($date) {
             $this->db->like($this->table.'.date',date('Y-m-d',strtotime($date)));
         }
@@ -978,7 +982,7 @@ class Order extends CI_Controller {
         $config ['base_url'] = $this->controller_page . '/show/';
         $config ['per_page'] = $limit;
         $this->pagination->initialize ( $config );
-        
+
         // select
         $this->db->select ( $this->table . '.*' );
         $this->db->select ( 'branches.branchName' );
@@ -1000,7 +1004,7 @@ class Order extends CI_Controller {
         $this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
         $this->db->join ( 'customers', $this->table . '.custID=customers.custID', 'left' );
         $this->db->join ( 'service_types', $this->table . '.serviceID=service_types.serviceID', 'left' );
-        
+
         // where
         // set conditions here
         foreach ( $condition_fields as $key ) {
@@ -1016,13 +1020,17 @@ class Order extends CI_Controller {
                     $this->db->$operator ( $key ['field'], $$key ['variable'] );
             }
         }
-        
+
+         //echo json_encode($condition_fields);
+        //die();
+
+
         if($date) {
             $this->db->like($this->table.'.date',date('Y-m-d',strtotime($date)));
         }
         if ($sortby && $sortorder) {
             $this->db->order_by ( $sortby, $sortorder );
-            
+
             if (! empty ( $sorting_fields )) {
                 foreach ( $sorting_fields as $fld => $s_order ) {
                     if ($fld != $sortby) {
@@ -1039,12 +1047,12 @@ class Order extends CI_Controller {
                         $sortorder = $s_order;
                     }
                     $this->db->order_by ( $fld, $s_order );
-                    
+
                     $ctr ++;
                 }
             }
         }
-        
+
         if ($limit) {
             if ($offset) {
                 $this->db->limit ( $limit, $offset );
@@ -1052,7 +1060,7 @@ class Order extends CI_Controller {
                 $this->db->limit ( $limit );
             }
         }
-        
+
         // assigning variables
         $data ['sortby'] = $sortby;
         $data ['sortorder'] = $sortorder;
@@ -1061,6 +1069,9 @@ class Order extends CI_Controller {
         
         // get
         $data ['records'] = $this->db->get ()->result ();
+
+        //echo json_encode($data['records']);
+        //die();
         // load views
         $this->load->view ( 'header', $data );
         $this->load->view ( $this->module_path . '/list' );

@@ -175,6 +175,8 @@
         
     });
     $(function(){
+        localStorage.removeItem('withdrawal_service_ids');
+        console.log("local storage clear");
         $('#addMore').on('click', function() {
             var item = $('#itemID').val();
             var item_text = $('#itemID option:selected').text();
@@ -183,11 +185,42 @@
             if(quantity != "") {
 
                 //loop table to check duplicate
+                var ids = [];
+                var service_ids = localStorage.getItem("withdrawal_service_ids");
+                console.log("the storage", service_ids);
+                if(service_ids) {
+                    //save local storage
+                    var new_service_ids = localStorage.getItem("withdrawal_service_ids");
+                    var new_service_ids = JSON.parse(service_ids);
+                    for(i = 0; i < new_service_ids.length; i++) {
+                        if(new_service_ids[i] === item) {
+                            //alert("service already exist");
+                            swal("Already Exist ",item_text,"warning");
+                            console.log("exits");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("withdrawal_service_ids");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(item);
 
+                            var service_ids = JSON.stringify(new_ids);
+                            //console.log("ADD SERVICE ID");
+                            //console.log(ids);
+                            localStorage.setItem("withdrawal_service_ids", service_ids);
+                        }
+                    }
+
+                }
+                else {
+                    ids.push(item);
+                    var service_ids = JSON.stringify(ids);
+                    localStorage.setItem("withdrawal_service_ids", service_ids);
+                }
                 $('#tb').append($('<tr class="item">')
                     .append($('<td id="item[]">').text(item_text))
                     .append($('<td style="display:none"><input type="hidden" name="item_ids[]" value="'+item+'" class="item_id"  readonly>'))
-                    .append($('<td><input type="text" name="quantity[]" value="'+quantity+'" class="id border-0" readonly>'))
+                    .append($('<td><input type="text" name="quantity[]" value="'+quantity+'" class="id form-control">'))
                     .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><span class="icon la la-trash-o sm"></span></a>'))
                 );
                 //$table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="clothes_ids[]" value="'.$rows->clothesCatID.'">'.'</td>';
@@ -220,6 +253,24 @@
             // } else {
             //     alert("Sorry!! Can't remove first row!");
             // }
+            var service_id = $(this).closest("tr").find('input').val();
+            //remove the ids from service ids
+            var new_ids = localStorage.getItem("withdrawal_service_ids");
+            var new_ids = JSON.parse(new_ids);
+            for(x = 0 ;x < new_ids.length; x ++){
+                if(new_ids[x] == service_id) {
+                    //console.log("remove me");
+                    //console.log(new_ids[x]);
+                    delete new_ids[x];
+
+                    //new_ids.splice(0, service_id);
+                    //return false;
+                }
+            }
+            //console.log("the id");
+            //console.log(new_ids);
+            var the_ids = JSON.stringify(new_ids);
+            localStorage.setItem("withdrawal_service_ids", the_ids);
             $(this).closest("tr").remove();
 
             $("tr.item").each(function() {

@@ -188,6 +188,8 @@
     });
 
     $(function(){
+        localStorage.removeItem('particular_ids');
+        console.log("local particular clear");
         $('#addMore').on('click', function() {
             var particular = $('#particularID').val();
             var particular_text = $('#particularID option:selected').text();
@@ -198,12 +200,43 @@
             if(quantity != "" && amount != "" && particular != "") {
 
                 //loop table to check duplicate
+                var ids = [];
+                var service_ids = localStorage.getItem("particular_ids");
+                console.log("the storage", service_ids);
+                if(service_ids) {
+                    //save local storage
+                    var new_service_ids = localStorage.getItem("particular_ids");
+                    var new_service_ids = JSON.parse(service_ids);
+                    for(i = 0; i < new_service_ids.length; i++) {
+                        if(new_service_ids[i] === particular) {
+                            //alert("service already exist");
+                            swal("Already Exist ",particular_text,"warning");
+                            console.log("exits");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("particular_ids");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(particular);
 
+                            var service_ids = JSON.stringify(new_ids);
+                            //console.log("ADD SERVICE ID");
+                            //console.log(ids);
+                            localStorage.setItem("particular_ids", service_ids);
+                        }
+                    }
+
+                }
+                else {
+                    ids.push(particular);
+                    var service_ids = JSON.stringify(ids);
+                    localStorage.setItem("particular_ids", service_ids);
+                }
                 $('#ei_details').append($('<tr class="expense_inventory">')
                     .append($('<td id="item[]">').text(particular_text))
                     .append($('<td style="display:none"><input type="hidden" name="particularIDs[]" value="'+particular+'" class="branch_id"  readonly>'))
-                    .append($('<td><input type="text" name="quantities[]" value="'+quantity+'" class="border-0" readonly>'))
-                    .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id border-0" readonly>'))
+                    .append($('<td><input type="text" name="quantities[]" value="'+quantity+'" class="form-control" >'))
+                    .append($('<td><input type="text" name="amounts[]" value="'+amount+'" class="id form-control" >'))
                     .append($('<td><a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><span class="icon la la-trash-o sm"></span></a>'))
                 );
                 
@@ -233,6 +266,25 @@
             // } else {
             //     alert("Sorry!! Can't remove first row!");
             // }
+
+            var service_id = $(this).closest("tr").find('input').val();
+            //remove the ids from service ids
+            var new_ids = localStorage.getItem("particular_ids");
+            var new_ids = JSON.parse(new_ids);
+            for(x = 0 ;x < new_ids.length; x ++){
+                if(new_ids[x] == service_id) {
+                    //console.log("remove me");
+                    //console.log(new_ids[x]);
+                    delete new_ids[x];
+
+                    //new_ids.splice(0, service_id);
+                    //return false;
+                }
+            }
+            //console.log("the id");
+            //console.log(new_ids);
+            var the_ids = JSON.stringify(new_ids);
+            localStorage.setItem("particular_ids", the_ids);
             $(this).closest("tr").remove();
 
             $("tr.expense_inventory").each(function() {
@@ -245,6 +297,36 @@
             $('#ttlAmount').val(total);
 
         });
+
+        $(document).on('keyup', '.id',  function(){
+
+            var rowCount = $('#ei_details tr').length;
+            var total_qty = 0;
+            if(rowCount == 3) {
+                //console.log("equal value");
+
+                var amount = $(this).val();
+                $('#ttlAmount').val(amount);
+            }
+            else {
+
+                calculateAmount();
+            }
+
+
+        });
+
+        function calculateAmount() {
+            var total = 0;
+            $("tr.expense_inventory").each(function() {
+                var price = $(this).find("input.name").val(),
+                    amount = $(this).find("input.id").val();
+                console.log("this is a total amount : ", amount);
+                total += parseInt(amount);
+            });
+
+            $('#ttlAmount').val(total);
+        }
 
 
 

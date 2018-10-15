@@ -59,13 +59,13 @@
                                         <tr class="item">
                                             <td class="id"><?php echo $item->item?></>
                                             <td style="display:none">
-                                                <input type="hidden" id="item_ids[]" name="item_ids[]" value="<?php echo $item->itemID;?>" class="item_id" readonly>
+                                                <input type="hidden"  name="item_ids[]" value="<?php echo $item->itemID;?>" class="item_id" readonly>
                                             </td>
                                             <td>
                                                 <input type="text"  name="quantities[]" value="<?php echo $item->qty; ?>" class="name border-0" readonly>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs"><i class="icon la la-trash-o sm"></i></a>
+                                                <a href="javascript:void(0);" class="btn btn-outline-light bmd-btn-icon btn-xs remove"><i class="icon la la-trash-o sm"></i></a>
                                             </td>
                                         </tr>
                                     <?php endforeach;?>
@@ -75,7 +75,7 @@
                                         <td class="form-group form-input w-25">
                                             <select class="form-control w-80" id="itemID" name="itemID" data-live-search="true" livesearchnormalize="true" title="Item" required>
                                                 <option value="" selected>&nbsp;</option>
-                                                <?php foreach($items as $row) { ?>
+                                                <?php foreach($items_select as $row) { ?>
                                                     <option value="<?php echo $row->itemID ?>"><?php echo $row->brand?></option>
                                                 <?php } ?>
                                             </select>
@@ -198,12 +198,51 @@
         
     });
     $(function(){
+        //console.log("add local storage");
+        var items = '<?php echo json_encode($items);?>';
+        //console.log("items", items);
+        var items = JSON.parse(items);
+        var ids = [];
+        $.each(items, function(k,v){
+            //console.log("item id", v['itemID']);
+            ids.push(v['itemID']);
+        });
+        var new_items = JSON.stringify(ids);
+        localStorage.setItem("WITHDRAWAL-ITEM-ID", new_items);
+
+
         $('#addMore').on('click', function() {
             var item = $('#itemID').val();
             var item_text = $('#itemID option:selected').text();
             var quantity = $('#quantity').val();
             var price = $('#price').val();
             if(quantity != "") {
+
+                var item_ids = localStorage.getItem("WITHDRAWAL-ITEM-ID");
+                var ids = [];
+                if(item_ids) {
+                    var ids_new = localStorage.getItem("WITHDRAWAL-ITEM-ID");
+                    var ids_new = JSON.parse(ids_new);
+                    for(var i = 0; i < ids_new.length; i++) {
+                        if(ids_new[i] ===  item) {
+                            swal("Already Exist ",item_text,"warning");
+                            return false;
+                        }
+                        else {
+                            var new_ids = localStorage.getItem("WITHDRAWAL-ITEM-ID");
+                            var new_ids = JSON.parse(new_ids);
+                            new_ids.push(item);
+                            var store_ids = JSON.stringify(new_ids);
+                            localStorage.setItem("WITHDRAWAL-ITEM-ID", store_ids);
+                        }
+                    }
+                }
+                else {
+                    ids.push(item);
+                    var item_id = JSON.stringify(ids);
+                    localStorage.setItem("WITHDRAWAL-ITEM-ID", item_id);
+                }
+
                 //check item for duplicate
                 $("tr.item").each(function() {
                     var item_id = $(this).find("input.item_id").val();
@@ -240,9 +279,24 @@
 
         });
         $(document).on('click', '.remove', function() {
+            console.log("remove");
             var total = 0;
             var trIndex = $(this).closest("tr").index();
-            if(trIndex>1) {
+
+            //remove local storage
+            var new_ids = localStorage.getItem("WITHDRAWAL-ITEM-ID");
+            var item_id = $(this).closest("tr").find('input').val();
+            var new_ids = JSON.parse(new_ids);
+            for(var x = 0; x < new_ids.length; x++) {
+                if(new_ids[x] === item_id) {
+                    delete new_ids[x];
+                }
+            }
+
+            var ids = JSON.stringify(new_ids);
+            localStorage.setItem("WITHDRAWAL-ITEM-ID", ids);
+
+            //if(trIndex>1) {
                 $(this).closest("tr").remove();
 
                 $("tr.item").each(function() {
@@ -252,9 +306,9 @@
                 });
 
                 $('#ttlAmount').val(total);
-            } else {
+           /* } else {
                 alert("Sorry!! Can't remove first row!");
-            }
+            }*/
 
 
         });

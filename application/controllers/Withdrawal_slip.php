@@ -270,6 +270,19 @@ class Withdrawal_slip extends CI_Controller {
             $data['items'] = $details;
 
 
+            //get items
+            $this->db->select(' *');
+            $this->db->from('items');
+            //intem inventory
+            //$this->db->select('item_inventory.qty as expected_qty');
+            // join
+            $this->db->join ( 'item_inventory', 'items' . '.itemID=item_inventory.itemID', 'left' );
+            $this->db->where('items.status', 1);
+            $this->db->where('item_inventory.branchID', $this->session->userdata('current_user')->branchID);
+
+            $items = $this->db->get()->result();
+            $data['items_select'] = $items;
+
             // load views
             $this->load->view ( 'header', $data );
             $this->load->view ( $this->module_path . '/edit' );

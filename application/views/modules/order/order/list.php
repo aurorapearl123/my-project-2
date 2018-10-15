@@ -49,7 +49,7 @@
                                     <tr class="thead-light">
                                         <?php
                                         $headers = array(
-                                            array('column_header'=>'Customer Name','column_field'=>'lname','width'=>'w-20','align'=>''),
+                                            array('column_header'=>'Customer Name','column_field'=>'fname','width'=>'w-20','align'=>''),
                                             array('column_header'=>'Branch Name','column_field'=>'branchName','width'=>'w-20','align'=>''),
                                             array('column_header'=>'Date','column_field'=>'date','width'=>'w-10','align'=>''),
                                             array('column_header'=>'Discounted','column_field'=>'isDiscounted','width'=>'w-8','align'=>''),
@@ -61,7 +61,7 @@
                                     </tr>
                                     <tr id="filter-group" class="collapse multi-collapse show">
                                         <th class="form-group form-input">
-                                            <input type="text" class="form-control w-80" id="lname" name="lname" value="<?php echo $lname ?>">
+                                            <input type="text" class="form-control w-80" id="fname" name="fname" value="<?php echo $fname ?>">
                                         </th>
                                         <th class="form-group form-input">
                                             <input type="text" class="form-control w-80" id="companyName" name="companyName" value="<?php echo $companyName ?>">

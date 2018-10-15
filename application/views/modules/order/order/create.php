@@ -67,7 +67,7 @@
                             <div class="row">
                                 <div class="col-md-8" id="services-container">
                                     <!-- start create header details -->
-                                    <table class="table" id="tb">
+                                    <table class="table table-striped" id="tb">
                                         <thead class="thead-light">
                                         <tr class="tr-header">
                                             <th>Item</th>
@@ -249,7 +249,7 @@
                         var categories_data = JSON.stringify(categories);
                         $('#services_data').val(amounts);
                         $('#categories_data').val(categories_data);
-                        //$('#frmEntry').submit();
+                        $('#frmEntry').submit();
                     }
                 }, "text");
         }
@@ -401,6 +401,13 @@
         }
 
 
+    });
+
+    $(document).on('keyup', '.name', function(){
+        var value = $(this).val();
+        //console.log("the value - ", value);
+        calculateAmount(this, value);
+        calculateAmountForTotal();
     });
 
     function calculateAmountSelect(_this, value)
