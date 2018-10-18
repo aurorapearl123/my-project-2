@@ -67,6 +67,7 @@
                                      // $table_str.='<td><input type="button" value="Update" name="updateBox" id="updateBox" /></td>';
 
                                     $table_str.='<td>'.'<input type="number" min="1" name="variances[]" class="variance border-0" value="" readonly>'.'</td>';
+                                    $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="" value="">'.'</td>';
                                     $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="item_ids[]" value="'.$rows->itemID.'">'.'</td>';
                                     
                                     $table_str.='</tr>';

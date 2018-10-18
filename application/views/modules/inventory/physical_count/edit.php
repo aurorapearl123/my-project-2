@@ -35,7 +35,7 @@
                                         </td>
                                         <td class="form-label w-10" nowrap>Date : </td>
                                         <td class="form-group form-input w-20">
-                                            <input type="text" class="form-control" name="date" id="date" title="Date" required value="<?php echo date('Y-m-d')?>" readonly>
+                                            <input type="text" class="form-control" name="date" id="date" title="Date" required value="<?php echo date('F d, Y', strtotime($rec->date))  ?>" readonly>
                                         </td>
                                         <td class="d-xxl-none"></td>
                                     </tr>
@@ -55,17 +55,21 @@
                                 $table_str.='<tr></thead>';
                                 $i = 1;
                                 foreach ($details_pc as $rows) {
-                                    $systemQty = empty($rows['pc_details']) ? $rows['expected_qty'] : $rows['pc_details'][0]->systemQty;
-                                    $table_str.='<tr>';
-                                    $table_str.='<td>'.($i++).'</td>';
-                                    $table_str.='<td>'.$rows['item'].'</td>';
-                                    //$table_str.='<td>'.'<input type="number" name="expected_qyts[]" value="'.$rows['pc_details'][0]->systemQty.'" class="border-0 expected_qty" readonly>'.'</td>';
-                                    $table_str.='<td>'.'<input type="number" name="expected_qyts[]" value="'.$systemQty.'" class="border-0 expected_qty" readonly>'.'</td>';
-                                    $table_str.='<td>'.'<input type="number" min="1" name="physical_counts[]" class="form-control" value="'.$rows['pc_details'][0]->actualQty.'">'.'</td>';
-                                    $table_str.='<td>'.'<input type="number" min="1" name="variances[]" class="variance border-0" value="'.$rows['pc_details'][0]->variance.'" readonly>'.'</td>';
-                                    $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="item_ids[]" value="'.$rows['itemID'].'">'.'</td>';
-                                    
-                                    $table_str.='</tr>';
+                                    foreach ($rows['pc_details'] as $detail) {
+                                        $systemQty = $detail->systemQty;
+                                        $table_str.='<tr>';
+                                        $table_str.='<td>'.($i++).'</td>';
+                                        $table_str.='<td>'.$rows['item'].'</td>';
+                                        //$table_str.='<td>'.'<input type="number" name="expected_qyts[]" value="'.$rows['pc_details'][0]->systemQty.'" class="border-0 expected_qty" readonly>'.'</td>';
+                                        $table_str.='<td>'.'<input type="number" name="expected_qyts[]" value="'.$systemQty.'" class="border-0 expected_qty" readonly>'.'</td>';
+                                        $table_str.='<td>'.'<input type="number" min="1" name="physical_counts[]" class="form-control" value="'.$detail->actualQty.'">'.'</td>';
+                                        $table_str.='<td>'.'<input type="number" min="1" name="variances[]" class="variance border-0" value="'.$detail->variance.'" readonly>'.'</td>';
+                                        $table_str.='<td style="display:none">'.'<input type="hidden" min="1" value="">'.'</td>';
+                                        $table_str.='<td style="display:none">'.'<input type="hidden" min="1" name="item_ids[]" value="'.$detail->itemID.'">'.'</td>';
+
+                                        $table_str.='</tr>';
+                                    }
+
                                 }
                                 $table_str.="</table>";
 
@@ -79,6 +83,15 @@
                        <div class="table-row mt-20">
                             <table class="table-form">
                                 <tbody>
+                                <tr>
+                                    <td class="form-label w-10 align-text-top pt-5" nowrap>
+                                        <label for="config">Conducted By :  <span class="asterisk">*</span></label>
+                                    </td>
+                                    <td class="form-group form-input w-40">
+                                        <input class="form-control" name="conductedBy" value="<?php echo $rec->conductedBy; ?>" id="conductedBy" title="Conducted By" required>
+                                    </td>
+                                    <td class="d-xxl-none"></td>
+                                </tr>
                                     <tr>
                                         <td class="form-label w-10 align-text-top pt-5" nowrap>
                                             <label for="config">Remarks :  <span class="asterisk">*</span></label>

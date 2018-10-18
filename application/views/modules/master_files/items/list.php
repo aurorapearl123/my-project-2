@@ -4,7 +4,19 @@
 	<div class="subheader">
 		<div class="d-flex align-items-center">
 			<div class="title mr-auto">
-				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                <ul class="tools-list">
+                    <li>
+                        <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                    </li>
+                    <li>
+                        <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
+                        <div class="input-group">
+                            <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete" >
+                            <span class="position-absolute"><i class="icon left la la-search"></i> </span>
+                        </div>
+
+                    </li>
+                </ul>
 			</div>
 			<?php if ($roles['create']) {?>
 			<div class="subheader-tools">
@@ -59,34 +71,14 @@
 												echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
 												?>
 										</tr>
-										<tr id="filter-group" class="collapse multi-collapse show">
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="brand" name="brand" value="<?php echo $brand ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="item" name="item" value="<?php echo $item ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="description" name="description" value="<?php echo $description ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control  w-80" id="umsr" name="umsr" value="<?php echo $umsr ?>">
-											</th>
-											<th>
-												<select class="form-control" id="status" name="status">
-													<option value="">&nbsp;</option>
-													<option value="1" <?php if($status == "1") echo "selected"; ?>>Active</option>
-													<option value="0" <?php if($status == "0") echo "selected"; ?>>Inactive</option>
-												</select>
-											</th>
-										</tr>
+
 									</thead>
 									<tbody>
 										<?php 
 											if (count($records)) {
 											    foreach($records as $row) {
 											    ?>
-										<tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->itemID); ?>'">
+										<tr onclick="location.href='<?php echo $controller_page."/view/".$row->itemID; ?>'">
 											<td><?php echo $row->brand ?></td>
 											<td><?php echo $row->item ?></td>
 											<td><?php echo $row->description ?></td>
@@ -155,3 +147,98 @@
 		</div>
 	</div>
 </form>
+
+<script>
+    $(document).ready(function(){
+        console.log("hello");
+        var $project = $('#autocomplete');
+        $project.autocomplete({
+            source: function( request, response ) {
+                var url = "<?php echo $controller_page ?>/elastic_search";
+
+                $.ajax({
+                    url: url,
+                    data: { search : request.term},
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log("the data");
+                        console.log(data);
+                        var customer = [];
+                        $.each(data, function(k,v){
+                            $.each(v, function(key, val){
+                                //console.log("key", key);
+                                //console.log("value", val.customer);
+                                //console.log("image", val.profile);
+                                var name = val.brand;
+                                // var url = URL.createObjectURL(val.profile);
+                                if(typeof name === 'undefined') {
+
+                                }else {
+                                    customer.push({
+                                        "label": name,
+                                        "value": name,
+                                        "item": val.item,
+                                        "description": val.description,
+                                        "icon": "jquery_32x32.png",
+                                        "umsr" : val.umsr,
+                                        "status" : val.status,
+                                        "id" : val.id
+                                    });
+                                }
+
+                            });
+                        });
+
+                        response(customer);
+
+                    },
+                    error: function (errorMessage) { // error callback
+
+                        console.log("error "+errorMessage.responseText);
+                    }
+                });
+                //console.log(request.term);
+
+                //response(cCities);
+            },
+            select: function(event, ui) {
+                //$('#zipCode').val(zipCode[ui.item.value]);
+                console.log("you click me");
+                console.log(ui.item.id);
+                var url = '<?php echo $controller_page."/view/"; ?>';
+                location.href=url+ui.item.id;
+
+                //get all data to display on table
+            },
+        })
+
+        $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+
+
+            var $li = $('<li>'),
+                $img = $('<img class="search-image">');
+            //var urlCreator = window.URL || window.webkitURL;
+            //var imageUrl = URL.createObjectURL( item.profile );
+            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            $img.attr({
+                // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
+                src: image,
+                alt: item.value
+            });
+
+
+            $li.attr('data-value', item.value);
+            $li.append('<a href="#">');
+            //$li.find('a').append($img).append(item.value +" "+item.date);
+            $li.find('a').append($img)
+                .append($('<span>').attr('class', 'result-search').text(item.value)
+                    .append($('<br>'))
+                    .append($('<span style="font-size: 0.7em;">').text(item.description))
+                );
+
+            return $li.appendTo(ul);
+
+        };
+    });
+</script>

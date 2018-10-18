@@ -4,7 +4,19 @@
 	<div class="subheader">
 		<div class="d-flex align-items-center">
 			<div class="title mr-auto">
-				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                <ul class="tools-list">
+                    <li>
+                        <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                    </li>
+                    <li>
+                        <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
+                        <div class="input-group">
+                            <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete" >
+                            <span class="position-absolute"><i class="icon left la la-search"></i> </span>
+                        </div>
+
+                    </li>
+                </ul>
 			</div>
 			<!-- <?php if ($roles['create']) {?>
 			<div class="subheader-tools">
@@ -72,31 +84,7 @@
 												echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
 												?>
 										</tr>
-										<tr id="filter-group" class="collapse multi-collapse show">
-											<?php if($this->session->userdata('current_user')->isAdmin){ ?>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="branchName" name="branchName" value="<?php echo $branchName ?>">
-											</th>
-											<?php } ?>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="brand" name="brand" value="<?php echo $brand ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="item" name="item" value="<?php echo $item ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="description" name="description" value="<?php echo $description ?>">
-											</th>											
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="umsr" name="umsr" value="<?php echo $umsr ?>">
-											</th>											
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="qty" name="qty" value="<?php echo $qty ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control" id="reorderlvl" name="reorderlvl" value="<?php echo $reorderlvl ?>">
-											</th>
-										</tr>
+
 									</thead>
 									<tbody>
 										<?php 

@@ -155,6 +155,24 @@ class Item extends CI_Controller
                     
                 }
 
+                $this->load->model('elastic_model');
+                $data = [
+                    'index' => 'items',
+                    'type' => 'item',
+                    'id' => $itemID,
+                    'body' => [
+                        'id' => $itemID,
+                        'brand' => $this->input->post('brand'),
+                        'item' => $this->input->post('item'),
+                        'description' => $this->input->post('description'),
+                        'umsr' => $this->input->post('umsr'),
+                        'status' => 'active'
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
+
+
                 // record logs
                 // $logs = "Record - ".trim($this->input->post($this->logfield));
                 // $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->field->$data['pfield'], 'Insert', $logs);
@@ -263,7 +281,29 @@ class Item extends CI_Controller
                     $logs = "Record - ".trim($this->input->post($this->logfield));
                     $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
                 }
-                    
+
+                $this->load->model('elastic_model');
+                $status = $this->input->post('status');
+                $status = ($status == 1) ? 'active' : 'inactive';
+                $data = [
+                    'index' => 'items',
+                    'type' => 'item',
+                    'id' => $this->record->pk,
+                    'body' => [
+                        'doc' => [
+                            'id' => $this->record->pk,
+                            'brand' => $this->input->post('brand'),
+                            'item' => $this->input->post('item'),
+                            'description' => $this->input->post('description'),
+                            'umsr' => $this->input->post('umsr'),
+                            'status' => $status,
+                        ]
+                    ]
+                ];
+
+                $this->elastic_model->update($data);
+
+
                 // successful
                 $data["class"] = "success";
                 $data["msg"] = $this->data['current_module']['module_label']." successfully updated.";
@@ -324,7 +364,13 @@ class Item extends CI_Controller
                         // record logs
                         // $logs = "Record - " . $this->record->field->$logfield;
                         // $this->log_model->table_logs($this->data['current_module']['module_label'], $this->table, $this->pfield, $this->record->pk, 'Delete', $logs);
-                        
+
+
+                        $this->load->model('elastic_model');
+
+                        $this->elastic_model->delete('items', 'item', $this->record->pk);
+
+
                         // successful
                         $data["class"] = "success";
                         $data["msg"] = $this->data['current_module']['module_label'] . " successfully deleted.";
@@ -375,7 +421,7 @@ class Item extends CI_Controller
         // load submenu
         $this->submenu();
         $data = $this->data;
-        $id = $this->encrypter->decode($id);
+        //$id = $this->encrypter->decode($id);
 
         //check branchID of current user
         $userCurrentBranch      =   $this->session->userdata('current_user')->branchID;
@@ -436,7 +482,9 @@ class Item extends CI_Controller
         // load submenu
         $this->submenu ();
         $data = $this->data;
-        
+
+
+        //$this->migrateCustomerElastic();
         // **************************************************
         // variable:field:default_value:operator
         // note: dont include the special query field filter                
@@ -999,5 +1047,58 @@ class Item extends CI_Controller
         else 
             echo "0";
     }
+
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'items',
+            'type' => 'item',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'brand', 'item', 'description', 'umsr', 'status'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+
+        $result = $this->elastic_model->search($data);
+        echo json_encode($result);
+    }
+
+    public function migrateCustomerElastic()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table);
+        $items = $this->db->get()->result();
+
+        $this->load->model('elastic_model');
+        foreach ($items as $item) {
+            $status = ($item->status == 1) ? "active" : "inactive";
+            $data = [
+                'index' => 'items',
+                'type' => 'item',
+                'id' => $item->itemID,
+                'body' => [
+                    'id' => $item->itemID,
+                    'brand' => $item->brand,
+                    'item' => $item->item,
+                    'description' => $item->item,
+                    'umsr' => $item->umsr,
+                    'status' => $status,
+
+                ]
+            ];
+            $this->elastic_model->saveToElasticSearch($data);
+        }
+
+    }
+
 
 }

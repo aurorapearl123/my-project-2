@@ -67,7 +67,7 @@
                         </div>
                         <div>
                             <!-- start create header details -->
-                            <table class="table" id="tb">
+                            <table class="table table-striped" id="tb">
                                 <thead class="thead-light">
                                     <tr class="tr-header">
                                         <th>Item</th>
@@ -80,7 +80,7 @@
                                 <tfoot>
                                     <tr>
                                         <td class="form-group form-input pl-5" width="15%">
-                                            <select class="form-control w-80" id="itemID" name="itemID" data-live-search="true" livesearchnormalize="true" title="Item" required>
+                                            <select class="form-control w-80" id="itemID" name="itemID" data-live-search="true" livesearchnormalize="true" title="Item">
                                                 <option value="" selected>&nbsp;</option>
                                                 <?php foreach($items as $row) { ?>
                                                     <option value="<?php echo $row->itemID ?>"><?php echo $row->brand?></option>

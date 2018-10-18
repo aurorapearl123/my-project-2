@@ -13,7 +13,8 @@
                     <li>
                         <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search" id="autocomplete">
+                                <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete" >
+                                <span class="position-absolute"><i class="icon left la la-search"></i> </span>
                             </div>
 
                     </li>
@@ -265,7 +266,11 @@
             $li.attr('data-value', item.value);
             $li.append('<a href="#">');
             //$li.find('a').append($img).append(item.value +" "+item.date);
-            $li.find('a').append($img).append($('<span>').text(item.value).append($('<br>')).append($('<span style="font-size: 0.7em;">').text(item.date)));
+            $li.find('a').append($img)
+                .append($('<span>').attr('class', 'result-search').text(item.value)
+                    .append($('<br>'))
+                    .append($('<span style="font-size: 0.7em;">').text(item.date))
+                );
 
             return $li.appendTo(ul);
 

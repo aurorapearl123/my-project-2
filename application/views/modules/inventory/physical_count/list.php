@@ -4,8 +4,21 @@
 	<div class="subheader">
 		<div class="d-flex align-items-center">
 			<div class="title mr-auto">
-				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
-			</div>
+                <ul class="tools-list">
+                    <li>
+                        <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                    </li>
+                    <li>
+                        <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
+                        <div class="input-group">
+                            <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete" >
+                            <span class="position-absolute"><i class="icon left la la-search"></i> </span>
+                        </div>
+
+                    </li>
+                </ul>
+
+            </div>
 			<?php if ($roles['create']) {?>
 			<div class="subheader-tools">
 				<a href="<?php echo $controller_page?>/create" class="btn btn-primary btn-raised btn-sm pill"><i class="icon left la la-plus"></i>Add New</a>
@@ -73,34 +86,7 @@
 												echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
 												?>
 										</tr>
-										<tr id="filter-group" class="collapse multi-collapse show">
 
-											<th class="form-group form-input">
-												<input type="text" class="form-control" id="pcNo" name="pcNo" value="<?php echo $pcNo ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control datepicker" name="date" id="date" value="<?php if ($date) echo date("F d, Y", strtotime($date)) ?>" data-toggle="datetimepicker" data-target="#date">
-											</th>
-											<?php if($this->session->userdata('current_user')->isAdmin){ ?>
-											<th class="form-group form-input">
-												<input type="text" class="form-control" id="branchName" name="branchName" value="<?php echo $branchName ?>">
-											</th>
-											<?php } ?>
-											<th class="form-group form-input">
-												<input type="text" class="form-control" id="conductedBy" name="conductedBy" value="<?php echo $conductedBy ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control" id="remarks" name="remarks" value="<?php echo $remarks ?>">
-											</th>
-											<th>
-												<select class="form-control" id="status" name="status">
-													<option value="">&nbsp;</option>
-													<option value="0" <?php if($status == "0") echo "selected"; ?>>Cancelled</option>
-													<option value="1" <?php if($status == "1") echo "selected"; ?>>Pending</option>
-													<option value="2" <?php if($status == "2") echo "selected"; ?>>Confirmed</option>
-												</select>
-											</th>
-										</tr>
 									</thead>
 									<tbody>
 										<?php 
@@ -184,3 +170,172 @@
 		</div>
 	</div>
 </form>
+
+
+<script>
+    $(document).ready(function() {
+        console.log("hello");
+
+        var $project = $('#autocomplete');
+        $project.autocomplete({
+            source: function( request, response ) {
+                var url = "<?php echo $controller_page ?>/elastic_search";
+
+                $.ajax({
+                    url: url,
+                    data: { search : request.term},
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log("the data");
+                        console.log(data);
+                        var customer = [];
+                        $.each(data, function(k,v){
+                            $.each(v, function(key, val){
+                                //console.log("key", key);
+                                //console.log("value", val.customer);
+                                //console.log("image", val.profile);
+                                var name = val.conducted_by;
+                                var profile = "";
+                                // var url = URL.createObjectURL(val.profile);
+                                if(typeof name === 'undefined') {
+
+                                }else {
+                                    customer.push({
+                                        "label": name,
+                                        "value": name,
+                                        "id": val.id,
+                                        "date": val.date,
+                                        "icon": "jquery_32x32.png",
+                                        "profile" : profile,
+                                        "remarks" : val.remarks,
+                                        'status' : val.status
+                                    });
+                                }
+
+                            });
+                        });
+
+                        response(customer);
+
+                    },
+                    error: function (errorMessage) { // error callback
+
+                        console.log("error "+errorMessage.responseText);
+                    }
+                });
+                //console.log(request.term);
+
+                //response(cCities);
+            },
+            select: function(event, ui) {
+                //$('#zipCode').val(zipCode[ui.item.value]);
+                console.log("you click me");
+                console.log(ui.item.suppID);
+                getRrHeaderBySupplierId(ui.item.suppID);
+                $('#rr-table-body').empty();
+                //get all data to display on table
+            },
+        })
+
+        $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+
+
+            var $li = $('<li>'),
+                $img = $('<img style="width:50px;height: 60px">');
+            //var urlCreator = window.URL || window.webkitURL;
+            //var imageUrl = URL.createObjectURL( item.profile );
+            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            $img.attr({
+                // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
+                src: image,
+                alt: item.value
+            });
+
+
+            $li.attr('data-value', item.value);
+            $li.append('<a href="#">');
+            //$li.find('a').append($img).append(item.value +" "+item.date);
+            $li.find('a').append($img)
+                .append($('<span >').attr('class', 'result-search').text(item.value)
+                    .append($('<br>'))
+                    //.append($('<span style="font-size: 0.7em;">').text(item.date))
+                    .append($('<span style="font-size: 0.7em;">').text("Remark :  "+item.remarks)
+                    )
+                    .append($('<br>'))
+                    //.append($('<span style="font-size: 0.7em;">').text(item.date))
+                    .append($('<span style="font-size: 0.7em;">').text("Date : "+item.date)
+                    )
+                );
+
+            return $li.appendTo(ul);
+
+        };
+    });
+
+    function getRrHeaderBySupplierId(suppID)
+    {
+        var url = "<?php echo $controller_page ?>/getRrHeaderBySupplierId";
+
+        $.ajax({
+            url: url,
+            data: { suppID : suppID},
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                console.log("the data here");
+                console.log(data);
+                var paginate = data.links;
+                console.log("paginate", paginate);
+                var tBody = $('#rr-table-body');
+                $.each(data.records, function(k,v){
+                    //var orderID = v.orderID;
+                    var url = '<?php echo $controller_page."/view/";?>';
+                    var base_url = url+"/"+v.rrID;
+                    var status_class = "";
+                    var status_text = "";
+                    switch (v.status) {
+                        case "1":
+                            status_text = 'Pending';
+                            status_class = 'badge badge-pill badge-warning';
+                            break;
+                        case "2":
+                            status_text = 'Confirmed';
+                            status_class = 'badge badge-pill badge-info';
+                            break;
+
+                        default:
+                            status_text = 'Cancelled';
+                            status_class = 'badge badge-pill badge-warning';
+
+                    }
+                    //console.log("THE URL", base_url);
+                    tBody.append($('<tr>').attr('onclick', 'location.href="'+base_url+'"')
+                        .append($('<td>').text(v.referenceNo))
+                        .append($('<td>').text(v.date))
+                        .append($('<td>').text(v.branchName))
+                        .append($('<td>').text(v.name))
+                        .append($('<td>').text(v.ttlQty))
+                        .append($('<td>').text(v.ttlAmount))
+                        .append($('<td>')
+                            .append($('<span>').attr('class', status_class).text(status_text))
+                        )
+                    );
+                    $('.my-pagination').html();
+                    $('.my-pagination').html(1);
+                });
+
+                //console.log("hello world");
+                //$('#order-table-body').append($('<tr>')
+                //    .append($('<td>'))
+                //);
+
+            },
+            error: function (errorMessage) { // error callback
+
+                console.log("error "+errorMessage.responseText);
+            }
+        });
+    }
+</script>
+

@@ -200,6 +200,26 @@ class Receiving_report extends CI_Controller {
                 // $this->addSeriesNo($id, $this->session->userdata('current_user')->branchID);
                 $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $id, 'Insert', $logs );
 
+                $this->load->model('elastic_model');
+                $data = [
+                    'index' => 'rr_headers',
+                    'type' => 'rr_header',
+                    'id' => $id,
+                    'body' => [
+                        'id' => $id,
+                        'date' => $this->input->post('date'),
+                        'branch' => $this->getBranchName(),
+                        'supplier' => $this->elastic_model->getSupplierName($this->input->post('suppID')),
+                        'suppID' => $this->input->post('suppID'),
+                        'total_quantity' => $this->input->post('ttlQty'),
+                        'total_amount' => $this->input->post('ttlAmount'),
+                        'reference_no' => $this->input->post('referenceNo'),
+                        'status' => "pending"
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
+
                 $logfield = $this->pfield;
                 // success msg
                 $data ["class"] = "success";
@@ -406,6 +426,28 @@ class Receiving_report extends CI_Controller {
                 $amounts = $this->input->post('amounts');
                 $this->insert_receiving_details($this->records->pk, $items_ids, $qtys, $amounts);
 
+                $this->load->model('elastic_model');
+                $data = [
+                    'index' => 'rr_headers',
+                    'type' => 'rr_header',
+                    'id' => $this->records->pk,
+                    'body' => [
+                        'doc' => [
+                            'id' => $this->records->pk,
+                            'date' => $this->input->post('date'),
+                            'branch' => $this->getBranchName(),
+                            'supplier' => $this->elastic_model->getSupplierName($this->input->post('suppID')),
+                            'suppID' => $this->input->post('suppID'),
+                            'total_quantity' => $this->input->post('ttlQty'),
+                            'total_amount' => $this->input->post('ttlAmount'),
+                            'reference_no' => $this->input->post('referenceNo')
+                        ]
+                    ]
+                ];
+
+                $this->elastic_model->update($data);
+
+
                 // successful
                 $data ["class"] = "success";
                 $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully updated.";
@@ -466,6 +508,11 @@ class Receiving_report extends CI_Controller {
                         $logs = "Record - " . $this->records->field->$logfield;
                         $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Delete', $logs );
 
+                        $this->load->model('elastic_model');
+
+                        $this->elastic_model->delete('rr_headers', 'rr_header', $this->records->pk);
+
+
                         // successful
                         $data ["class"] = "success";
                         $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully deleted.";
@@ -514,7 +561,7 @@ class Receiving_report extends CI_Controller {
     }
 
     public function view($id) {
-        $id = $this->encrypter->decode ( $id );
+        //$id = $this->encrypter->decode ( $id );
 
         // load submenu
         $this->submenu ();
@@ -971,6 +1018,11 @@ class Receiving_report extends CI_Controller {
         $branchId = $this->session->userdata('current_user')->branchID;
         $added = Generic_ajax::addStockCard($reference_no, $itemID, $debit, $credit, $endbal, $begbal, $branchId);
 
+        $this->updateStatusElasticSearch($rrID, "confirmed");
+
+        //update elastic search
+
+
         $response = [
             'data' => [
                 'status' => 200,
@@ -981,6 +1033,26 @@ class Receiving_report extends CI_Controller {
         echo json_encode($response);
     }
 
+    public function updateStatusElasticSearch($id, $status)
+    {
+
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'rr_headers',
+            'type' => 'rr_header',
+            'id' => $id,
+            'body' => [
+                'doc' => [
+                    'id' => $id,
+                    'status' => $status,
+                ]
+            ],
+        ];
+
+        $this->elastic_model->update($data);
+    }
+
     public function updateCanceledBy()
     {
         require_once(APPPATH.'controllers/Generic_ajax.php');
@@ -988,6 +1060,10 @@ class Receiving_report extends CI_Controller {
         $rrID = trim($this->input->post('rrID'));
 
         $cancelledBy = Generic_ajax::updateCancelBy($this->table, "rrID", $rrID, $this->session->userdata('current_user')->userID);
+
+        $this->updateStatusElasticSearch($rrID, "cancelled");
+
+
         $response = [
             'data' => [
                 'status' => 200,
@@ -997,6 +1073,77 @@ class Receiving_report extends CI_Controller {
 
         echo json_encode($response);
     }
+
+    public function getBranchName()
+    {
+        $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
+        $branch = $this->db->get('branches');
+        $current_branch = $branch->row();
+        return  $current_branch->branchName;
+    }
+
+
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'rr_headers',
+            'type' => 'rr_header',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'date', 'branch', 'supplier', 'status', 'reference_no', 'total_amount'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $result = $this->elastic_model->uniqueSearch($data);
+        echo json_encode($result);
+    }
+
+    public function getRrHeaderBySupplierId() {
+        $suppID = $this->input->post('suppID');
+
+
+        // select
+        $this->db->select ( $this->table . '.*' );
+        $this->db->select ( 'branches.branchName' );
+        $this->db->select ( 'branches.branchCode' );
+        //customer details
+        $this->db->select ( 'suppliers.name' );
+        $this->db->select ( 'suppliers.location' );
+        $this->db->select ( 'suppliers.contactNO' );
+        //users
+        //customer details
+        $this->db->select ( 'users.firstName' );
+        $this->db->select ( 'users.middleName' );
+        $this->db->select ( 'users.lastName' );
+
+        // from
+        $this->db->from ( $this->table );
+
+        // join
+        $this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+        $this->db->join ( 'suppliers', $this->table . '.suppID=suppliers.supplierID', 'left' );
+        $this->db->join ( 'users', $this->table . '.createdBy=users.userID', 'left' );
+        $this->db->where($this->table.'.suppID', $suppID);
+        $data ['records'] = $this->db->get ()->result ();
+
+        $data ['ttl_rows'] = $config ['total_rows'] = $this->db->count_all_results ();
+        $limit = 25;
+        $config ['base_url'] = $this->controller_page . '/show/';
+        $config ['per_page'] = $limit;
+        $this->pagination->initialize ( $config );
+        $data['links'] = $this->pagination->create_links();
+        $data ['offset'] = 0;
+
+        echo json_encode($data);
+    }
+
 
 
 }

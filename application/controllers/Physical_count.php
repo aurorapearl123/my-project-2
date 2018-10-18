@@ -13,6 +13,7 @@ class Physical_count extends CI_Controller {
     var $modules;
     var $module_path;
     var $controller_page;
+    var $branchID;
 
     public function __construct() {
         parent::__construct ();
@@ -23,6 +24,7 @@ class Physical_count extends CI_Controller {
         $this->pfield = $this->data ['pfield'] = 'pcID'; // defines primary key
         $this->logfield = 'rrID';
         $this->module_path = 'modules/' . strtolower ( str_replace(" ","_",$this->module) ) . '/physical_count'; // defines module path
+        $this->branchID = $this->session->userdata('current_user')->branchID;
 
         // check for maintenance period
         if ($this->config_model->getConfig ( 'Maintenance Mode' ) == '1') {
@@ -133,6 +135,7 @@ class Physical_count extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
+
         $table_fields = array ('date', 'branchID','conductedBy','remarks','createdBy');
 
         // check role
@@ -182,6 +185,28 @@ class Physical_count extends CI_Controller {
                 //die();
 
                 $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $id, 'Insert', $logs );
+
+
+                $this->load->model('elastic_model');
+                $data = [
+                    'index' => 'pc_headers',
+                    'type' => 'pc_header',
+                    'id' => $id,
+                    'body' => [
+                        'id' => $id,
+                        'date' => $this->input->post('date'),
+                        'branch' => $this->elastic_model->getBranchName($this->branchID),
+                        'branch_id' => $this->input->post('branchID'),
+                        'conducted_by' => $this->input->post('conductedBy'),
+                        'date' => $this->input->post('date'),
+                        'remarks' => $this->input->post('remarks'),
+                        'status' => "pending"
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
+
+
 
                 $logfield = $this->pfield;
                 // success msg
@@ -267,7 +292,7 @@ class Physical_count extends CI_Controller {
             $data ['rec'] = $this->db->get ()->row ();
 
             $result_data = [];
-             $pc_items = $this->getItems($value->itemID);
+             $pc_items = $this->getItems();
              foreach ($pc_items as $key => $value) {
                 $result_data[] = [
                     'itemID' => $value['itemID'],
@@ -359,7 +384,7 @@ class Physical_count extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
-        $table_fields = array ('date', 'branchID','remarks','createdBy');
+        $table_fields = array ('date', 'branchID','remarks','createdBy', 'conductedBy');
 
 
         // check roles
@@ -410,6 +435,26 @@ class Physical_count extends CI_Controller {
                 $this->delete_details('pc_details', 'pcID', $this->records->pk);
                 //insert details
                 $this->insert_pc_details($this->records->pk, $item_ids, $physical_counts, $variances, $system_quantity);
+
+                $this->load->model('elastic_model');
+                $data = [
+                    'index' => 'pc_headers',
+                    'type' => 'pc_header',
+                    'id' => $this->records->pk,
+                    'body' => [
+                        'doc' => [
+                            'id' => $this->records->pk,
+                            'date' => $this->input->post('date'),
+                            'branch' => $this->elastic_model->getBranchName($this->branchID),
+                            'branch_id' => $this->input->post('branchID'),
+                            'conducted_by' => $this->input->post('conductedBy'),
+                            'date' => $this->input->post('date'),
+                            'remarks' => $this->input->post('remarks'),
+                        ]
+                    ]
+                ];
+
+                $this->elastic_model->update($data);
 
                 //echo json_encode($test);
                 //die();
@@ -473,6 +518,10 @@ class Physical_count extends CI_Controller {
 
                         $logs = "Record - " . $this->records->field->$logfield;
                         $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Delete', $logs );
+
+                        $this->load->model('elastic_model');
+
+                        $this->elastic_model->delete('pc_headers', 'pc_header', $id);
 
                         // successful
                         $data ["class"] = "success";
@@ -939,7 +988,7 @@ class Physical_count extends CI_Controller {
        return $this->db->insert_batch('pc_details', $pc_details);
     }
 
-    public function getItems($itemID)
+    public function getItems()
     {
           //get items
             $this->db->select(' *');
@@ -1120,6 +1169,28 @@ class Physical_count extends CI_Controller {
         $data = Generic_ajax::addSeriesNo($className, $series, $branchID);
         return $data;
 
+    }
+
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'pc_headers',
+            'type' => 'pc_header',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'date', 'branch', 'conducted_by', 'status', 'remarks'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $result = $this->elastic_model->uniqueSearch($data);
+        echo json_encode($result);
     }
 
 

@@ -44,6 +44,21 @@ class Elastic_model extends CI_Model
         //die();
     }
 
+    public function uniqueSearch($data)
+    {
+        $query = $this->client->search($data);
+        $results = [];
+        if($query['hits']['total'] >= 1 ) {
+            $results = $query['hits']['hits'];
+////            foreach($results as $result) {
+////                $data[] = $result['_source'];
+////            }
+        }
+
+        //$data = array_unique($results);
+        return $results;
+    }
+
     public function search($data)
     {
         $results = [];
@@ -77,5 +92,21 @@ class Elastic_model extends CI_Model
 
         $response = $this->client->delete($params);
         return $response;
+    }
+
+    public function getBranchName($branchID)
+    {
+        $this->db->where('branchID', $branchID);
+        $branch = $this->db->get('branches');
+        $current_branch = $branch->row();
+        return  $current_branch->branchName;
+    }
+
+    public function getSupplierName($id)
+    {
+        $this->db->where('supplierID', $id);
+        $supplier = $this->db->get('suppliers');
+        $current_supplier = $supplier->row();
+        return  $current_supplier->name;
     }
 }
