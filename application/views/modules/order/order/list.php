@@ -1,10 +1,23 @@
+
 <form name="frmFilter" id="frmFilter" method="POST" action="<?php echo $controller_page ?>/show">
     <input type="hidden" id="sortby" name="sortby" value="<?php echo $sortby ?>" />
     <input type="hidden" id="sortorder" name="sortorder" value="<?php echo $sortorder ?>" />
     <div class="subheader">
         <div class="d-flex align-items-center">
             <div class="title mr-auto">
-                <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+
+                <ul class="tools-list">
+                    <li>
+                        <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                    </li>
+                    <li>
+                        <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search" id="autocomplete">
+                            </div>
+
+                    </li>
+                </ul>
             </div>
             <?php if ($roles['create']) {?>
                 <div class="subheader-tools">
@@ -21,6 +34,8 @@
                         <div class="head-caption">
                             <div class="head-title">
                                 <h4 class="head-text"><?php echo $current_module['module_label'] ?> List</h4>
+
+
                             </div>
                         </div>
                         <div class="card-head-tools">
@@ -59,45 +74,14 @@
                                         echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
                                         ?>
                                     </tr>
-                                    <tr id="filter-group" class="collapse multi-collapse show">
-                                        <th class="form-group form-input">
-                                            <input type="text" class="form-control w-80" id="fname" name="fname" value="<?php echo $fname ?>">
-                                        </th>
-                                        <th class="form-group form-input">
-                                            <input type="text" class="form-control w-80" id="companyName" name="companyName" value="<?php echo $companyName ?>">
-                                        </th>
-                                        <th class="form-group form-input">
-                                            <input type="text" class="form-control datepicker w-80" id="date" name="date" title="Date" data-toggle="datetimepicker" data-target="#date" >
-
-                                        </th>
-                                        <th class="form-group form-input">
-                                            <select class="form-control w-80" id="isDiscounted" name="isDiscounted" style="width:100px">
-                                                <option value="">&nbsp;</option>
-                                                <option value="Y" <?php if($isDiscounted == "Y") echo "selected"; ?>>Yes</option>
-                                                <option value="N" <?php if($isDiscounted == "N") echo "selected"; ?>>No</option>
-                                            </select>
-                                        </th>
-                                        <th>
-                                            <select class="form-control" id="status" name="status" style="width:100px">
-                                                <option value="">&nbsp;</option>
-                                                <option value="1" <?php if($status == "1") echo "selected"; ?>>Created</option>
-                                                <option value="2" <?php if($status == "2") echo "selected"; ?>>Washed</option>
-                                                <option value="3" <?php if($status == "3") echo "selected"; ?>>Fold</option>
-                                                <option value="4" <?php if($status == "4") echo "selected"; ?>>Ready</option>
-                                                <option value="5" <?php if($status == "5") echo "selected"; ?>>Released</option>
-                                                <option value="6" <?php if($status == "6") echo "selected"; ?>>Cancelled</option>
-
-                                            </select>
-
-                                        </th>
-                                    </tr>
+                                    <!-- remove search input -->
                                     </thead>
-                                    <tbody>
+                                    <tbody id="order-table-body">
                                     <?php
                                     if (count($records)) {
                                         foreach($records as $row) {
                                             ?>
-                                            <tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->orderID); ?>'">
+                                            <tr onclick="location.href='<?php echo $controller_page."/view/".$row->orderID; ?>'">
                                                 <td><?php echo $row->fname.' '.$row->mname.' '.$row->lname ?></td>
                                                 <td><?php echo $row->branchName ?></td>
                                                 <td><?php echo date('F d, Y', strtotime($row->date))   ?></td>
@@ -151,15 +135,16 @@
                                     Pages: &nbsp;&nbsp;
                                 </div>
                                 <div class="datatable-pagination">
+                                    <div class="my-pagination">
                                     <?php
                                     $pagination = $this->pagination->create_links();
-
                                     if ($pagination) {
                                         echo $pagination;
                                     } else {
                                         echo "1";
                                     }
                                     ?>
+                                    </div>
                                 </div>
                                 <div class="datatable-pager-info float-right ml-auto">
                                     <div class="d-flex">
@@ -179,7 +164,13 @@
                                             </div>
                                         </div>
                                         <div class="datatable-pager-detail">
-                                            <div class="dataTables_info">Displaying <?php echo ($offset+1) ?> - <?php if ($offset+$limit < $ttl_rows) { echo ($offset+$limit); } else  { echo $ttl_rows; } ?> of <?php echo number_format($ttl_rows,0)?> records</div>
+                                            <div class="dataTables_info">
+                                                <div id="display-page-details">
+
+
+                                                    Displaying <?php echo ($offset+1) ?> - <?php if ($offset+$limit < $ttl_rows) { echo ($offset+$limit); } else  { echo $ttl_rows; } ?> of <?php echo number_format($ttl_rows,0)?> records
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -191,3 +182,182 @@
         </div>
     </div>
 </form>
+
+<script>
+    $(document).ready(function() {
+
+        var $project = $('#autocomplete');
+        $project.autocomplete({
+            source: function( request, response ) {
+                var url = "<?php echo $controller_page ?>/elastic_search";
+
+                $.ajax({
+                    url: url,
+                    data: { search : request.term},
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log("the data");
+                        console.log(data);
+                        var customer = [];
+                        $.each(data, function(k,v){
+                            $.each(v, function(key, val){
+                                //console.log("key", key);
+                                //console.log("value", val.customer);
+                                //console.log("image", val.profile);
+                                var name = val.customer;
+                                var profile = val.profile;
+                               // var url = URL.createObjectURL(val.profile);
+                                if(typeof name === 'undefined') {
+
+                                }else {
+                                    customer.push({
+                                        "label": name,
+                                        "value": name,
+                                        "order_id": val.order_id,
+                                        "customer_id": val.customer_id,
+                                        "icon": "jquery_32x32.png",
+                                        "date" : "October 14, 2018",
+                                        "profile" : profile
+                                    });
+                                }
+
+                            });
+                        });
+
+                        response(customer);
+
+                    },
+                    error: function (errorMessage) { // error callback
+
+                        console.log("error "+errorMessage.responseText);
+                    }
+                });
+                //console.log(request.term);
+
+                //response(cCities);
+            },
+            select: function(event, ui) {
+                //$('#zipCode').val(zipCode[ui.item.value]);
+                console.log("you click me");
+                console.log(ui.item.customer_id);
+                getOrderByCustomerId(ui.item.customer_id);
+                $('#order-table-body').empty();
+                //get all data to display on table
+            },
+        })
+
+        $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+
+
+            var $li = $('<li>'),
+                $img = $('<img style="width:50px;height: 60px">');
+            //var urlCreator = window.URL || window.webkitURL;
+            //var imageUrl = URL.createObjectURL( item.profile );
+            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            $img.attr({
+                // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
+                src: image,
+                alt: item.value
+            });
+
+
+            $li.attr('data-value', item.value);
+            $li.append('<a href="#">');
+            //$li.find('a').append($img).append(item.value +" "+item.date);
+            $li.find('a').append($img).append($('<span>').text(item.value).append($('<br>')).append($('<span style="font-size: 0.7em;">').text(item.date)));
+
+            return $li.appendTo(ul);
+
+        };
+    });
+
+    function getOrderByCustomerId(custID)
+    {
+        var url = "<?php echo $controller_page ?>/getOrderByCustomerId";
+
+        $.ajax({
+            url: url,
+            data: { custID : custID},
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                console.log("the data here");
+                console.log(data);
+                var paginate = data.links;
+                console.log("paginate", paginate);
+                var tBody = $('#order-table-body');
+                $.each(data.records, function(k,v){
+                    //var orderID = v.orderID;
+                    var url = '<?php echo $controller_page."/view/";?>';
+                    var base_url = url+"/"+v.orderID;
+                    var status_class = "";
+                    var status_text = "";
+                    var discounted_text = "";
+                    var discounted_class = "";
+                    if(v.isDiscounted == 'Y') {
+                        discounted_text = "YES";
+                        discounted_class = "badge badge-pill badge-info";
+                    }
+                    else {
+                        discounted_text = "NO";
+                        discounted_class = "badge badge-pill badge-danger";
+                    }
+
+                    switch (v.status) {
+                        case 2:
+                            status_text = 'Washed';
+                            status_class = 'badge badge-pill badge-warning';
+                            break;
+                        case 3:
+                            status_text = 'Fold';
+                            status_class = 'badge badge-pill badge-warning';
+                            break;
+                        case 4:
+                            status_text = 'Ready';
+                            status_class = 'badge badge-pill badge-warning';
+                            break;
+
+                        case 5:
+                            status_text = 'Released';
+                            status_class = 'badge badge-pill badge-success';
+                            break;
+                        case 6:
+                            status_text = 'Cancelled';
+                            status_class = 'badge badge-pill badge-success';
+                            break;
+
+                        default:
+                            status_text = 'Created';
+                            status_class = 'badge badge-pill badge-info';
+
+                    }
+                    //console.log("THE URL", base_url);
+                    tBody.append($('<tr>').attr('onclick', 'location.href="'+base_url+'"')
+                        .append($('<td>').text(v.fname+" "+v.mname+" "+v.lname))
+                        .append($('<td>').text(v.branchName))
+                        .append($('<td>').text(v.date))
+                        .append($('<td>')
+                            .append($('<span>').attr('class', discounted_class).text(discounted_text))
+                        )
+                        .append($('<td>')
+                            .append($('<span>').attr('class', status_class).text(status_text))
+                        )
+                    );
+                    $('.my-pagination').html();
+                    $('.my-pagination').html(1);
+                });
+
+                //console.log("hello world");
+                //$('#order-table-body').append($('<tr>')
+                //    .append($('<td>'))
+                //);
+
+            },
+            error: function (errorMessage) { // error callback
+
+                console.log("error "+errorMessage.responseText);
+            }
+        });
+    }
+</script>

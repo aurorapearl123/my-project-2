@@ -1,6 +1,9 @@
 <?php
 defined ( 'BASEPATH' ) or exit ( 'No direct script access allowed' );
 
+require_once 'vendor/autoload.php';
+use Elasticsearch\ClientBuilder;
+
 
 class Order extends CI_Controller {
     //Default Variables
@@ -15,6 +18,7 @@ class Order extends CI_Controller {
     var $module_path;
     var $controller_page;
     var $branchID;
+    var $client;
 
     public function __construct() {
         parent::__construct ();
@@ -38,6 +42,14 @@ class Order extends CI_Controller {
         if (! $this->session->userdata ( 'current_user' )->sessionID) {
             header ( 'location: ' . site_url ( 'login' ) );
         }
+
+        $this->client = ClientBuilder::create()->setHosts(['127.0.0.1:9200'])->build();
+
+//        $es = new Elasticsearch\Client([
+//            'hosts' => ['127.0.0.1:9200']
+//        ]);
+
+
     }
 
     private function submenu() {
@@ -165,6 +177,7 @@ class Order extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
+
         $table_fields = array ('date', 'branchID', 'serviceID', 'deliveryFee', 'ttlAmount', 'custID', 'isDiscounted', 'remarks', 'createdBy');
 
         //echo json_encode($this->input->post('isDiscounted'));
@@ -224,11 +237,27 @@ class Order extends CI_Controller {
                 $this->insert_order_details($id, $services_data, $categories_data);
                 // $this->addSeriesNo($id, $this->session->userdata('current_user')->branchID);
 
+                //save data to elasticsearch
+                $customer = $this->getCustomerFullName($this->input->post('custID'));
+                if($customer) {
+                    $full_name = $customer[0]->fname ." ".$customer[0]->mname ." ". $customer[0]->lname;
+                    $date = $this->input->post('date');
+                    $customer_id = $customer[0]->custID;
+                    $profile = $customer[0]->profile;
+                    $branchName = $this->getBranchName($this->branchID);
+                    $this->saveToElasticSearch($full_name, $profile, $branchName, $date, $customer_id, $id, "1");
+                }
+
+               // echo json_encode($customer[0]->fname);
+                //die();
+
+
+
                 $logfield = $this->pfield;
                 // success msg
                 $data ["class"] = "success";
                 $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully saved.";
-                $data ["urlredirect"] = $this->controller_page . "/view/" . $this->encrypter->encode ( $id );
+                $data ["urlredirect"] = $this->controller_page . "/view/" .  $id ;
                 $this->load->view ( "header", $data );
                 $this->load->view ( "message" );
                 $this->load->view ( "footer" );
@@ -253,6 +282,44 @@ class Order extends CI_Controller {
         }
     }
 
+    public function saveToElasticSearch($customer, $profile, $branch, $date, $customer_id, $id, $status)
+    {
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'orders',
+            'type' => 'order',
+            'id' => $id,
+            'body' => [
+                'customer' => $customer,
+                'profile' => $profile,
+                'branch' => $branch,
+                'date' => $date,
+                'order_id' => $id,
+                'customer_id' => $customer_id,
+                'status' => $status
+            ]
+        ];
+
+        $this->elastic_model->saveToElasticSearch($data);
+
+    }
+
+    public function getCustomerFullName($id){
+        $this->db->select('*');
+        $this->db->where('custID', $id);
+        $this->db->from('customers');
+        return $this->db->get()->result();
+    }
+
+    public function getBranchName($branchID)
+    {
+        $this->db->where('branchID', $branchID);
+        $branch = $this->db->get('branches');
+        $current_branch = $branch->row();
+        return $current_branch->branchName;
+    }
+
     public function edit($id) {
         $this->submenu ();
         $data = $this->data;
@@ -271,13 +338,6 @@ class Order extends CI_Controller {
             // ----------------------------------------------------------------------------------
             $data ['rec'] = $this->records->field;
 
-
-//            //get branch
-//            $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
-//            $branch = $this->db->get('branches');
-//            $current_branch = $branch->row();
-//            $data['branchName'] = $current_branch->branchName;
-//            $data['branchID'] = $current_branch->branchID;
 //            //get service_types
             $this->db->where('status',1);
             $service_types = $this->db->get('service_types')->result();
@@ -305,11 +365,6 @@ class Order extends CI_Controller {
 
 //
             //order details
-//            $this->db->select('order_details.qty');
-//            $this->db->select('order_details.unit');
-//            $this->db->select('order_details.rate');
-//            $this->db->select('order_details.amount');
-//            $this->db->select('order_details.serviceID');
             $this->db->select('clothes_categories.serviceID');
             $this->db->select('clothes_categories.category');
             $this->db->select('order_detail_categories.qty');
@@ -341,15 +396,7 @@ class Order extends CI_Controller {
             $remove_duplicates = $this->super_unique($unique_array,'category');
             $data['clothes_categories'] =  $remove_duplicates;
 
-//            echo json_encode($data['clothes_categories']);
-//            die();
-
-
             $data ['rec'] = $this->getOrdersDetailsById($id);
-
-
-
-
 
             // load views
             $this->load->view ( 'header', $data );
@@ -366,117 +413,7 @@ class Order extends CI_Controller {
         }
     }
 
-    public function editComment($id) {
-        $this->submenu ();
-        $data = $this->data;
-        $id = $this->encrypter->decode ( $id );
 
-        if ($this->roles ['edit']) {
-            // for retrieve with joining tables -------------------------------------------------
-            // set table
-            $this->records->table = $this->table;
-            // set fields for the current table
-            $this->records->setFields ();
-            // set where
-            $this->records->where [$this->pfield] = $id;
-            // execute retrieve
-            $this->records->retrieve ();
-            // ----------------------------------------------------------------------------------
-            $data ['rec'] = $this->records->field;
-
-            //get branch
-            $this->db->where('branchID', $this->session->userdata('current_user')->branchID);
-            $branch = $this->db->get('branches');
-            $current_branch = $branch->row();
-            $data['branchName'] = $current_branch->branchName;
-            $data['branchID'] = $current_branch->branchID;
-
-            //get service_types
-            $this->db->select('service_types.serviceType');
-            $this->db->select('service_types.status',1);
-            $this->db->from('service_types');
-            $this->db->join('order_headers', 'service_types.serviceID=order_headers.serviceID', 'left');
-            $this->db->where('order_headers.orderID',$id);
-            $service_types = $this->db->get()->row();
-            $data['service_type'] = $service_types;
-            
-            //get customers
-            $this->db->select('customers.fname');
-            $this->db->select('customers.mname');
-            $this->db->select('customers.lname');            
-            $this->db->from('customers');
-            $this->db->join('order_headers', 'customers.custID=order_headers.custID', 'left');
-            $this->db->where('order_headers.orderID', $id);
-            $customers = $this->db->get()->row();
-            $data['customer'] = $customers;
-
-            //get cloths categories
-            $this->db->select(' clothesCatID');
-            $this->db->select('category');
-            $this->db->select('price');
-            $this->db->where('status', 1);
-            $clothes_categories_actual = $this->db->get('clothes_categories')->result();
-            $data['clothes_categories_actual'] = $clothes_categories_actual;
-
-                       
-            //users details
-            $this->db->select('users.firstName');
-            $this->db->select('users.middleName');
-            $this->db->select('users.lastName');        
-            $this->db->select('cancelledUser.firstName as cancelledFirstName');
-            $this->db->select('cancelledUser.middleName as cancelledMiddleName');
-            $this->db->select('cancelledUser.lastName as cancelledLastName');
-            $this->db->from ( $this->table );
-            $this->db->join ( 'users', $this->table . '.createdBy=users.userID', 'left' ); 
-            $this->db->join ( 'users as cancelledUser', $this->table . '.cancelledBy=users.userID', 'left' );
-            $this->db->where($this->table.'.orderID', $id);
-            $data['users'] = $this->db->get()->result();
-            // var_dump( $data['users']);
-            // die();
-            //order headers
-            $this->db->select('order_headers.adminComment');
-            $this->db->select('order_headers.custComment');
-            $this->db->from('order_headers');
-            $this->db->where('orderID', $id);
-            $data['order_headers'] = $this->db->get()->row();
-
-            //order details
-            $this->db->select('order_details.qty');
-            $this->db->select('order_details.clothesCatID');
-            $this->db->select('clothes_categories.category');
-            $this->db->from('order_details');
-            $this->db->join('clothes_categories', 'order_details.clothesCatID=clothes_categories.   clothesCatID', 'right');
-            $this->db->where('orderID', $id);
-            $clothes_categories = $this->db->get()->result();
-
-            $result = array_merge_recursive($clothes_categories, $clothes_categories_actual);
-
-            $unique_array = [];
-            foreach ($result as $row => $value) {
-                $unique_array[] = [
-                    'category' => $value->category,
-                    'clothesCatID' => $value->clothesCatID,
-                    'qty' => isset($value->qty) ? $value->qty : "",
-                ];
-            }
-
-            $remove_duplicates = $this->super_unique($unique_array,'category');
-            $data['clothes_categories'] =  $remove_duplicates;
-
-            // load views
-            $this->load->view ( 'header', $data );
-            $this->load->view ( $this->module_path . '/editcomment' );
-            $this->load->view ( 'footer' );
-        } else {
-            // no access this page
-            $data ['class'] = "danger";
-            $data ['msg'] = "Sorry, you don't have access to this page!";
-            $data ['urlredirect'] = "";
-            $this->load->view ( 'header', $data );
-            $this->load->view ( 'message' );
-            $this->load->view ( 'footer' );
-        }
-    }
     function super_unique($array,$key)
     {
         $temp_array = [];
@@ -534,11 +471,12 @@ class Order extends CI_Controller {
 
 
     public function update() {
+
         // load submenu
         $this->submenu ();
         $data = $this->data;
         //$table_fields = array ('date', 'branchID', 'custID', 'serviceID', 'isDiscounted', 'rate', 'deliveryFee', 'amount' , 'ttlAmount', 'createdBy', 'qty');
-        $table_fields = array('date', 'branchID', 'serviceID', 'deliveryFee', 'ttlAmount', 'custID', 'isDiscounted', 'remarks', 'createdBy');
+        $table_fields = array('date', 'branchID', 'serviceID', 'deliveryFee', 'ttlAmount', 'custID', 'isDiscounted', 'remarks', 'createdBy', 'isDiscounted');
 
 
         // check roles
@@ -585,10 +523,43 @@ class Order extends CI_Controller {
                 $categories_data = $this->input->post('categories_data');
                 $this->insert_order_details($this->records->pk, $services_data, $categories_data);
 
+
+                $customer = $this->getCustomerFullName($this->input->post('custID'));
+                if($customer) {
+                    $full_name = $customer[0]->fname ." ".$customer[0]->mname ." ". $customer[0]->lname;
+                    $date = $this->input->post('date');
+                    $customer_id = $customer[0]->custID;
+                    $profile = $customer[0]->profile;
+                    $branchName = $this->getBranchName($this->branchID);
+                    $this->load->model('elastic_model');
+
+                    $data = [
+                        'index' => 'orders',
+                        'type' => 'order',
+                        'id' => $this->records->pk,
+                        'body' => [
+                            'doc' => [
+                                'customer' => $full_name,
+                                'profile' => $profile,
+                                'branch' => $branchName,
+                                'date' => $date,
+                                'order_id' => $this->records->pk,
+                                'customer_id' => $customer_id,
+                                'status' => 1,
+                            ]
+                        ],
+                    ];
+
+                    $this->elastic_model->update($data);
+                }
+
+
+
+
                 // successful
                 $data ["class"] = "success";
                 $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully updated.";
-                $data ["urlredirect"] = $this->controller_page . "/view/" . trim ( $this->input->post ( $this->pfield ) );
+                $data ["urlredirect"] = $this->controller_page . "/view/" . $this->records->pk;
                 $this->load->view ( "header", $data );
                 $this->load->view ( "message" );
                 $this->load->view ( "footer" );
@@ -701,6 +672,10 @@ class Order extends CI_Controller {
                         $logs = "Record - " . $this->records->field->$logfield;
                         $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Delete', $logs );
 
+                        $this->load->model('elastic_model');
+
+                        $result = $this->elastic_model->delete('orders', 'order', $id);
+
                         // successful
                         $data ["class"] = "success";
                         $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully deleted.";
@@ -749,7 +724,7 @@ class Order extends CI_Controller {
     }
 
     public function view($id) {
-        $id = $this->encrypter->decode ( $id );
+       // $id = $this->encrypter->decode ( $id );
 
         // load submenu
         $this->submenu ();
@@ -757,51 +732,8 @@ class Order extends CI_Controller {
         // $this->roles['view'] = 1;
         if ($this->roles ['view']) {
 
-////            $this->db->select ( 'branches.branchName' );
-////            $this->db->select ( 'branches.branchCode' );
-////            //customer details
-////            $this->db->select ( 'customers.fname' );
-////            $this->db->select ( 'customers.mname' );
-////            $this->db->select ( 'customers.lname' );
-////            //service type
-////
-////            //users details
-////            $this->db->select('users.firstName');
-////            $this->db->select('users.middleName');
-////            $this->db->select('users.lastName');
-////            //cancelled by
-////            $this->db->select('cancelledUser.firstName as cancelledFirstName');
-////            $this->db->select('cancelledUser.middleName as cancelledMiddleName');
-////            $this->db->select('cancelledUser.lastName as cancelledLastName');
-//
-//            // select
-//            $this->db->select ( $this->table . '.*' );
-//
-//            // from
-//            $this->db->from ( $this->table );
-//
-//            // join
-//            $this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
-//            $this->db->join ( 'customers', $this->table . '.custID=customers.custID', 'left' );
-//           // $this->db->join ( 'service_types', $this->table . '.serviceID=service_types.serviceID', 'left' );
-//            $this->db->join ( 'users', $this->table . '.createdBy=users.userID as table1', 'left' );
-//
-//
-//            //called by
-//            $this->db->join ( 'users as cancelledUser', $this->table . '.cancelledBy=users.userID', 'left' );
-//            $this->db->where('orderID', $id);
-
-
-//            $result = $this->getOrdersDetailsById($id);
-//
-//            echo json_encode($result);
-//            die();
-
             // ----------------------------------------------------------------------------------
             $data ['rec'] = $this->getOrdersDetailsById($id);
-
-
-
 
             $data ['in_used'] = $this->_in_used ( $id );
 
@@ -834,8 +766,8 @@ class Order extends CI_Controller {
         $this->submenu ();
         $data = $this->data;
 
-        //echo json_encode($_POST);
-        //die();
+
+
         // 1**************************************************
         // variable:field:default_value:operator
         // note: dont include the special query field filter                
@@ -1169,6 +1101,8 @@ class Order extends CI_Controller {
 
         $data = Generic_ajax::updateDate($date, $orID, $userID);
 
+        $this->updateStatusElasticSearch($date, $orID);
+
         $response = [
             'data' => [
                 'added' => $data,
@@ -1179,6 +1113,45 @@ class Order extends CI_Controller {
         ];
 
         echo json_encode($response);
+    }
+
+    function updateStatusElasticSearch($date, $id)
+    {
+        $status = 1;
+        switch ($date) {
+            case 'dateWashed' :
+                    $status = 2;
+                break;
+            case 'dateFold' :
+                    $status = 3;
+                break;
+            case 'dateReady' :
+                    $status = 4;
+                break;
+            case 'dateReleased' :
+                    $status = 5;
+                break;
+            case 'dateCancelled' :
+                    $status = 6;
+                break;
+        }
+
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'orders',
+            'type' => 'order',
+            'id' => $id,
+            'body' => [
+                'doc' => [
+                    'order_id' => $id,
+                    'status' => $status,
+                ]
+            ],
+        ];
+
+        $this->elastic_model->update($data);
+
     }
 
 
@@ -1349,5 +1322,51 @@ class Order extends CI_Controller {
         $details = $this->db->get()->result();
         return $details;
     }
+
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $result = $this->elastic_model->elastic_search($q);
+        echo json_encode($result);
+    }
+
+
+    public function getOrderByCustomerId() {
+        $custID = $this->input->post('custID');
+        $this->db->select ( $this->table . '.*' );
+        $this->db->select ( 'branches.branchName' );
+        $this->db->select ( 'branches.branchCode' );
+        //customer details
+        $this->db->select ( 'customers.fname' );
+        $this->db->select ( 'customers.mname' );
+        $this->db->select ( 'customers.lname' );
+        //service type
+        // $this->db->select('service_types.serviceID');
+        $this->db->select('service_types.regRate');
+        $this->db->select('service_types.discountedRate');
+        $this->db->select('service_types.serviceType');
+
+        // from
+        $this->db->from ( $this->table );
+
+        // join
+        $this->db->join ( 'branches', $this->table . '.branchID=branches.branchID', 'left' );
+        $this->db->join ( 'customers', $this->table . '.custID=customers.custID', 'left' );
+        $this->db->join ( 'service_types', $this->table . '.serviceID=service_types.serviceID', 'left' );
+        $this->db->where($this->table.'.custID', $custID);
+        $data ['records'] = $this->db->get ()->result ();
+
+        $data ['ttl_rows'] = $config ['total_rows'] = $this->db->count_all_results ();
+        $limit = 25;
+        $config ['base_url'] = $this->controller_page . '/show/';
+        $config ['per_page'] = $limit;
+        $this->pagination->initialize ( $config );
+        $data['links'] = $this->pagination->create_links();
+        $data ['offset'] = 0;
+
+        echo json_encode($data);
+    }
+
 
 }

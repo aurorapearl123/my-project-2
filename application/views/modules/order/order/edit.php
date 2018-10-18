@@ -45,16 +45,18 @@
                                         <select class="form-control" id="custID" name="custID" data-live-search="true" livesearchnormalize="true" title="Customer Name" required>
                                             <option value="" selected>&nbsp;</option>
                                             <?php foreach($customers as $row) { ?>
-                                                <option value="<?php echo $row->custID ?>"><?php if($row->custID == $rec[0]['custID']){echo "selected";}?> <?php echo $row->fname .' '. $row->mname .' '.$row->lname ?></option>
+                                                <option value="<?php echo $row->custID ?>" <?php if($row->custID == $rec[0]['custID']){echo "selected";}?> ><?php echo $row->fname .' '. $row->mname .' '.$row->lname ?></option>
 
                                             <?php } ?>
                                         </select>
+
+
                                     </td>
-                                    <td class="form-label" style="width:13%">is discounted <span class="asterisk">*</span></td>
+                                    <td class="form-label" style="width:13%">Discounted <span class="asterisk">*</span></td>
                                     <td class="form-input" style="width:22%">
                                         <div class="checkbox">
                                             <label>
-                                                <input type="checkbox" name="isDiscounted" id="isDiscounted" value="Y"> &nbsp;
+                                                <input type="checkbox" name="isDiscounted" id="isDiscounted" value="Y" <?php echo ($rec[0]['discounted'] == 'Y') ? "checked" : ""?>> &nbsp;
                                             </label>
                                         </div>
                                     </td>

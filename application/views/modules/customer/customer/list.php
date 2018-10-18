@@ -4,7 +4,20 @@
 	<div class="subheader">
 		<div class="d-flex align-items-center">
 			<div class="title mr-auto">
-				<h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                <ul class="tools-list">
+				    <li>
+                        <h3><i class="icon left la <?php echo $current_module['icon'] ?>"></i> <?php echo $current_module['title'] ?></span></h3>
+                    </li>
+                    <li>
+                        <!--                                        <input type="text" name="country" id="autocomplete" placeholder="Search"/>-->
+                        <div class="input-group">
+                            <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete" >
+                            <span class="position-absolute"><i class="icon left la la-search"></i> </span>
+                        </div>
+
+                    </li>
+                </ul>
+
 			</div>
 			<?php if ($roles['create']) {?>
 			<div class="subheader-tools">
@@ -64,51 +77,14 @@
 												echo $this->htmlhelper->tabular_header($headers, $sortby, $sortorder);
 												?>
 										</tr>
-										<tr id="filter-group" class="collapse multi-collapse show">
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="title" name="title" value="<?php echo $title ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="fname" name="fname" value="<?php echo $fname ?>">
-											</th>											
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="mname" name="mname" value="<?php echo $mname ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="lname" name="lname" value="<?php echo $lname ?>">
-											</th>
-											<th class="form-group form-input">
-												<input type="text" class="form-control w-80" id="suffix" name="suffix" value="<?php echo $suffix ?>">
-											</th>
-											
-                                            <th class="form-group form-input">
-                                                <input type="text" class="form-control w-80" id="contact" name="contact" value="<?php echo $contact ?>">
-                                            </th>
-                                            <th class="form-group form-input">
-                                                	<input type="text" class="form-control datepicker" name="bday" id="bday" value="<?php if ($bday) echo date("F d, Y", strtotime($bday)) ?>" data-toggle="datetimepicker" data-target="#bday">
-                                            </th>
-                                            <th class="form-group form-input">
-												<select class="form-control" id="isRegular" name="isRegular" style="width:80px">
-													<option value="">&nbsp;</option>
-													<option value="Y" <?php if($isRegular == "Y") echo "selected"; ?>>Yes</option>
-													<option value="N" <?php if($isRegular == "N") echo "selected"; ?>>No</option>													
-												</select>
-                                            </th>
-                                            <th class="form-group form-input">
-												<select class="form-control" id="status" name="status" style="width:100px">
-													<option value="">&nbsp;</option>
-													<option value="1" <?php if($status == "1") echo "selected"; ?>>Active</option>
-													<option value="0" <?php if($status == "0") echo "selected"; ?>>Inactive</option>
-												</select>
-                                            </th>
-										</tr>
+
 									</thead>
 									<tbody>
 										<?php 
 											if (count($records)) {
 											    foreach($records as $row) {
 											    ?>
-										<tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->custID); ?>'">
+										<tr onclick="location.href='<?php echo $controller_page."/view/".$row->custID; ?>'">
 											<td><?php echo $row->title ?></td>
                                             
 											<td><?php echo $row->fname ?></td>
@@ -191,3 +167,102 @@
 		</div>
 	</div>
 </form>
+
+<script>
+    $(document).ready(function(){
+        console.log("hello");
+        var $project = $('#autocomplete');
+        $project.autocomplete({
+            source: function( request, response ) {
+                var url = "<?php echo $controller_page ?>/elastic_search";
+
+                $.ajax({
+                    url: url,
+                    data: { search : request.term},
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log("the data");
+                        console.log(data);
+                        var customer = [];
+                        $.each(data, function(k,v){
+                            $.each(v, function(key, val){
+                                //console.log("key", key);
+                                //console.log("value", val.customer);
+                                //console.log("image", val.profile);
+                                var name = val.full_name;
+                                var profile = val.profile;
+                                // var url = URL.createObjectURL(val.profile);
+                                if(typeof name === 'undefined') {
+
+                                }else {
+                                    customer.push({
+                                        "label": name,
+                                        "value": name,
+                                        "title": val.title,
+                                        "suffix": val.suffix,
+                                        "icon": "jquery_32x32.png",
+                                        "contact" : val.contact,
+                                        "profile" : profile,
+                                        "bday" : val.bday,
+                                        "isRegular" : val.isRegular,
+                                        "status" : val.status,
+                                        "id" : val.id
+                                    });
+                                }
+
+                            });
+                        });
+
+                        response(customer);
+
+                    },
+                    error: function (errorMessage) { // error callback
+
+                        console.log("error "+errorMessage.responseText);
+                    }
+                });
+                //console.log(request.term);
+
+                //response(cCities);
+            },
+            select: function(event, ui) {
+                //$('#zipCode').val(zipCode[ui.item.value]);
+                console.log("you click me");
+                console.log(ui.item.id);
+                var url = '<?php echo $controller_page."/view/"; ?>';
+                location.href=url+ui.item.id;
+
+                //get all data to display on table
+            },
+        })
+
+        $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+
+
+            var $li = $('<li>'),
+                $img = $('<img class="search-image">');
+            //var urlCreator = window.URL || window.webkitURL;
+            //var imageUrl = URL.createObjectURL( item.profile );
+            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            $img.attr({
+                // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
+                src: image,
+                alt: item.value
+            });
+
+
+            $li.attr('data-value', item.value);
+            $li.append('<a href="#">');
+            //$li.find('a').append($img).append(item.value +" "+item.date);
+            $li.find('a').append($img)
+                .append($('<span>').attr('class', 'result-search').text(item.value)
+                    .append($('<br>'))
+                    .append($('<span style="font-size: 0.7em;">').text(item.title))
+                );
+
+            return $li.appendTo(ul);
+
+        };
+    });
+</script>

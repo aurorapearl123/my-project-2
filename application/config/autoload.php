@@ -133,3 +133,7 @@ $autoload['language'] = array();
 |	$autoload['model'] = array('first_model' => 'first');
 */
 $autoload['model'] = array('config_model','user_model','userrole_model','log_model');
+
+
+$config['composer_autoload'] = TRUE;
+require_once FCPATH . 'vendor/autoload.php';

@@ -1,0 +1,11 @@
+.result-search {
+    display: inline-block;
+    margin-left: 10px
+}
+.result-image {
+    width:50px;
+    height: 60px
+}
+.search-bar-my {
+    width: 500px;
+}

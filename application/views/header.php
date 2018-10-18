@@ -9,6 +9,7 @@
     <link href="<?php echo base_url('assets/css/style.min.css') ?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo base_url('assets/css/main.min.css') ?>" rel="stylesheet" type="text/css" />
       <link href="<?php echo base_url('assets/css/order-create.css') ?>" rel="stylesheet" type="text/css" />
+      <link href="<?php echo base_url('assets/css/custom.css') ?>" rel="stylesheet" type="text/css" />
     <link rel="shortcut icon" href="<?php echo base_url('assets/img/main/favicon.png') ?>" />
 
       <link href="<?php echo base_url('assets/css/dropzone.css') ?>" rel="stylesheet" type="text/css" />
@@ -19,6 +20,14 @@
     <script src="<?php echo base_url('assets/js/jquery-3.2.1.min.js') ?>" type="text/javascript"></script>
     <script src="<?php echo base_url('assets/js/framework.js') ?>" type="text/javascript"></script>
       <script src="<?php echo base_url('assets/js/Chart.js') ?>" type="text/javascript"></script>
+      <link href = "<?php echo base_url('assets/css/jquery-ui.css') ?>"
+            rel = "stylesheet">
+
+      <script src="<?php echo base_url('assets/js/jquery-1.10.2.js') ?>" type="text/javascript"></script>
+
+
+      <script src="<?php echo base_url('assets/js/jquery-ui.js') ?>" type="text/javascript"></script>
+
 
 
       <style>
@@ -103,6 +112,7 @@
                 <ul class="navbar-nav">
                   <li class="nav-item dropdown medium">
                     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="icon left flaticon-stopwatch"></i> <span class="nav-text">Quick Access</span></a>
+
                     <div class="dropdown-menu wrap">
                       <ul class="nav">
                       <?php if ($this->userrole_model->has_access($this->session->userdata('current_user')->userID,'Add Customer')) { ?>
@@ -111,6 +121,7 @@
                       </ul>
                     </div>
                   </li>
+
                 </ul>
               </div>
             </div> <!-- <div id="header-menu" class="header-menu"> -->

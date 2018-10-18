@@ -100,12 +100,9 @@
                                     <td class="data-input border-0">
                                         <div class="checkbox">
                                             <label>
-                                                <input type="checkbox" name="isDiscounted" id="isDiscounted" value="<?php if($rec->isDiscounted == 'Y'){
-                                                    echo "Y";
-                                                }
-                                                else {
-                                                    echo "N";
-                                                };?>" aria-label="..." <?php if($rec->isDiscounted == 'Y') echo "checked='checked'";?> onclick="return false;"> &nbsp;
+
+                                                <input type="checkbox" name="isDiscounted" id="isDiscounted" value="Y" <?php echo ($rec[0]['discounted'] == 'Y') ? "checked" : ""?> onclick="return false">
+
                                             </label>
                                         </div>
                                     </td>
@@ -433,7 +430,7 @@
                 .then((willConfirm) => {
                     if (willConfirm.value) {
 
-                        //updateDate(orderID, 'dateCancelled');
+                        updateDate(orderID, 'dateCancelled');
                         $("#result-date").html('');
                         $("#span_wash").html('');
                         $("#span_ready").html('');

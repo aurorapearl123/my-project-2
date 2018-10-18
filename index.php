@@ -36,6 +36,11 @@
  * @filesource
  */
 
+require_once 'vendor/autoload.php';
+
+use Elasticsearch\ClientBuilder;
+
+
 /*
  *---------------------------------------------------------------
  * APPLICATION ENVIRONMENT
@@ -314,3 +319,9 @@ switch (ENVIRONMENT)
  * And away we go...
  */
 require_once BASEPATH.'core/CodeIgniter.php';
+
+
+
+
+
+

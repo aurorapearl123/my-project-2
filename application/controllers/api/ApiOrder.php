@@ -299,7 +299,25 @@ class ApiOrder extends REST_Controller
             'status' => 5,
         ];
         $this->db->where('orderID', $id);
-        return $this->db->update($this->table, $data);
+        $result = $this->db->update($this->table, $data);
+
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'orders',
+            'type' => 'order',
+            'id' => $id,
+            'body' => [
+                'doc' => [
+                    'order_id' => $id,
+                    'status' => 5,
+                ]
+            ],
+        ];
+
+        $this->elastic_model->update($data);
+
+        return $result;
     }
 
     public function order_by_date_get()
@@ -506,6 +524,7 @@ class ApiOrder extends REST_Controller
         if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
             $user_id = $is_valid_token['data']->id;
             $branch_id = $is_valid_token['data']->branchID;
+            $branchName = $is_valid_token['data']->branchName;
             $data = $this->input->post('data');
             $customer_id = $this->input->post('customer_id');
             $grand_total = $this->input->post('grand_total');
@@ -525,12 +544,39 @@ class ApiOrder extends REST_Controller
                 'ttlAmount' => $grand_total
             ];
 
+
             $this->updateOrder($this->table, $order_headers, $order_id);
             //$lastId = $this->db->insert_id();
+
             $this->deleteOrder('order_details', $order_id);
             $order_details = [];
             foreach($data as $key => $value) {
                 $this->insertDetails($category_data, $order_id, $value['quantity'], $value['amount'], $value['rate'], $value['unit'], $value['service_id']);
+            }
+
+            $customer = $this->getCustomerFullName($customer_id);
+            if($customer) {
+                $full_name = $customer[0]->fname ." ".$customer[0]->mname ." ". $customer[0]->lname;
+                $profile = $customer[0]->profile;
+                $this->load->model('elastic_model');
+
+                $data = [
+                    'index' => 'orders',
+                    'type' => 'order',
+                    'id' => $order_id,
+                    'body' => [
+                        'doc' => [
+                            'customer' => $full_name,
+                            'profile' => $profile,
+                            'branch' => $branchName,
+                            'order_id' => $order_id ,
+                            'customer_id' => $customer_id,
+                            'status' => 1,
+                        ]
+                    ],
+                ];
+
+                $this->elastic_model->update($data);
             }
 
             $this->response([
@@ -562,6 +608,7 @@ class ApiOrder extends REST_Controller
         if(!empty($is_valid_token) AND $is_valid_token['status'] === TRUE) {
             $user_id = $is_valid_token['data']->id;
             $branch_id = $is_valid_token['data']->branchID;
+            $branchName = $is_valid_token['data']->branchName;
             $data = $this->input->post('data');
             $customer_id = $this->input->post('customer_id');
             $grand_total = $this->input->post('grand_total');
@@ -591,6 +638,36 @@ class ApiOrder extends REST_Controller
                 $this->insertDetails($category_data, $lastId, $value['quantity'], $value['amount'], $value['rate'], $value['unit'], $value['service_id']);
             }
 
+            //save data to elasticsearch
+            $customer = $this->getCustomerFullName($customer_id);
+            if($customer) {
+                $full_name = $customer[0]->fname ." ".$customer[0]->mname ." ". $customer[0]->lname;
+                $date = $this->input->post('date');
+                $customer_id = $customer[0]->custID;
+                $profile = $customer[0]->profile;
+
+
+                $this->load->model('elastic_model');
+
+                $data = [
+                    'index' => 'orders',
+                    'type' => 'order',
+                    'id' => $lastId,
+                    'body' => [
+                        'customer' => $full_name,
+                        'profile' => $profile,
+                        'branch' => $branchName,
+                        'date' => $date,
+                        'order_id' => $lastId,
+                        'customer_id' => $customer_id,
+                        'status' => 1
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
+
+            }
+
             $this->response([
                 'status' => true,
             ]);
@@ -605,6 +682,13 @@ class ApiOrder extends REST_Controller
             );
         }
 
+    }
+
+    public function getCustomerFullName($id){
+        $this->db->select('*');
+        $this->db->where('custID', $id);
+        $this->db->from('customers');
+        return $this->db->get()->result();
     }
 
     public function insertDetails($category_data, $orderID, $qty, $amount, $rate, $unit, $serviceID)
@@ -669,6 +753,11 @@ class ApiOrder extends REST_Controller
         $id = $this->uri->segment(3);
         // set fields
         $data = $this->deleteOrder('order_headers', $id);
+
+        $this->load->model('elastic_model');
+        $this->elastic_model->delete('orders', 'order', $id);
+
+
         $this->response([
             'data' => $data
         ]);

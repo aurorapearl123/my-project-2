@@ -48,7 +48,7 @@
                                             <?php } ?>
                                         </select>
                                     </td>
-                                    <td class="form-label" style="width:13%">is discounted <span class="asterisk">*</span></td>
+                                    <td class="form-label" style="width:13%">Discounted <span class="asterisk">*</span></td>
                                     <td class="form-input" style="width:22%">
                                         <div class="checkbox">
                                             <label>

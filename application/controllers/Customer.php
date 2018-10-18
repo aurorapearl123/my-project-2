@@ -135,6 +135,26 @@ class Customer extends CI_Controller {
                 $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $id, 'Insert', $logs );
 
                 //echo $this->db->last_query();
+                //insert to elastic search
+                $this->load->model('elastic_model');
+                $full_name = $this->input->post('fname') .' '.$this->input->post('mname').' '.$this->input->post('lname');
+                $data = [
+                    'index' => 'customers',
+                    'type' => 'customer',
+                    'id' => $id,
+                    'body' => [
+                        'id' => $id,
+                        'full_name' => $full_name,
+                        'title' => $this->input->post('title'),
+                        'suffix' => $this->input->post('suffix'),
+                        'contact' => $this->input->post('contact'),
+                        'bday' => date('Y-m-d',strtotime($this->input->post('bday'))),
+                        'isRegular' => $this->input->post('isRegular'),
+                        'status' => 1
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
 
                 $logfield = $this->pfield;
                 // success msg
@@ -237,6 +257,30 @@ class Customer extends CI_Controller {
                     $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Update', $logs );
                 }
 
+
+                $this->load->model('elastic_model');
+
+                $full_name = $this->input->post('fname') .' '.$this->input->post('mname').' '.$this->input->post('lname');
+                $data = [
+                    'index' => 'customers',
+                    'type' => 'customer',
+                    'id' => $this->records->pk,
+                    'body' => [
+                        'doc' => [
+                            'id' => $this->records->pk,
+                            'full_name' => $full_name,
+                            'title' => $this->input->post('title'),
+                            'suffix' => $this->input->post('suffix'),
+                            'contact' => $this->input->post('contact'),
+                            'bday' => date('Y-m-d',strtotime($this->input->post('bday'))),
+                            'isRegular' => $this->input->post('isRegular'),
+                            'status' => 1
+                        ]
+                    ]
+                ];
+
+                $this->elastic_model->update($data);
+
                 // successful
                 $data ["class"] = "success";
                 $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully updated.";
@@ -297,6 +341,10 @@ class Customer extends CI_Controller {
                         $logs = "Record - " . $this->records->field->$logfield;
                         $this->log_model->table_logs ( $data ['current_module'] ['module_label'], $this->table, $this->pfield, $this->records->pk, 'Delete', $logs );
 
+                        $this->load->model('elastic_model');
+
+                        $this->elastic_model->delete('customers', 'customer', $id);
+
                         // successful
                         $data ["class"] = "success";
                         $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully deleted.";
@@ -345,7 +393,7 @@ class Customer extends CI_Controller {
     }
 
     public function view($id) {
-        $id = $this->encrypter->decode ( $id );
+        //$id = $this->encrypter->decode ( $id );
 
         // load submenu
         $this->submenu ();
@@ -401,6 +449,10 @@ class Customer extends CI_Controller {
         // load submenu
         $this->submenu ();
         $data = $this->data;
+
+       //$this->migrateCustomerElastic();
+
+
         
         // **************************************************
         // variable:field:default_value:operator
@@ -1014,6 +1066,60 @@ class Customer extends CI_Controller {
             echo "1"; // duplicate
         else 
             echo "0";
+    }
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'customers',
+            'type' => 'customer',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'full_name', 'contact', 'suffix', 'title'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+
+        $result = $this->elastic_model->search($data);
+        echo json_encode($result);
+    }
+
+    public function migrateCustomerElastic()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table);
+        $customers = $this->db->get()->result();
+
+        $this->load->model('elastic_model');
+        foreach ($customers as $customer) {
+            $full_name = $customer->fname.' '.$customer->mname.' '.$customer->lname;
+            $data = [
+                'index' => 'customers',
+                'type' => 'customer',
+                'id' => $customer->custID,
+                'body' => [
+                    'id' => $customer->custID,
+                    'full_name' => $full_name,
+                    'title' => $customer->title,
+                    'suffix' => $customer->suffix,
+                    'contact' => $customer->contact,
+                    'bday' => $customer->bday,
+                    'isRegular' => $customer->isRegular,
+                    'status' => $customer->status,
+                    'profile' => $customer->profile
+
+                ]
+            ];
+            $this->elastic_model->saveToElasticSearch($data);
+        }
+
     }
 
 }

@@ -7,6 +7,7 @@ class ApiCustomer extends REST_Controller
     var $data;
     var $pfield;
     var $logfield;
+    var $regular;
 
     public function __construct($config = 'rest')
     {
@@ -117,12 +118,13 @@ class ApiCustomer extends REST_Controller
                     $this->records->table = $this->table;
                     $this->records->fields = array ();
 
+
                     foreach ( $table_fields as $fld ) {
                         if($fld === 'isRegular') {
                             $isRegular = $this->input->post('isRegular');
-                            $regular = ($isRegular[0] == "on") ? "Y" : "N";
-                            $this->records->fields [$fld] = 'N';
-                            $this->records->fields [$fld] = $regular;
+                            $this->regular = ($isRegular[0] == "on") ? "Y" : "N";
+                            //$this->records->fields [$fld] = 'N';
+                            $this->records->fields [$fld] = $this->regular;
                         }
                         else {
                             $this->records->fields [$fld] = trim ( $this->input->post ( $fld ) );
@@ -138,6 +140,28 @@ class ApiCustomer extends REST_Controller
 
                         $logs = "Record - " . trim ( $this->input->post ( $this->logfield ) );
                         $this->log_model->table_logs ('api-customer', $this->table, $this->pfield, $id, 'Insert', $logs, $user_id );
+
+                        $this->load->model('elastic_model');
+                        $full_name = $first_name.' '.$middle_name.' '.$last_name;
+                        $data = [
+                            'index' => 'customers',
+                            'type' => 'customer',
+                            'id' => $id,
+                            'body' => [
+                                'id' => $id,
+                                'full_name' => $full_name,
+                                'profile' => $this->input->post('profile'),
+                                'title' => $this->input->post('title', TRUE),
+                                'suffix' => $this->input->post('suffix', TRUE),
+                                'contact' => $this->input->post('contact', TRUE),
+                                'bday' => date('Y-m-d',strtotime($this->input->post('bday', TRUE))),
+                                'isRegular' => $this->regular,
+                                'status' => 1
+                            ]
+                        ];
+
+                        $this->elastic_model->saveToElasticSearch($data);
+
 
                         $return_data = [
                             'status' => TRUE,
@@ -332,6 +356,11 @@ class ApiCustomer extends REST_Controller
             $this->records->pfield = $this->pfield;
             $this->records->pk = $id;
             $data = $this->records->delete ();
+
+            $this->load->model('elastic_model');
+
+            $this->elastic_model->delete('customers', 'customer', $id);
+
             $this->response([
                 'data' => $data
             ]);
@@ -445,7 +474,7 @@ class ApiCustomer extends REST_Controller
                 $check_duplicate = $this->check_duplicate($first_name, $middle_name, $last_name, $id);
                 if(!$check_duplicate) {
 
-                    $table_fields = array ('profile','title', 'fname', 'mname', 'lname', 'suffix', 'provinceID', 'cityID', 'barangayID', 'telephone', 'isRegular', 'bday', 'address', 'contact', 'isRegular');
+                    $table_fields = array ('profile','title', 'fname', 'mname', 'lname', 'suffix', 'provinceID', 'cityID', 'barangayID', 'telephone', 'isRegular', 'bday', 'address', 'contact', 'isRegular', 'contact');
 
                     $this->records->table = $this->table;
                     $this->records->fields = array ();
@@ -453,9 +482,9 @@ class ApiCustomer extends REST_Controller
                     foreach ( $table_fields as $fld ) {
                         if($fld === 'isRegular') {
                             $isRegular = $this->put('isRegular');
-                            $regular = ($isRegular[0] == "on") ? "Y" : "N";
+                            $this->regular = ($isRegular[0] == "on") ? "Y" : "N";
                             $this->records->fields [$fld] = 'N';
-                            $this->records->fields [$fld] = $regular;
+                            $this->records->fields [$fld] = $this->regular;
                         }
                         else {
                             $this->records->fields [$fld] = trim ( $this->put ( $fld ) );
@@ -470,6 +499,30 @@ class ApiCustomer extends REST_Controller
                         // record logs
                         $logs = "Record - " . trim ( $this->put ( $this->logfield ) );
                         $this->log_model->table_logs ($this->encrypter->decode($user_id), 'api-customer', $this->table, $this->pfield, $id, 'Update', $logs );
+
+                        $this->load->model('elastic_model');
+
+                        $full_name = $first_name.' '.$middle_name.' '.$last_name;
+                        $data = [
+                            'index' => 'customers',
+                            'type' => 'customer',
+                            'id' => $id,
+                            'body' => [
+                                'doc' => [
+                                    'id' => $this->records->pk,
+                                    'full_name' => $full_name,
+                                    'profile' => $this->put('profile'),
+                                    'title' => $this->put('title'),
+                                    'suffix' => $this->put('suffix'),
+                                    'contact' => $this->put('contact'),
+                                    'bday' => date('Y-m-d',strtotime($this->put('bday'))),
+                                    'isRegular' => $this->regular,
+                                    'status' => 1
+                                ]
+                            ]
+                        ];
+
+                        $this->elastic_model->update($data);
 
                         $response = [
                             'status' => FALSE,
