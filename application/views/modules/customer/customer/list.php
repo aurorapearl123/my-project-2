@@ -170,7 +170,7 @@
 
 <script>
     $(document).ready(function(){
-        console.log("hello");
+        var base_url = '<?php echo base_url(); ?>';
         var $project = $('#autocomplete');
         $project.autocomplete({
             source: function( request, response ) {
@@ -239,12 +239,11 @@
 
         $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
 
-
             var $li = $('<li>'),
                 $img = $('<img class="search-image">');
             //var urlCreator = window.URL || window.webkitURL;
             //var imageUrl = URL.createObjectURL( item.profile );
-            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            var image = item.profile  ? item.profile : base_url+'assets/img/users/noimage.gif';
             $img.attr({
                 // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
                 src: image,

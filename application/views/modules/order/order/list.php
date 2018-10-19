@@ -186,7 +186,7 @@
 
 <script>
     $(document).ready(function() {
-
+        var base_url = '<?php echo base_url(); ?>';
         var $project = $('#autocomplete');
         $project.autocomplete({
             source: function( request, response ) {
@@ -198,8 +198,8 @@
                     type: 'POST',
                     dataType: 'json',
                     success: function (data) {
-                        console.log("the data");
-                        console.log(data);
+                        //console.log("the data");
+                        //console.log(data);
                         var customer = [];
                         $.each(data, function(k,v){
                             $.each(v, function(key, val){
@@ -255,7 +255,7 @@
                 $img = $('<img style="width:50px;height: 60px">');
             //var urlCreator = window.URL || window.webkitURL;
             //var imageUrl = URL.createObjectURL( item.profile );
-            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            var image = item.profile  ? item.profile : base_url+'assets/img/users/noimage.gif';
             $img.attr({
                 // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
                 src: image,
