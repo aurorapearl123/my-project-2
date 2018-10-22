@@ -353,6 +353,110 @@ function resetForm(id) {
 </script>
 
 
+<script>
+    $(document).ready(function(){
+        var base_url = '<?php echo base_url(); ?>';
+        var $project = $('#autocomplete_global');
+        $project.autocomplete({
+            source: function( request, response ) {
+                var url = base_url+"/order/global_elastic_search";
+
+                $.ajax({
+                    url: url,
+                    data: { search : request.term},
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log("the data");
+                        console.log(data);
+                        var customer = [];
+                        $.each(data, function(k,v){
+                            $.each(v, function(key, val){
+                                //console.log("key", key);
+                                //console.log("value", val.customer);
+                                //console.log("image", val.profile);
+                                var name = val.name;
+                                var profile = val.image;
+                                // var url = URL.createObjectURL(val.profile);
+                                if(typeof name === 'undefined') {
+
+                                }else {
+                                    customer.push({
+                                        "label": name,
+                                        "value": name,
+                                        "tag": val.tag,
+                                        "id" : val.id,
+                                        "profile" : profile,
+                                        "description" : val.description
+                                    });
+                                }
+
+                            });
+                        });
+
+                        response(customer);
+
+                    },
+                    error: function (errorMessage) { // error callback
+
+                        console.log("error "+errorMessage.responseText);
+                    }
+                });
+                //console.log(request.term);
+
+                //response(cCities);
+            },
+            select: function(event, ui) {
+                //$('#zipCode').val(zipCode[ui.item.value]);
+                //console.log("you click me");
+                //console.log(ui.item.id);
+                //var url = '<?php echo $controller_page."/view/"; ?>';
+                var base_url = '<?php echo base_url()?>';
+                var url = ui.item.tag+"/view/"+ui.item.id;
+                //console.log("the url", base_url+""+url);
+                location.href=base_url+""+url;
+
+                //get all data to display on table
+            },
+        })
+
+        $project.data( "ui-autocomplete" )._renderItem = function( ul, item ) {
+
+            var $li = $('<li>'),
+                $img = $('<img class="search-image">');
+            //var urlCreator = window.URL || window.webkitURL;
+            //var imageUrl = URL.createObjectURL( item.profile );
+            var image = item.profile  ? item.profile : base_url+'assets/img/users/noimage.gif';
+            $img.attr({
+                // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
+                src: image,
+                alt: item.value
+            });
+
+
+            $li.attr('data-value', item.value);
+            $li.append('<a href="#">');
+            //$li.find('a').append($img).append(item.value +" "+item.date);
+            $li.find('a').append($img)
+                .append($('<span>').attr('class', 'result-search').text(item.value)
+                    .append($('<br>'))
+                    //.append($('<span style="font-size: 0.7em;">').text(item.date))
+                    .append($('<span style="font-size: 0.7em;">').text(item.tag)
+                    )
+                    .append($('<br>'))
+                    //.append($('<span style="font-size: 0.7em;">').text(item.date))
+                    .append($('<span style="font-size: 0.7em;">').text(item.description)
+                    )
+                );
+
+            return $li.appendTo(ul);
+
+        };
+    });
+</script>
+
+
+
 
 </body>
 </html>

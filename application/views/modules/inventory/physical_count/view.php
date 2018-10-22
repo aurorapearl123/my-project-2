@@ -30,7 +30,7 @@
                                     <a href="<?php echo site_url('physical_count/edit/'.$this->encrypter->encode($rec->pcID)) ?>" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Edit"><i class="la la-edit"></i></a>
                                 </li>
                             <?php } ?>
-                            <?php if ($roles['delete'] && !$in_used) { ?>
+                            <?php if ($roles['delete'] && !$in_used && $rec->status != 2) { ?>
                                 <li>
                                     <button name="cmddelete" id="cmddelete" class="btn btn-outline-light bmd-btn-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="Delete" onclick="deleteRecord('<?php echo $this->encrypter->encode($rec->pcID); ?>');"><i class="la la-trash-o"></i></button>
                                 </li>
@@ -129,17 +129,19 @@
                         <div class="form-sepator solid mx-0"></div>
                         <div class="data-view">
                             <table class="view-table">
-                                <tbody>
+                                <tbody id="table-date-result">
                                     <tr>
-                                        <td class="data-title w-10">Created By :</td>
-                                        <td class="data-input w-20">
-                                            <span><?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?></span>
-                                        </td>
-                                        <td class="data-title w-10">Date Created : </td>
-                                        <td class="data-input w-20">
-                                            <span><?php echo date('M d, Y H:i:s',strtotime($rec->dateCreated))?></span>
-                                        </td>
-                                        <td class="d-xxl-none"></td>
+                                       <div class="container-date">
+                                           <td class="data-title w-10">Created By :</td>
+                                           <td class="data-input w-20">
+                                               <span><?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?></span>
+                                           </td>
+                                           <td class="data-title w-10">Date Created : </td>
+                                           <td class="data-input w-20">
+                                               <span><?php echo date('M d, Y H:i:s',strtotime($rec->dateCreated))?></span>
+                                           </td>
+                                           <td class="d-xxl-none"></td>
+                                       </div>
                                     </tr>
                                     <?php if($rec->dateApproved != '0000-00-00 00:00:00'  ) { ?>
                                     <tr>
@@ -208,70 +210,84 @@
         $("#confirm").on('click', function(){
 
             var reffNo = "<?php echo $this->router->fetch_class().'_'.rand(); ?>";
-            var url = "<?php echo $controller_page;?>";
 
-
-            var pcID = "<?php echo $rec->pcID; ?>";
-
-            //get variance
-            var table = $('#table_physical_count');
-            table.find('tr').each(function(i){
-                var debit = 0, credit = 0, begBal = 0, endBal = 0;
-                var $tds = $(this).find('td');
-                var item_id = $tds.eq(2).text();
-                var variance = $tds.eq(5).text();
-                var expected_qty = $tds.eq(3).text();
-                var physical_qty = $tds.eq(4).text();
-
-                //alert(item_id);
-                if(item_id != "") {
                     //check variance if positive update item inventory and update stock card
 
 
-                   swal({
-                      title: "You are performing 'CONFIRM' action.",
-                      text: "Do you still want to continue?",
-                      icon: "warning",
-                      showCancelButton: true,
-                      confirmButtonColor: '#3085d6',
-                      cancelButtonColor: '#d33',
-                      confirmButtonText: 'Yes',
-                      cancelButtonText: 'No'
-                    })
-                    .then((willConfirm) => {
-                      if (willConfirm.value) {
+           swal({
+              title: "You are performing 'CONFIRM' action.",
+              text: "Do you still want to continue?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes',
+              cancelButtonText: 'No'
+            })
+            .then((willConfirm) => {
+              if (willConfirm.value) {
 
-                            $.post("<?php echo $controller_page ?>/updateApprovedBy", { pcID: pcID },
-                                function(data, status){
-                                    if(status == "success") {   
+                  var pcID = "<?php echo $rec->pcID; ?>";
 
-                                        if(variance > 0) {
-                                            //positivE
+                  //get variance
+                  var table = $('#table_physical_count');
+                  table.find('tr').each(function(i){
+                      var debit = 0, credit = 0, begBal = 0, endBal = 0;
+                      var $tds = $(this).find('td');
+                      var item_id = $tds.eq(2).text();
+                      var variance = $tds.eq(5).text();
+                      var expected_qty = $tds.eq(3).text();
+                      var physical_qty = $tds.eq(4).text();
 
-                                            var updated_inventory_qty = +expected_qty + +variance;
-                                            //console.log("updated inventory", updated_inventory_qty);
-                                            debit = updated_inventory_qty;
 
-                                            addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID, "positive");
-                                        }
-                                        else {
-                                            //negative
-                                            //cast to positive
-                                            var cast_variance = Math.abs(variance);
-                                            //console.log("negative", cast_variance)
-                                            credit = cast_variance;
-                                            var updated_inventory_qty = +expected_qty - +cast_variance;
-                                            //console.log("result for negative", updated_inventory_qty);
-                                            addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID, 'negative');
-                                        }
-                                        window.location.reload(); 
+                      //alert(item_id);
+                      if(item_id != "") {
+                          //check variance if positive update item inventory and update stock card
+                          if(variance > 0) {
+                              //positivE
 
-                                    }
-                                }
-                            );         
+                              var updated_inventory_qty = +expected_qty + +variance;
+                              //console.log("updated inventory", updated_inventory_qty);
+                              addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
+
+
+                          }
+                          else {
+                              //negative
+                              //cast to positive
+                              var cast_variance = Math.abs(variance);
+                              //console.log("negative", cast_variance)
+                              var updated_inventory_qty = +expected_qty - +cast_variance;
+                              //console.log("result for negative", updated_inventory_qty);
+                              addStockCardAndItemInventory(reffNo, item_id, updated_inventory_qty, debit, credit, begBal, endBal, pcID);
+
+
+                          }
 
                       }
-                    });     
+
+                  });
+
+
+                  $('#confirm').hide();
+                  $('#cancel').hide();
+                  var approved_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                  $("#id_approvedBy").text(approved_by);
+                  $("#id_approved_date").text("<?php echo date('Y-m-d h:is')?>");
+                  var date = '<?php echo date('F d, Y',strtotime(date('Y-m-d')))?>';
+                  $('#table-date-result').empty();
+                  var _table = $('#table-date-result');
+                  _table.append($('<tr>')
+                      .append($('<td>').attr('class', 'data-title w-10').text('Approved by :'))
+                      .append($('<td>').attr('class', 'data-input w-20')
+                          .append($('<span>').text(approved_by)
+                          )
+                      )
+                      .append($('<td>').attr('class', 'data-input w-20').text('Date Approved : ')).append($('<td>').attr('class', 'data-input w-20')
+                          .append($('<span>').text(date)
+                          ))
+
+                  );
 
                 }
 
@@ -318,7 +334,13 @@
                     function(data, status){
                         console.log(data);
                         if(status == "success") {
-                           window.location.reload();
+                           //window.location.reload();
+                            $('#cancel').hide();
+                            $('#confirm').hide();
+                            var cancel_by = "<?php echo $rec->firstName .' '.$rec->middleName .' '.$rec->lastName;?>";
+                            $("#id_cancel_by").text(cancel_by);
+                            $("#id_date_cancel").text("<?php echo date('Y-m-d h:i:s')?>");
+
                         }
                     });
           }

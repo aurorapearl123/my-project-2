@@ -1118,8 +1118,21 @@ class Customer extends CI_Controller {
                 ]
             ];
             $this->elastic_model->saveToElasticSearch($data);
-        }
+            $global_search = [
+                'index' => 'globals',
+                'type' => 'global',
+                'id' => 'customer-'.$customer->custID,
+                'body' => [
+                    'id' => $customer->custID,
+                    'name' => $full_name,
+                    'tag' => 'customer',
+                    'image' => $customer->profile,
+                    'description' => $customer->title
+                ]
+            ];
 
+            $this->elastic_model->saveToElasticSearch($global_search);
+        }
     }
 
 }

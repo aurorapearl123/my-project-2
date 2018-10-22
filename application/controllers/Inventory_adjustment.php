@@ -138,6 +138,7 @@ class Inventory_adjustment extends CI_Controller
             require_once(APPPATH.'controllers/Generic_ajax.php');
             $seriesNo = Generic_ajax::updateSeriesNo('adjNo',$adjSeriesNo,$userCurrentBranch);
 
+
             $this->record->fields['adjNo']          =   str_pad($adjSeriesNo,4,'0',STR_PAD_LEFT);
             $this->record->fields['createdBy']      =   $this->session->userdata('current_user')->userID;
             $this->record->fields['date']           =   date('Y-m-d');
@@ -148,6 +149,34 @@ class Inventory_adjustment extends CI_Controller
                 $this->record->fields = array();
                 $adjID = $this->record->where['adjID'] = $this->db->insert_id();
                 $this->record->retrieve();
+
+
+                $adustment = $this->input->post('adjType');
+                $this->load->model('elastic_model');
+                $_item = $this->elastic_model->getItem($this->input->post('itemID'));
+                $data = [
+                    'index' => 'inventory_adjustments',
+                    'type' => 'inventory_adjustment',
+                    'id' => $adjID,
+                    'body' => [
+                        'id' => $adjID,
+                        'date' => $this->input->post('date'),
+                        'branch' => $this->elastic_model->getBranchName($this->input->post('branchID')),
+                        'branch_id' => $this->input->post('branchID'),
+                        'date' => $this->input->post('date'),
+                        'item_id' => $this->input->post('itemID'),
+                        'item' => $_item->item,
+                        'brand' => $_item->brand,
+                        'item_description' => $_item->description,
+                        'umsr' => $_item->umsr,
+                        'remarks' => $this->input->post('remarks'),
+                        'adjustment' => ($adustment == 'DR') ? "debit" : "credit",
+                        'status' => "pending"
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($data);
+
      
                 // record logs
                 // $logs = "Record - ".trim($this->input->post($this->logfield));
@@ -157,7 +186,7 @@ class Inventory_adjustment extends CI_Controller
                 // success msg
                 $data["class"]   = "success";
                 $data["msg"]     = $this->data['current_module']['module_label']." successfully saved.";
-                $data["urlredirect"] = $this->controller_page."/view/".$this->encrypter->encode($adjID);
+                $data["urlredirect"] = $this->controller_page."/view/".$adjID;
                 $this->load->view("header",$data);
                 $this->load->view("message");
                 $this->load->view("footer");
@@ -258,10 +287,50 @@ class Inventory_adjustment extends CI_Controller
                     $this->log_model->table_logs($data['current_module']['module_label'], $this->table, $this->pfield, $this->record->pk, 'Update', $logs);
                 }
 
+
+                switch ($this->input->post('status')) {
+                    case 1:
+                        $status = "pending";
+                        break;
+                    case 2:
+                        $status = "confirmed";
+                        break;
+                    default:
+                        $status = "cancelled";
+                }
+
+
+                $adustment = $this->input->post('adjType');
+                $this->load->model('elastic_model');
+                $_item = $this->elastic_model->getItem($this->input->post('itemID'));
+                $data = [
+                    'index' => 'inventory_adjustments',
+                    'type' => 'inventory_adjustment',
+                    'id' => $this->record->pk,
+                    'body' => [
+                        'doc' => [
+                            'id' => $this->record->pk,
+                            'branch' => $this->elastic_model->getBranchName($this->input->post('branchID')),
+                            'branch_id' => $this->input->post('branchID'),
+                            'date' => $this->input->post('date'),
+                            'remarks' => $this->input->post('remarks'),
+                            'item_id' => $this->input->post('itemID'),
+                            'item' => $_item->item,
+                            'brand' => $_item->brand,
+                            'item_description' => $_item->description,
+                            'umsr' => $_item->umsr,
+                            'adjustment' => ($adustment == 'DR') ? "debit" : "credit",
+                            'status' => $status
+                        ]
+                    ]
+                ];
+
+                $this->elastic_model->update($data);
+
                 // successful
                 $data["class"] = "success";
                 $data["msg"] = $this->data['current_module']['module_label']." successfully updated.";
-                $data["urlredirect"] = $this->controller_page."/view/".trim($this->input->post($this->pfield));
+                $data["urlredirect"] = $this->controller_page."/view/".$this->record->pk;
                 $this->load->view("header",$data);
                 $this->load->view("message");
                 $this->load->view("footer");
@@ -369,7 +438,7 @@ class Inventory_adjustment extends CI_Controller
         // load submenu
         $this->submenu();
         $data = $this->data;
-        $id = $this->encrypter->decode($id);
+        //$id = $this->encrypter->decode($id);
 
         if ($this->roles['view']) {
             // for retrieve with joining tables -------------------------------------------------
@@ -458,6 +527,8 @@ class Inventory_adjustment extends CI_Controller
         // load submenu
         $this->submenu ();
         $data = $this->data;
+        //migate elastic search
+        //$this->migrateElasticSearch();
         
         // **************************************************
         // variable:field:default_value:operator
@@ -1100,6 +1171,10 @@ class Inventory_adjustment extends CI_Controller
         require_once(APPPATH.'controllers/Generic_ajax.php');
         //update approved by        
         $approvedBy = Generic_ajax::updateApprovedBy($this->table, "adjID", $adjID, $this->session->userdata('current_user')->userID);
+
+
+        $this->updateStatusElasticSearch("confirmed", $adjID);
+
         $response = [
             'data' => [
                 'status' => 200,                
@@ -1162,6 +1237,9 @@ class Inventory_adjustment extends CI_Controller
         //updateApproveBy($table, $compareId, $id, $approvedBy)
         $approvedBy = Generic_ajax::updateCancelledBy($this->table, "adjID", $adjID, $this->session->userdata('current_user')->userID);
 
+        $this->updateStatusElasticSearch("cancelled", $adjID);
+
+
         $response = [
             'data' => [
                 'status' => 200,                
@@ -1169,6 +1247,108 @@ class Inventory_adjustment extends CI_Controller
             ]
         ];
         echo json_encode($response);
+    }
+
+    public function elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'inventory_adjustments',
+            'type' => 'inventory_adjustment',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'branch',
+                            'date',
+                            'remarks',
+                            'adjustment',
+                            'item',
+                            'brand',
+                            'item_description',
+                            'umsr',
+                            'status'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+
+        $result = $this->elastic_model->search($data);
+        echo json_encode($result);
+    }
+
+    public function migrateElasticSearch()
+    {
+
+        $this->db->select('*');
+        $this->db->from($this->table);
+        $adjustments = $this->db->get()->result();
+
+        $this->load->model('elastic_model');
+        foreach($adjustments as $adjustment)
+        {
+            switch ($adjustment->status) {
+                case 1:
+                    $status = "pending";
+                    break;
+                case 2:
+                    $status = "confirmed";
+                    break;
+                default:
+                    $status = "cancelled";
+            }
+
+            $_item = $this->elastic_model->getItem($adjustment->itemID);
+            $data = [
+                'index' => 'inventory_adjustments',
+                'type' => 'inventory_adjustment',
+                'id' => $adjustment->adjID,
+                'body' => [
+                    'id' => $adjustment->adjID,
+                    'branch' => $this->elastic_model->getBranchName($adjustment->branchID),
+                    'branch_id' => $adjustment->branchID,
+                    'date' => date('F d, Y', strtotime($adjustment->date)),
+                    'remarks' => $adjustment->remarks,
+                    'item_id' => $adjustment->itemID,
+                    'item' => $_item->item,
+                    'brand' => $_item->brand,
+                    'item_description' => $_item->description,
+                    'umsr' => $_item->umsr,
+                    'adjustment' => ($adjustment->adjType == 'DR') ? "debit" : "credit",
+                    'status' => $status
+                ]
+            ];
+
+            $this->elastic_model->saveToElasticSearch($data);
+        }
+
+
+    }
+
+
+    function updateStatusElasticSearch($status, $id)
+    {
+
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'inventory_adjustments',
+            'type' => 'inventory_adjustment',
+            'id' => $id,
+            'body' => [
+                'doc' => [
+                    'id' => $id,
+                    'status' => $status,
+                ]
+            ],
+        ];
+
+        $this->elastic_model->update($data);
+
     }
  
 }

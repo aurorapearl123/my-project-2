@@ -765,6 +765,9 @@ class Order extends CI_Controller {
         // load submenu
         $this->submenu ();
         $data = $this->data;
+        //migrate data to elastic search
+        //$this->migrateOrderElastic();
+
 
 
 
@@ -1367,6 +1370,68 @@ class Order extends CI_Controller {
 
         echo json_encode($data);
     }
+
+    public function migrateOrderElastic()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table);
+        $orders = $this->db->get()->result();
+
+        $this->load->model('elastic_model');
+        foreach ($orders as $order) {
+            $customer = $this->getCustomerFullName($order->custID);
+            if($customer) {
+                $full_name = $customer[0]->fname ." ".$customer[0]->mname ." ". $customer[0]->lname;
+                $date = $this->input->post('date');
+                $customer_id = $customer[0]->custID;
+                $profile = $customer[0]->profile;
+                $branchName = $this->getBranchName($order->branchID);
+                $this->saveToElasticSearch($full_name, $profile, $branchName, $date, $customer_id, $order->orderID, $order->status);
+
+                $global_search = [
+                    'index' => 'globals',
+                    'type' => 'global',
+                    'id' => 'order-'.$order->orderID,
+                    'body' => [
+                        'id' => $order->orderID,
+                        'name' => $full_name,
+                        'tag' => 'order',
+                        'image' => $profile,
+                        'description' => date('F d, Y h:i:s A', strtotime($order->dateCreated))
+                    ]
+                ];
+
+                $this->elastic_model->saveToElasticSearch($global_search);
+
+            }
+
+            //$this->elastic_model->saveToElasticSearch($data);
+        }
+
+    }
+
+    public function global_elastic_search()
+    {
+        $this->load->model('elastic_model');
+        $q = $this->input->post('search');
+        $data = [
+            'index' => 'globals',
+            'type' => 'global',
+            'body' => [
+                'query' => [
+                    'multi_match' => [
+                        'query' => $q,
+                        'fields' => [
+                            'name',
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $result = $this->elastic_model->uniqueSearch($data);
+        echo json_encode($result);
+    }
+
 
 
 }

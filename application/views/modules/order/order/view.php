@@ -191,7 +191,7 @@
                                 <tbody>
                                 <tr>
                                     <td class="data-title">Order #:</td>
-                                    <td class="py-5"><input type="text" class="form-control" name="deliveryFee" id="deliveryFee"  value="<?php echo $rec[0]['osNo'];?>" readonly></td>
+                                    <td class="py-5"><input type="text" class="form-control" name="osNo" id="osNo"  value="<?php echo $rec[0]['osNo'];?>" readonly></td>
                                 </tr>
                                 <tr>
                                     <td class="data-title">Deliver Fee:</td>

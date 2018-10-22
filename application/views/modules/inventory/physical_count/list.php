@@ -93,7 +93,7 @@
 											if (count($records)) {
 											    foreach($records as $row) {
 											    ?>
-										<tr onclick="location.href='<?php echo $controller_page."/view/".$this->encrypter->encode($row->pcID); ?>'">
+										<tr onclick="location.href='<?php echo $controller_page."/view/".$row->pcID; ?>'">
 											
 											<td><?php echo $row->pcNo ?></td>
 											
@@ -174,8 +174,7 @@
 
 <script>
     $(document).ready(function() {
-        console.log("hello");
-
+        var base_url = '<?php echo base_url(); ?>';
         var $project = $('#autocomplete');
         $project.autocomplete({
             source: function( request, response ) {
@@ -230,10 +229,15 @@
             },
             select: function(event, ui) {
                 //$('#zipCode').val(zipCode[ui.item.value]);
-                console.log("you click me");
-                console.log(ui.item.suppID);
-                getRrHeaderBySupplierId(ui.item.suppID);
-                $('#rr-table-body').empty();
+                //console.log("you click me");
+                //console.log(ui.item.id);
+
+                var url = '<?php echo $controller_page."/view/"; ?>';
+                location.href=url+ui.item.id;
+
+
+                //getRrHeaderBySupplierId(ui.item.suppID);
+                //$('#rr-table-body').empty();
                 //get all data to display on table
             },
         })
@@ -245,7 +249,7 @@
                 $img = $('<img style="width:50px;height: 60px">');
             //var urlCreator = window.URL || window.webkitURL;
             //var imageUrl = URL.createObjectURL( item.profile );
-            var image = item.profile  ? item.profile : 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon;
+            var image = item.profile  ? item.profile : base_url+'assets/img/users/noimage.gif';
             $img.attr({
                 // src: 'https://jqueryui.com/resources/demos/autocomplete/images/' + item.icon,
                 src: image,

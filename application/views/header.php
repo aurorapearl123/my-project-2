@@ -123,6 +123,10 @@
                   </li>
 
                 </ul>
+                  <div class="input-group">
+                      <input type="text" class="search-bar-my pl-25" placeholder="Search" id="autocomplete_global" >
+                      <span class="position-absolute"><i class="icon left la la-search"></i> </span>
+                  </div>
               </div>
             </div> <!-- <div id="header-menu" class="header-menu"> -->
             

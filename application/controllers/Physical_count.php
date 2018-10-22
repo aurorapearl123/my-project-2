@@ -70,7 +70,7 @@ class Physical_count extends CI_Controller {
 
     }
 
-   private function _in_used($id = 0) {
+    private function _in_used($id = 0) {
         $tables = array ('branches' => 'branchID');
 
         if (! empty ( $tables )) {
@@ -212,7 +212,7 @@ class Physical_count extends CI_Controller {
                 // success msg
                 $data ["class"] = "success";
                 $data ["msg"] = $this->data ['current_module'] ['module_label'] . " successfully saved.";
-                $data ["urlredirect"] = $this->controller_page . "/view/" . $this->encrypter->encode ( $id );
+                $data ["urlredirect"] = $this->controller_page . "/view/" . $id;
                 $this->load->view ( "header", $data );
                 $this->load->view ( "message" );
                 $this->load->view ( "footer" );
@@ -571,7 +571,7 @@ class Physical_count extends CI_Controller {
     }
 
     public function view($id) {
-        $id = $this->encrypter->decode ( $id );
+        //$id = $this->encrypter->decode ( $id );
 
         // load submenu
         $this->submenu ();
@@ -660,6 +660,8 @@ class Physical_count extends CI_Controller {
         // load submenu
         $this->submenu ();
         $data = $this->data;
+        //migrate data to elasticsearch
+        //$this->migratePhysicalElastic();
         
         // **************************************************
         // variable:field:default_value:operator
@@ -1116,12 +1118,18 @@ class Physical_count extends CI_Controller {
 
     public function updateApproveBy($pcID)
     {
+
         $data = [
             'approvedBy' => $this->session->userdata('current_user')->userID,
             'dateApproved' => date('Y-m-d h:i:s'),
+            'status' => 2
         ];
         $this->db->where('pcID', $pcID);
-        return $this->db->update('pc_headers', $data);
+        $add =  $this->db->update('pc_headers', $data);
+
+        $this->updateStatusElasticSearch("confirmed", $pcID);
+
+        return $add;
 
     }
 
@@ -1132,6 +1140,9 @@ class Physical_count extends CI_Controller {
         require_once(APPPATH.'controllers/Generic_ajax.php');
         //update approved by        
         $approvedBy = Generic_ajax::updateApprovedBy($this->table, "pcID", $pcID, $this->session->userdata('current_user')->userID);
+
+        $this->updateStatusElasticSearch("approved", $pcID);
+
         $response = [
             'data' => [
                 'status' => 200,                
@@ -1150,6 +1161,8 @@ class Physical_count extends CI_Controller {
         //update approved by
         //updateApproveBy($table, $compareId, $id, $approvedBy)
         $approvedBy = Generic_ajax::updateCancelledBy($this->table, "pcID",  $pcID, $this->session->userdata('current_user')->userID);
+
+        $this->updateStatusElasticSearch("cancelled", $pcID);
 
         $response = [
             'data' => [
@@ -1194,6 +1207,65 @@ class Physical_count extends CI_Controller {
     }
 
 
+    public function migratePhysicalElastic()
+    {
+        $this->db->select('*');
+        $this->db->from($this->table);
+        $physical_counts = $this->db->get()->result();
+
+        $this->load->model('elastic_model');
+        foreach($physical_counts as $count) {
+            $status  = "";
+            switch ($count->status) {
+                case 1:
+                    $status = "pending";
+                    break;
+                case 2:
+                    $status = "confirmed";
+                    break;
+                default:
+                    $status = "cancelled";
+            }
+            $data = [
+                'index' => 'pc_headers',
+                'type' => 'pc_header',
+                'id' => $count->pcID,
+                'body' => [
+                    'id' => $count->pcID,
+                    'date' => date('F d, Y', strtotime($count->date)),
+                    'branch' => $this->elastic_model->getBranchName($count->branchID),
+                    'branch_id' => $count->branchID,
+                    'conducted_by' => $count->conductedBy,
+                    'remarks' => $count->remarks,
+                    'status' => $status
+                ]
+            ];
+
+            $this->elastic_model->saveToElasticSearch($data);
+        }
+
+    }
+
+    function updateStatusElasticSearch($status, $id)
+    {
+
+        $this->load->model('elastic_model');
+
+        $data = [
+            'index' => 'pc_headers',
+            'type' => 'pc_header',
+            'id' => $id,
+            'body' => [
+                'doc' => [
+                    'id' => $id,
+                    'status' => $status,
+                ]
+            ],
+        ];
+
+        $this->elastic_model->update($data);
+
+    }
 
 
 }
